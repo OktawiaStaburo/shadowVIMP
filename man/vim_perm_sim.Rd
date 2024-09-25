@@ -37,6 +37,9 @@ object, default is \code{FALSE}}
 
 \item{num.trees}{numeric, number of trees}
 
+\item{data_name}{character, name of the object passed as \code{entire_data}. In
+\code{vim_perm_sim_wrapper()} set automatically}
+
 \item{num_cores_parallel}{numeric greater than 0 and and less than or equal to the
 number of cores available on your computer (\code{detectCores()}). This
 parameter specifies the number of cores to use to create a cluster by
@@ -45,9 +48,6 @@ means that sequential computation is used.}
 
 \item{...}{additional parameters passed directly to \code{ranger::ranger()} or
 \code{party::cforest()}}
-
-\item{df_name}{character, name of the object passed as \code{entire_data}. In
-\code{vim_perm_sim_wrapper()} set automatically}
 }
 \value{
 List where:
