@@ -14,7 +14,7 @@
 #' @param write.forest logical, indicator whether to save `ranger.forest`
 #'   object, default is `FALSE`
 #' @param num.trees numeric, number of trees
-#' @param df_name character, name of the object passed as `entire_data`. In
+#' @param data_name character, name of the object passed as `entire_data`. In
 #'   `vim_perm_sim_wrapper()` set automatically
 #' @param num_cores_parallel numeric greater than 0 and and less than or equal to the
 #'   number of cores available on your computer (`detectCores()`). This
@@ -33,8 +33,8 @@
 #' }
 #' @export
 #'
-#' @import dplyr ranger magrittr parallel foreach doSNOW doRNG
-#'
+#' @import dplyr ranger magrittr parallel foreach doSNOW doRNG utils
+#' @importFrom rlang .data
 #' @examples
 vim_perm_sim <- function(entire_data,
                          outcome_var, #y
@@ -58,13 +58,13 @@ vim_perm_sim <- function(entire_data,
     }
 
     # Avoid oversubscription
-    if(num.threads*num_cores_parallel > max_core){
+    if(num.threads*num_cores_parallel > max_cores){
       stop("The total number of threads (`num.threads`*`num_cores_parallel`) exceeds the number of available cores.\n Make sure that the product of `num.threads` and `num_cores_parallel` parameter values does not exceed parallel::detectCores().")
     }
   }
 
   # Avoid oversubscription in sequential mode
-  if(num.threads > max_core){
+  if(num.threads > max_cores){
     stop("Specified value of `num.threads` is too big. Use parallel::detectCores() to check the maximal possible value of `num.threads` parameter.")
   }
 
@@ -83,7 +83,7 @@ vim_perm_sim <- function(entire_data,
 
   # Renaming outcome variable to y
   entire_data <- entire_data %>%
-    rename(y = all_of(outcome_var))
+    dplyr::rename(y = .data[[outcome_var]])
 
   p <- ncol(entire_data)-1
   n <- nrow(entire_data)
@@ -143,8 +143,8 @@ vim_perm_sim <- function(entire_data,
     doSNOW::registerDoSNOW(cluster)
 
     # Progress track
-    pb <- txtProgressBar(max = nsim, style = 3)
-    progress <- function(n) setTxtProgressBar(pb, n)
+    pb <- utils::txtProgressBar(max = nsim, style = 3)
+    progress <- function(n) utils::setTxtProgressBar(pb, n)
     opts <- list(progress = progress)
 
     vimp_sim <- foreach(i = 1:nsim,
