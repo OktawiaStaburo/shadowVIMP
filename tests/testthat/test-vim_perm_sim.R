@@ -4,16 +4,15 @@ test_that("vim_perm_sim works as expected", {
   expect_length(vim_perm_sim(entire_data = df, outcome_var = "diagnosis", nsim = 10), n = 2)
 })
 
-test_that("vim_perm_sim works as expected in parallel mdoe", {
-  #it's not advisable to test parallel code on CRAN
-  skip_on_cran()
+test_that("vim_perm_sim works as expected in parallel mode", {
+  skip_on_cran()  # it's not advisable to test parallel code on CRAN
   expect_length(vim_perm_sim(entire_data = df, outcome_var = "diagnosis", nsim = 10, num.threads = 4), n = 2)
   expect_length(vim_perm_sim(entire_data = df, outcome_var = "diagnosis", nsim = 10, num.threads = 2, num_cores_parallel = 3), n = 2)
   expect_length(vim_perm_sim(entire_data = df, outcome_var = "diagnosis", nsim = 10, num_cores_parallel = 6), n = 2)
 })
 
 # Check if malformed input results in a specific kind of error
-test_that("vim_perm_sim throws an error when inappropiate inputs are passed", {
+test_that("vim_perm_sim fails when inappropiate inputs are passed", {
   expect_error(vim_perm_sim(entire_data = as.vector(df), outcome_var = "diagnosis", nsim = 10), class = "simpleError")
   expect_error(vim_perm_sim(entire_data = as.list(df), outcome_var = "diagnosis", nsim = 10), class = "simpleError")
   expect_error(vim_perm_sim(entire_data = df, outcome_var = diagnosis, nsim = 10), class = "simpleError")
@@ -31,11 +30,10 @@ test_that("vim_perm_sim throws an error when inappropiate inputs are passed", {
   expect_error(vim_perm_sim(entire_data = df, outcome_var = diagnosis, nsim = 10, num_cores_parallel = -10), class = "simpleError")
   expect_error(vim_perm_sim(entire_data = df, outcome_var = diagnosis, nsim = 10, num_cores_parallel = 10^7), class = "simpleError")
   expect_error(vim_perm_sim(entire_data = df, outcome_var = diagnosis, nsim = 10, num_cores_parallel = 35, num.threads = 30), class = "simpleError")
-
 })
 
 test_that("vim_perm_sim throws a warning when inappropiate inputs are passed", {
-  expect_warning(vim_perm_sim(entire_data = df, outcome_var = "diagnosis", nsim = c(1:3)), class =  "simpleWarning")
+  expect_warning(vim_perm_sim(entire_data = df, outcome_var = "diagnosis", nsim = c(1:3)), class = "simpleWarning")
 })
 
 # I cannot add snapshot test in this form due the hour and date printed by the vim_perm_sim() function when tracking the progress

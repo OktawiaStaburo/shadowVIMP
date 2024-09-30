@@ -15,11 +15,11 @@
 #' @param num.trees numeric, number of trees
 #' @param data_name character, name of the object passed as `entire_data`. In
 #'   `vim_perm_sim_wrapper()` set automatically
-#' @param num_cores_parallel numeric greater than 0 and and less than or equal to the
-#'   number of cores available on your computer (`detectCores()`). This
+#' @param num_cores_parallel numeric greater than 0 and and less than or equal
+#'   to the number of cores available on your computer (`detectCores()`). This
 #'   parameter specifies the number of cores to use to create a cluster by
-#'   calling `parallel::makeCluster(num_cores_parallel)`. The default is `NULL`, which
-#'   means that sequential computation is used.
+#'   calling `parallel::makeCluster(num_cores_parallel)`. The default is `NULL`,
+#'   which means that sequential computation is used.
 #' @param ... additional parameters passed directly to `ranger::ranger()` or
 #'   `party::cforest()`
 #'
@@ -48,7 +48,6 @@ vim_perm_sim <- function(entire_data,
   # Check whether num_cores_parallel is correctly specified
   max_cores <- parallel::detectCores()
   if (is.null(num_cores_parallel) == FALSE) {
-
     if (!is.numeric(num_cores_parallel) || num_cores_parallel < 0 || num_cores_parallel > max_cores) {
       stop("The specified number of cores `num_cores_parallel` is incorrect or it is not numeric.")
     }
@@ -65,7 +64,7 @@ vim_perm_sim <- function(entire_data,
   }
 
   # Check if nsim parameter has a correct format
-  if (is.numeric(nsim) == F){
+  if (is.numeric(nsim) == F) {
     stop("`nsim` parameter must be numeric.")
   }
 
@@ -75,7 +74,7 @@ vim_perm_sim <- function(entire_data,
   }
 
   # Check if passed data_name argument has a correct format
-  if (length(data_name) > 1){
+  if (length(data_name) > 1) {
     stop("`data_name` must be a character of length 1.")
   }
 
@@ -96,7 +95,7 @@ vim_perm_sim <- function(entire_data,
 
 
   # Splitting predictors
-  predictors <- entire_data %>% select(-c(y))
+  predictors <- entire_data %>% dplyr::select(-c(y))
 
   if (sum(grepl("_permuted$", names(predictors))) > 0) {
     stop("One or more variables ending with _permuted. Please rename them.")
