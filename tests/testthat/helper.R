@@ -1,5 +1,5 @@
-# Define objects repetitively used in multiple tests
-# Data used in test-vim_perm_sim.R
+# Define objects used repetitively in multiple tests
+# Data used in test-vim_perm_sim.R and test-vim_perm_sim_wrapper.R
 df <- data.frame(diagnosis = c(rep(1, 50), rep(0, 50)))
 n_rows <- nrow(df)
 for (i in 1:20) {
@@ -9,13 +9,15 @@ for (i in 1:20) {
   df[[paste0("v", i)]] <- stats::rnorm(n_rows, mean = mean_val, sd = sd_val)
 }
 
+df[["v_surv"]] <- c(rep(2, 50), rep(3, 50))
+
 df_mod <- df %>% dplyr::rename(y = v1)
 df_mod2 <- df %>% dplyr::rename(v1_permuted = v1)
 
 # Data used in test-add_test_results.R
 var_names <- paste0("var", c(1:5))
 var_permuted <- paste0(var_names, "_permuted")
-fake_vimp <- rnorm(50, mean = 2, sd = 4)
+fake_vimp <- stats::rnorm(50, mean = 2, sd = 4)
 
 fake_vimp_df <- matrix(fake_vimp, nrow = 5, ncol = 10) %>%
   as.data.frame()
