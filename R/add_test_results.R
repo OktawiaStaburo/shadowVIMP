@@ -20,7 +20,8 @@
 #'   important when applying FWER, FDR and no p-value adjustments and when using
 #'   "per_variable" and "pooled" p-values respectively.
 #' @export
-#' @import magrittr dplyr stats
+#' @import magrittr dplyr
+#' @importFrom stats p.adjust median ecdf sd
 #' @examples
 add_test_results <- function(vimpermsim,
                              alpha = 0.05,
