@@ -36,7 +36,3 @@ test_that("add_test_results fails when inappropiate inputs are passed", {
   expect_error(add_test_results(vimpermsim = fake_data_vps, alpha = "0.1", init_num_vars = 5), class = "simpleError")
   expect_error(add_test_results(vimpermsim = fake_data_vps, alpha = 0.1, init_num_vars = 5, to_show = "cat"), class = "simpleError")
 })
-
-# Scenarios to test:
-# what will happen if some variable in the data is character/ categorical coded with character
-# run tests coverage -- come up with tests that you should further perform

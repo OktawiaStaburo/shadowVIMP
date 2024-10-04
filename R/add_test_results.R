@@ -45,7 +45,7 @@ add_test_results <- function(vimpermsim,
     select(ends_with("_permuted"))
 
   # calculate medians of original variables
-  medians <- originals %>% summarise_all(median) #TODO - summarise_all() has been suppressed - change for the currently supported solution
+  medians <- originals %>% summarise(across(everything(), median))
   varnames_originals <- names(medians)
 
   # per variable
