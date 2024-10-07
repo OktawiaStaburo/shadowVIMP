@@ -1,46 +1,64 @@
-#' Calculate variable importance of original values of predictors and its
-#' row-wise permuted shadows
+#' Compute the variable importance of the predictors and their row-wise shadows
 #'
+#' `vim_perm_sim()` calculates repeatedly (`nsim` times) the variable importance
+#' of the original values of the predictors and their row-wise permuted shadows.
+#' Each shadow's variable importance is computed based on a new permutation of
+#' the initial predictor values.
 #'
-#' @param entire_data data frame
-#' @param outcome_var character, name of the column containing the outcome
-#'   variable
-#' @param nsim numeric, number of permutations, by default 100
-#' @param importance character, variable importance mode passed directly to
-#'   `ranger::ranger()`, default is "permutation"
-#' @param num.threads numeric, number of threads, default is number of CPUs
-#'   available
-#' @param write.forest logical, indicator whether to save `ranger.forest`
-#'   object, default is `FALSE`
-#' @param num.trees numeric, number of trees
-#' @param data_name character, name of the object passed as `entire_data`. In
-#'   `vim_perm_sim_wrapper()` set automatically
-#' @param num_cores_parallel numeric greater than 0 and and less than or equal
-#'   to the number of cores available on your computer (`detectCores()`). This
-#'   parameter specifies the number of cores to use to create a cluster by
-#'   calling `parallel::makeCluster(num_cores_parallel)`. The default is `NULL`,
-#'   which means that sequential computation is used.
-#' @param ... additional parameters passed directly to `ranger::ranger()` or
-#'   `party::cforest()`
+#' @param entire_data Input data frame.
+#' @param outcome_var Character, name of the column containing the outcome
+#'   variable.
+#' @param nsim Numeric, number of permutations of the initial predictor values,
+#'   default is 100.
+#' @param importance Character, variable importance for each independent
+#'   variable. Argument passed to [ranger::ranger()], default is `permutation`.
+#' @param num.threads Numeric, number of threads. Argument passed to
+#'   [ranger::ranger()], default is `NULL`.
+#' @param write.forest Logical, indicator whether to save `ranger.forest`
+#'   object. Passed to [ranger::ranger()], default is `FALSE`
+#' @param num.trees Numeric, number of trees. Passed to [ranger::ranger()],
+#'   default is `max(2 * (ncol(entire_data) - 1), 10000)`.
+#' @param data_name Character, name of the object passed as `entire_data`. In
+#'   `vim_perm_sim_wrapper()` it is set automatically.
+#' @param num_cores_parallel Numeric greater than 0 and and less than or equal
+#'   to the number of cores available on your computer (check by running
+#'   [parallel::detectCores()]). This parameter specifies the number of cores to
+#'   use to create a cluster when calling
+#'   `parallel::makeCluster(num_cores_parallel)`. For example, setting
+#'   `num_cores_parallel` to 4 will use 4 cores to create a cluster. The default
+#'   is `NULL`, which means that sequential computation is used.
+#' @param ... Additional parameters passed to [ranger::ranger()] or stored in
+#'   the `controls` list in the output.
 #'
-#' @return List where:
+#' @return List consisting of 2 elements where:
 #' \enumerate{
-#'  \item `vim_simulated` stores `n_sim` variable importances calculated based
-#'  on the original and row-wise permuted values of the predictors,
-#'  \item `controls` stores used control parameters, by default - number of
-#'  permutations `n_sim`.
+#'  \item `vim_simulated`is a data frame with `n_sim` variable importances
+#'  calculated based on the original and row-wise permuted values of the
+#'  predictors,
+#'  \item `controls` is a list storing the values of control parameters used,
+#'  default is number of permutations `n_sim`.
 #' }
 #' @export
-#'
-#' @import dplyr ranger magrittr parallel foreach doSNOW doRNG utils
-#' @importFrom rlang sym :=
+#' @import magrittr foreach doRNG rlang
 #' @examples
+#' data(mtcars)
+#'
+#' # Sequential computing mode:
+#' out_seq <- vim_perm_sim(entire_data = mtcars, outcome_var = "vs", nsim = 30)
+#'
+#' # Parallel computing - using a cluster:
+#' out_par_cores <- vim_perm_sim(entire_data = mtcars, outcome_var = "vs",
+#'  nsim = 30, num_cores_parallel = 2)
+#'
+#' # Parallelisation through num.threads parameter from ranger::ranger()
+#' out_par <- vim_perm_sim(entire_data = mtcars, outcome_var = "vs", nsim = 30,
+#'  num.threads = 2)
 vim_perm_sim <- function(entire_data,
                          outcome_var, # y
                          nsim = 100,
                          importance = "permutation",
                          num.threads = NULL,
-                         write.forest = F,
+                         write.forest = FALSE,
                          num.trees = max(2 * (ncol(entire_data) - 1), 10000),
                          data_name = NULL,
                          num_cores_parallel = NULL,
@@ -127,7 +145,8 @@ vim_perm_sim <- function(entire_data,
       dt[, (ncol(predictors_p) + 1):(2 * ncol(predictors_p))] <- dt[sample(1:n), (ncol(predictors_p) + 1):(2 * ncol(predictors_p))]
 
       vimp_sim[[i]] <- (ranger::ranger(
-        y = dt$y, x = dt %>% select(-y),
+        y = dt$y,
+        x = dt %>% dplyr::select(-y),
         importance = importance,
         replace = TRUE,
         num.trees = num.trees,
@@ -162,14 +181,15 @@ vim_perm_sim <- function(entire_data,
 
       vimp <- (ranger::ranger(
         y = dt$y,
-        x = dt %>% select(-y),
+        x = dt %>% dplyr::select(-y),
         importance = importance,
         replace = TRUE,
         num.trees = num.trees,
         scale.permutation.importance = TRUE,
         num.threads = num.threads,
         write.forest = write.forest,
-        respect.unordered.factors = "order"
+        respect.unordered.factors = "order",
+        ...
       ))$variable.importance %>%
         t() %>%
         as.data.frame()
