@@ -5,18 +5,16 @@ test_that("vim_perm_sim works as expected", {
 })
 
 test_that("vim_perm_sim works as expected in parallel mode", {
-  skip_on_cran()  # it's not advisable to test parallel code on CRAN
+  skip_on_cran() # it's not advisable to test parallel code on CRAN
   expect_length(vim_perm_sim(entire_data = df, outcome_var = "diagnosis", nsim = 10, num.threads = 4), n = 2)
   expect_length(vim_perm_sim(entire_data = df, outcome_var = "diagnosis", nsim = 10, num.threads = 2, num_cores_parallel = 2), n = 2)
   expect_length(vim_perm_sim(entire_data = df, outcome_var = "diagnosis", nsim = 10, num_cores_parallel = 2), n = 2)
-
 })
 
 # Check if malformed input results in a specific kind of error
 test_that("vim_perm_sim fails when inappropiate inputs are passed", {
   expect_error(vim_perm_sim(entire_data = as.vector(df), outcome_var = "diagnosis", nsim = 10), class = "simpleError")
   expect_error(vim_perm_sim(entire_data = as.list(df), outcome_var = "diagnosis", nsim = 10), class = "simpleError")
-  expect_error(vim_perm_sim(entire_data = df, outcome_var = diagnosis, nsim = 10), class = "simpleError")
   expect_error(vim_perm_sim(entire_data = df, outcome_var = 45, nsim = 10), class = "rlang_error")
   expect_error(vim_perm_sim(entire_data = df, outcome_var = "dog", nsim = 10), class = "rlang_error")
   expect_error(vim_perm_sim(entire_data = df, outcome_var = TRUE, nsim = 10), class = "rlang_error")

@@ -7,7 +7,6 @@ test_that("add_test_results works as expected", {
   expect_length(output$test_results, n = 2)
   expect_s3_class(output$test_results[[1]], "data.frame")
   expect_s3_class(output$test_results[[2]], "data.frame")
-
 })
 
 # Warnings
