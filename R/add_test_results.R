@@ -1,28 +1,57 @@
-#' Calculate p-values (both per_variable and pooled) and identify important
-#' variables when using FWER, FDR or no p-value adjustment
+#' Identify significant covariates with FWER, FDR, or no p-value adjustment
 #'
+#' Calculate pooled or per variable p-values and identify significant variables
+#' when using FWER, FDR or no p-value adjustment for a given alpha level of
+#' significance.
 #'
-#' @param vimpermsim list, an output from `vim_perm_sim()` function
-#' @param alpha numeric, the significance level, must be between 0 and 1
-#' @param init_num_vars numeric, the number of covariates originally included in
-#'   the data, required to correctly apply the Benjamini-Hochberg and Holm
-#'   p-value correction
-#' @param to_show character, one of "FWER", "FDR" or "unadjusted". If
-#'   "unadjusted" is selected, then the final output will contain only raw,
-#'   unadjusted p-values together with the decision. If "FDR" is selected, the
-#'   final output will include both unadjusted and Benjamini-Hochberg adjusted
-#'   p-values along with the decision. The last option "FWER" includes
-#'   unadjusted, Benjamini-Hochberg and Holm adjusted p-values together with the
-#'   decision. Default is "FWER".
-#' @return list, contains the results stored in the output of the
-#'   `vim_perm_sim()` function Additionally, `$test_results$per_variable` and
-#'   `out_add$test_results$pooled` show which variables were found to be
-#'   important when applying FWER, FDR and no p-value adjustments and when using
-#'   "per_variable" and "pooled" p-values respectively.
+#' @param vimpermsim List, an output from `vim_perm_sim()` function.
+#' @param alpha Numeric, the significance level, must be between 0 and 1.
+#' @param init_num_vars Numeric, the number of covariates originally included in
+#'   the data. Required to correctly apply the Benjamini-Hochberg (FDR) and Holm
+#'   (FWER) p-value correction
+#' @param to_show Character, one of "FWER", "FDR" or "unadjusted".
+#'  * `FWER` (the default) - the output of `add_test_results()` includes
+#'   unadjusted, Benjamini-Hochberg (FDR) and Holm (FWER) adjusted p-values
+#'   together with the decision whether the variable is significant or not (1 -
+#'   significant, 0 - not significant) according to the chosen criterium.
+#'  * `FDR` - the output includes both unadjusted and FDR adjusted p-values along
+#'   with the decision.
+#'  * `unadjusted` - the output contains only raw, unadjusted p-values together
+#'   with the decision.
+#' @return A list of length 3 containing the following elements:
+#'  * `vim_simulated` -  a data frame with variable importances stored in a
+#'   `vimpermsim` input object (obtained from the `vim_perm_sim()` function).
+#'  * `controls`- a list of control parameters used to create the `vimpermsim`
+#'   input object.
+#'  * `test_results` - a list consisting of 2 data frames called `pooled` and
+#'   `per_variable`. The `pooled` data frame contains pooled p-values, while the
+#'   `per_variable` data frame stores per variable p-values. Both data frames
+#'   also contain decisions about variable importance based on the displayed
+#'   p-values. The type of decisions displayed (based on FWER/FDR/unadjusted
+#'   p-values) depends on the selected value of the `to_show` parameter.
+#'
+#'   In fact, the output of the `add_test_results()` function is the output of
+#'   `vim_perm_sim()` with an additional layer - the `test_results` list.
 #' @export
 #' @import magrittr dplyr
 #' @importFrom stats p.adjust median ecdf sd
 #' @examples
+#' data(mtcars)
+#' # Create vimpermsim object first
+#' cars_vps <- vim_perm_sim(entire_data = mtcars, outcome_var = "vs", nsim = 30)
+#' init_num_vars <- ncol(x = mtcars) - 1
+#'
+#' # Display decisions based on all available p-values (FWER, FDR, unadjusted)
+#' cars_add_fwer <- add_test_results(vimpermsim = cars_vps, alpha = 0.05,
+#' init_num_vars = init_num_vars)
+#'
+#' # Display decisions based on FDR adjusted and unadjusted p-values, expect warnning
+#' cars_add_fdr <- add_test_results(vimpermsim = cars_vps, alpha = 0.05,
+#' init_num_vars = init_num_vars, to_show = "FDR")
+#'
+#' # Display decisions based on unadjusted p-values (Type1_confirmed column)
+#' cars_add_unadj <- add_test_results(vimpermsim = cars_vps, alpha = 0.05,
+#' init_num_vars = init_num_vars, to_show = "unadjusted")
 add_test_results <- function(vimpermsim,
                              alpha = 0.05,
                              init_num_vars,
@@ -31,9 +60,9 @@ add_test_results <- function(vimpermsim,
   to_show <- match.arg(to_show)
 
   # Ensure alpha is numeric
-  if(is.numeric(alpha) == FALSE){
+  if (is.numeric(alpha) == FALSE) {
     stop("`alpha` must be numeric.")
-  } else if(length(alpha) > 1|| alpha > 1 || alpha < 0){
+  } else if (length(alpha) > 1 || alpha > 1 || alpha < 0) {
     stop("`alpha` must be a single numeric between 0 and 1.")
   }
 
@@ -64,8 +93,8 @@ add_test_results <- function(vimpermsim,
     arrange(desc(quantile_per_variable)) %>%
     mutate(
       p_unadj = 1 - quantile_per_variable,
-      p_adj_FDR = stats::p.adjust(1 - quantile_per_variable, "BH", n = init_num_vars),
-      p_adj_FWER = stats::p.adjust(1 - quantile_per_variable, "holm", n = init_num_vars)
+      p_adj_FDR = p.adjust(1 - quantile_per_variable, "BH", n = init_num_vars),
+      p_adj_FWER = p.adjust(1 - quantile_per_variable, "holm", n = init_num_vars)
     ) %>%
     mutate(
       Type1_confirmed = ifelse(p_unadj <= alpha, 1, 0),
