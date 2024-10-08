@@ -10,8 +10,9 @@
 #'   variable.
 #' @param nsim Numeric, number of permutations of the initial predictor values,
 #'   default is 100.
-#' @param importance Character, variable importance for each independent
-#'   variable. Argument passed to [ranger::ranger()], default is `permutation`.
+#' @param importance Character, the type of variable importance to be calculated
+#'   for each independent variable. Argument passed to [ranger::ranger()],
+#'   default is `permutation`.
 #' @param num.threads Numeric, number of threads. Argument passed to
 #'   [ranger::ranger()], default is `NULL`.
 #' @param write.forest Logical, indicator whether to save `ranger.forest`
@@ -30,28 +31,30 @@
 #' @param ... Additional parameters passed to [ranger::ranger()] or stored in
 #'   the `controls` list in the output.
 #' @return List consisting of 2 elements:
-#' \enumerate{
-#'  \item `vim_simulated` - a data frame with `n_sim` variable importances
+#'  * `vim_simulated` - a data frame with `n_sim` variable importances
 #'  calculated based on the original and row-wise permuted values of the
-#'  predictors,
-#'  \item `controls` - a list storing the values of control parameters used,
+#'  predictors.
+#'  * `controls` - a list storing the values of control parameters used,
 #'  default is number of permutations `n_sim`.
-#' }
 #' @export
-#' @import magrittr foreach doRNG rlang dplyr
+#' @import foreach doRNG rlang dplyr
+#' @importFrom magrittr %>%
 #' @examples
 #' data(mtcars)
+#' # When working with real data, increase num.trees value or leave default
+#' # Here this parameter is set to a small value in order to reduce the runtime
 #'
 #' # Sequential computing mode:
-#' out_seq <- vim_perm_sim(entire_data = mtcars, outcome_var = "vs", nsim = 30)
+#' out_seq <- vim_perm_sim(entire_data = mtcars, outcome_var = "vs", nsim = 30,
+#' num.trees = 50)
 #'
 #' # Parallel computing - using a cluster:
 #' out_par_cores <- vim_perm_sim(entire_data = mtcars, outcome_var = "vs",
-#'  nsim = 30, num_cores_parallel = 2)
+#'  nsim = 30, num_cores_parallel = 2, num.trees = 50)
 #'
 #' # Parallelism through num.threads parameter from ranger::ranger()
 #' out_par <- vim_perm_sim(entire_data = mtcars, outcome_var = "vs", nsim = 30,
-#'  num.threads = 2)
+#'  num.threads = 2, num.trees = 50)
 vim_perm_sim <- function(entire_data,
                          outcome_var, # y
                          nsim = 100,

@@ -9,14 +9,14 @@
 #' @param init_num_vars Numeric, the number of covariates originally included in
 #'   the data. Required to correctly apply the Benjamini-Hochberg (FDR) and Holm
 #'   (FWER) p-value correction
-#' @param to_show Character, one of "FWER", "FDR" or "unadjusted".
-#'  * `FWER` (the default) - the output of `add_test_results()` includes
+#' @param to_show Character, one of `"FWER"`, `"FDR"` or `"unadjusted"`.
+#'  * `"FWER"` (the default) - the output of `add_test_results()` includes
 #'   unadjusted, Benjamini-Hochberg (FDR) and Holm (FWER) adjusted p-values
 #'   together with the decision whether the variable is significant or not (1 -
 #'   significant, 0 - not significant) according to the chosen criterium.
-#'  * `FDR` - the output includes both unadjusted and FDR adjusted p-values along
+#'  * `"FDR"` - the output includes both unadjusted and FDR adjusted p-values along
 #'   with the decision.
-#'  * `unadjusted` - the output contains only raw, unadjusted p-values together
+#'  * `"unadjusted:` - the output contains only raw, unadjusted p-values together
 #'   with the decision.
 #' @return A list of length 3 containing the following elements:
 #'  * `vim_simulated` -  a data frame with variable importances stored in a
@@ -33,12 +33,16 @@
 #'   In fact, the output of the `add_test_results()` function is the output of
 #'   `vim_perm_sim()` with an additional layer - the `test_results` list.
 #' @export
-#' @import magrittr dplyr
+#' @import dplyr
+#' @importFrom magrittr %>%
 #' @importFrom stats p.adjust median ecdf sd
 #' @examples
 #' data(mtcars)
 #' # Create vimpermsim object first
-#' cars_vps <- vim_perm_sim(entire_data = mtcars, outcome_var = "vs", nsim = 30)
+#' # When working with real data, increase num.trees value or leave default
+#' # Here this parameter is set to a small value in order to reduce the runtime
+#' cars_vps <- vim_perm_sim(entire_data = mtcars, outcome_var = "vs", nsim = 30,
+#'  num.trees = 50)
 #' init_num_vars <- ncol(x = mtcars) - 1
 #'
 #' # Display decisions based on all available p-values (FWER, FDR, unadjusted)
