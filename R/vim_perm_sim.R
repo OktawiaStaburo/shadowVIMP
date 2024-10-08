@@ -29,17 +29,16 @@
 #'   is `NULL`, which means that sequential computation is used.
 #' @param ... Additional parameters passed to [ranger::ranger()] or stored in
 #'   the `controls` list in the output.
-#'
-#' @return List consisting of 2 elements where:
+#' @return List consisting of 2 elements:
 #' \enumerate{
-#'  \item `vim_simulated`is a data frame with `n_sim` variable importances
+#'  \item `vim_simulated` - a data frame with `n_sim` variable importances
 #'  calculated based on the original and row-wise permuted values of the
 #'  predictors,
-#'  \item `controls` is a list storing the values of control parameters used,
+#'  \item `controls` - a list storing the values of control parameters used,
 #'  default is number of permutations `n_sim`.
 #' }
 #' @export
-#' @import magrittr foreach doRNG rlang
+#' @import magrittr foreach doRNG rlang dplyr
 #' @examples
 #' data(mtcars)
 #'
@@ -50,7 +49,7 @@
 #' out_par_cores <- vim_perm_sim(entire_data = mtcars, outcome_var = "vs",
 #'  nsim = 30, num_cores_parallel = 2)
 #'
-#' # Parallelisation through num.threads parameter from ranger::ranger()
+#' # Parallelism through num.threads parameter from ranger::ranger()
 #' out_par <- vim_perm_sim(entire_data = mtcars, outcome_var = "vs", nsim = 30,
 #'  num.threads = 2)
 vim_perm_sim <- function(entire_data,
@@ -106,14 +105,14 @@ vim_perm_sim <- function(entire_data,
 
   # Renaming outcome variable to y
   entire_data <- entire_data %>%
-    dplyr::rename(y := !!sym(outcome_var))
+    rename(y := !!sym(outcome_var))
 
   p <- ncol(entire_data) - 1
   n <- nrow(entire_data)
 
 
   # Splitting predictors
-  predictors <- entire_data %>% dplyr::select(-c(y))
+  predictors <- entire_data %>% select(-c(y))
 
   if (sum(grepl("_permuted$", names(predictors))) > 0) {
     stop("One or more variables ending with _permuted. Please rename them.")
@@ -146,7 +145,7 @@ vim_perm_sim <- function(entire_data,
 
       vimp_sim[[i]] <- (ranger::ranger(
         y = dt$y,
-        x = dt %>% dplyr::select(-y),
+        x = dt %>% select(-y),
         importance = importance,
         replace = TRUE,
         num.trees = num.trees,
@@ -181,7 +180,7 @@ vim_perm_sim <- function(entire_data,
 
       vimp <- (ranger::ranger(
         y = dt$y,
-        x = dt %>% dplyr::select(-y),
+        x = dt %>% select(-y),
         importance = importance,
         replace = TRUE,
         num.trees = num.trees,
@@ -194,7 +193,7 @@ vim_perm_sim <- function(entire_data,
         t() %>%
         as.data.frame()
 
-      vimp # Return the result for each iteration
+      vimp # Return the result of each iteration
     }
 
     close(pb)
