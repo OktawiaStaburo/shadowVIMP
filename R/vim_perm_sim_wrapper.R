@@ -159,8 +159,8 @@ vim_perm_sim_wrapper <- function(alphas = c(0.3, 0.10, 0.05),
       )
 
       variables_remaining_for_replicate_pooled <- vimpermsim$test_results$pooled %>%
-        filter(quantile_pooled >= 1 - alphas[j]) %>%
-        select(varname) %>%
+        filter(.data[["quantile_pooled"]] >= 1 - alphas[j]) %>%
+        select("varname") %>%
         unlist() %>%
         unname()
 

@@ -108,14 +108,14 @@ vim_perm_sim <- function(entire_data,
 
   # Renaming outcome variable to y
   entire_data <- entire_data %>%
-    rename(y := !!sym(outcome_var))
+    rename(y = {{ outcome_var }})
 
   p <- ncol(entire_data) - 1
   n <- nrow(entire_data)
 
 
   # Splitting predictors
-  predictors <- entire_data %>% select(-c(y))
+  predictors <- entire_data %>% select(-"y")
 
   if (sum(grepl("_permuted$", names(predictors))) > 0) {
     stop("One or more variables ending with _permuted. Please rename them.")
@@ -130,7 +130,7 @@ vim_perm_sim <- function(entire_data,
   dt <- cbind.data.frame(
     predictors,
     predictors_p,
-    entire_data %>% select(y)
+    entire_data %>% select("y")
   )
 
   # Simulation
@@ -148,7 +148,7 @@ vim_perm_sim <- function(entire_data,
 
       vimp_sim[[i]] <- (ranger::ranger(
         y = dt$y,
-        x = dt %>% select(-y),
+        x = dt %>% select(-"y"),
         importance = importance,
         replace = TRUE,
         num.trees = num.trees,
@@ -183,7 +183,7 @@ vim_perm_sim <- function(entire_data,
 
       vimp <- (ranger::ranger(
         y = dt$y,
-        x = dt %>% select(-y),
+        x = dt %>% select(-"y"),
         importance = importance,
         replace = TRUE,
         num.trees = num.trees,
