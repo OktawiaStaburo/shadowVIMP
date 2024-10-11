@@ -15,9 +15,9 @@
 #' @inheritParams add_test_results
 #' @param save_vimp_history Character, one of `"all"`, `"last"` or `"none"`.
 #'  * `"all"` (the default) - variable importances from the simulation of all
-#'  steps are saved.
+#'   steps are saved.
 #'  * `"last"` - only the variable importances from the simulation of the last
-#'  step will be saved.
+#'   step will be saved.
 #'  * `"none"` - no variable importances are saved from the simulation results.
 #' @param method Character, one of `"pooled"` or `"per_variable"`.
 #'  * `"pooled"` (the default) - the output shows pooled p-values and decisions
@@ -26,25 +26,25 @@
 #'   based on them.
 #' @return List with the following entries:
 #'  * `vimp_history`- if `save_vimp_history` is set to `"all"` or `"last"` then
-#'  it is a data frame with variable importance of covariates and their shadows
-#'  from the last step. If `save_vimp_history` is set to `"none"`, then it is
-#'  `NULL`.
+#'   it is a data frame with variable importance of covariates and their shadows
+#'   from the last step. If `save_vimp_history` is set to `"none"`, then it is
+#'   `NULL`.
 #'  * `final_dec_pooled` (the default) or `final_dec_per_variable` - a data
-#'  frame containing, depending on the specified value of the `to_show`
-#'  parameter, p-values and corresponding variable significance decisions from
-#'  the last step of the procedure.
+#'   frame containing, depending on the specified value of the `to_show`
+#'   parameter, p-values and corresponding decisions regarding variable
+#'   informativeness from the last step of the procedure.
 #'  * `alpha` - numeric, significance level used in last step.
 #'  * `control_parameters` - a list storing the values of control parameters
-#'  used in `vim_perm_sim()`.
+#'   used in `vim_perm_sim()`.
 #'  * `result_taken_from_previous_step` - a boolean indicating whether the
 #'   reported results are actually the results obtained in the last step. If
 #'   `TRUE`, then no variables survived the preselection process, so the
 #'   reported results are taken from one of the previous steps.
 #'  * `time_elapsed` - list containing the runtime of each step and the total
-#'  time taken to execute the code.
+#'   time taken to execute the code.
 #'  * `pre_selection` -  list in which the results of the pre-selection are
-#'  stored. The exact form of this element depends on the chosen value of the
-#'  `save_vimp_history` parameter.
+#'   stored. The exact form of this element depends on the chosen value of the
+#'   `save_vimp_history` parameter.
 #'  * `call` - the call formula used to generate the output.
 #' @export
 #' @import dplyr
