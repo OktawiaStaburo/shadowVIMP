@@ -86,8 +86,8 @@ from the last step. If \code{save_vimp_history} is set to \code{"none"}, then it
 \code{NULL}.
 \item \code{final_dec_pooled} (the default) or \code{final_dec_per_variable} - a data
 frame containing, depending on the specified value of the \code{to_show}
-parameter, p-values and corresponding variable significance decisions from
-the last step of the procedure.
+parameter, p-values and corresponding decisions regarding variable
+informativeness from the last step of the procedure.
 \item \code{alpha} - numeric, significance level used in last step.
 \item \code{control_parameters} - a list storing the values of control parameters
 used in \code{vim_perm_sim()}.
@@ -118,29 +118,41 @@ data(mtcars)
 # runtime.
 
 # Standard use - sequential computing
-out1 <- vim_perm_sim_wrapper(entire_data = mtcars, outcome_var = "vs",
-nsims = c(10, 20, 30), num.trees = 30)
+out1 <- vim_perm_sim_wrapper(
+  entire_data = mtcars, outcome_var = "vs",
+  nsims = c(10, 20, 30), num.trees = 30
+)
 
 # Parallelisation provided by ranger::ranger() function --> increase the
 # value of the num.threads parameter to speed up the computation
-out2 <- vim_perm_sim_wrapper(entire_data = mtcars, outcome_var = "vs",
-nsims = c(10, 20, 30), num.threads = 2, num.trees = 30)
+out2 <- vim_perm_sim_wrapper(
+  entire_data = mtcars, outcome_var = "vs",
+  nsims = c(10, 20, 30), num.threads = 2, num.trees = 30
+)
 
 # Parallel computing using a cluster
-out3 <- vim_perm_sim_wrapper(entire_data = mtcars, outcome_var = "vs",
- nsims = c(10, 20, 30), num_cores_parallel = 2, num.trees = 30)
+out3 <- vim_perm_sim_wrapper(
+  entire_data = mtcars, outcome_var = "vs",
+  nsims = c(10, 20, 30), num_cores_parallel = 2, num.trees = 30
+)
 
 # Save the simulated variable importance values for the last step only
-out4 <- vim_perm_sim_wrapper(entire_data = mtcars, outcome_var = "vs",
-nsims = c(10, 20, 30), save_vimp_history = "last", num.trees = 30)
+out4 <- vim_perm_sim_wrapper(
+  entire_data = mtcars, outcome_var = "vs",
+  nsims = c(10, 20, 30), save_vimp_history = "last", num.trees = 30
+)
 
 # Print unadjusted and FDR-adjusted p-values together with the corresponding
 # decisions
-out5 <- vim_perm_sim_wrapper(entire_data = mtcars, outcome_var = "vs",
-nsims = c(10, 20, 30), to_show = "FDR", num.trees = 30)
+out5 <- vim_perm_sim_wrapper(
+  entire_data = mtcars, outcome_var = "vs",
+  nsims = c(10, 20, 30), to_show = "FDR", num.trees = 30
+)
 
 # Use per variable p-values to decide in the final step whether a covariate
 # is informative or not
-out6 <- vim_perm_sim_wrapper(entire_data = mtcars, outcome_var = "vs",
-nsims = c(10, 20, 30), method = "per_variable", num.trees = 30)
+out6 <- vim_perm_sim_wrapper(
+  entire_data = mtcars, outcome_var = "vs",
+  nsims = c(10, 20, 30), method = "per_variable", num.trees = 30
+)
 }
