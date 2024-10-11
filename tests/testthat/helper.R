@@ -10,7 +10,7 @@ for (i in 1:10) {
 }
 
 for (i in 1:10) {
-  df[[paste0("v", i+10)]] <- c(rep(i, 50), rep(i+1, 50))
+  df[[paste0("v", i + 10)]] <- c(rep(i, 50), rep(i + 1, 50))
 }
 
 df_mod <- df %>% dplyr::rename(y = v1)
@@ -33,5 +33,5 @@ fake_data_vps <- list(
 # Data used in test-plot_vimps.R
 df_large <- data.frame(diagnosis = c(rep(0, 50), rep(1, 50)))
 for (i in 1:50) {
-  df_large[[paste0("v", i)]] <- c(rep(i, 50), rep(i+1, 50))
+  df_large[[paste0("v", i)]] <- c(rep(i, 50), rep(i + 1, 50))
 }

@@ -45,16 +45,22 @@
 #' # Here this parameter is set to a small value in order to reduce the runtime
 #'
 #' # Sequential computing mode:
-#' out_seq <- vim_perm_sim(entire_data = mtcars, outcome_var = "vs", nsim = 30,
-#' num.trees = 50)
+#' out_seq <- vim_perm_sim(
+#'   entire_data = mtcars, outcome_var = "vs", nsim = 30,
+#'   num.trees = 50
+#' )
 #'
 #' # Parallel computing - using a cluster:
-#' out_par_cores <- vim_perm_sim(entire_data = mtcars, outcome_var = "vs",
-#'  nsim = 30, num_cores_parallel = 2, num.trees = 50)
+#' out_par_cores <- vim_perm_sim(
+#'   entire_data = mtcars, outcome_var = "vs",
+#'   nsim = 30, num_cores_parallel = 2, num.trees = 50
+#' )
 #'
 #' # Parallelism through num.threads parameter from ranger::ranger()
-#' out_par <- vim_perm_sim(entire_data = mtcars, outcome_var = "vs", nsim = 30,
-#'  num.threads = 2, num.trees = 50)
+#' out_par <- vim_perm_sim(
+#'   entire_data = mtcars, outcome_var = "vs", nsim = 30,
+#'   num.threads = 2, num.trees = 50
+#' )
 vim_perm_sim <- function(entire_data,
                          outcome_var, # y
                          nsim = 100,

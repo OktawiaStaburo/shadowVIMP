@@ -41,21 +41,29 @@
 #' # Create vimpermsim object first
 #' # When working with real data, increase num.trees value or leave default
 #' # Here this parameter is set to a small value in order to reduce the runtime
-#' cars_vps <- vim_perm_sim(entire_data = mtcars, outcome_var = "vs", nsim = 30,
-#'  num.trees = 50)
+#' cars_vps <- vim_perm_sim(
+#'   entire_data = mtcars, outcome_var = "vs", nsim = 30,
+#'   num.trees = 50
+#' )
 #' init_num_vars <- ncol(x = mtcars) - 1
 #'
 #' # Display decisions based on all available p-values (FWER, FDR, unadjusted)
-#' cars_add_fwer <- add_test_results(vimpermsim = cars_vps, alpha = 0.05,
-#' init_num_vars = init_num_vars)
+#' cars_add_fwer <- add_test_results(
+#'   vimpermsim = cars_vps, alpha = 0.05,
+#'   init_num_vars = init_num_vars
+#' )
 #'
 #' # Display decisions based on FDR adjusted and unadjusted p-values, expect warnning
-#' cars_add_fdr <- add_test_results(vimpermsim = cars_vps, alpha = 0.05,
-#' init_num_vars = init_num_vars, to_show = "FDR")
+#' cars_add_fdr <- add_test_results(
+#'   vimpermsim = cars_vps, alpha = 0.05,
+#'   init_num_vars = init_num_vars, to_show = "FDR"
+#' )
 #'
 #' # Display decisions based on unadjusted p-values (Type1_confirmed column)
-#' cars_add_unadj <- add_test_results(vimpermsim = cars_vps, alpha = 0.05,
-#' init_num_vars = init_num_vars, to_show = "unadjusted")
+#' cars_add_unadj <- add_test_results(
+#'   vimpermsim = cars_vps, alpha = 0.05,
+#'   init_num_vars = init_num_vars, to_show = "unadjusted"
+#' )
 add_test_results <- function(vimpermsim,
                              alpha = 0.05,
                              init_num_vars,
