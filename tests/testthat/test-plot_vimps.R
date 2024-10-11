@@ -1,8 +1,37 @@
-# Proper
+# df data defined in helper.R
+# Normal usage
+test_that("plot_vimps works with appropiate arguments",{
+  out_pooled <- vim_perm_sim_wrapper(alphas = c(0.3, 0.10, 0.05), nsims = c(10, 15, 20),
+    entire_data = df, outcome_var = "diagnosis")
+
+  expect_no_error(plot_vimps(wrapper_object = out_pooled, pooled = TRUE))
+  expect_no_error(plot_vimps(wrapper_object = out_pooled, filter_vars = 5))
+  expect_no_error(plot_vimps(wrapper_object = out_pooled, text_size = 4))
+
+  out_per_variable <- vim_perm_sim_wrapper(alphas = c(0.3, 0.10, 0.05), nsims = c(10, 15, 20),
+                                           entire_data = df, outcome_var = "diagnosis",
+                                           method = "per_variable")
+
+  expect_no_error(plot_vimps(wrapper_object = out_per_variable, pooled = FALSE))
+  expect_no_error(plot_vimps(wrapper_object = out_per_variable, pooled = FALSE, filter_vars = 5))
+  expect_no_error(plot_vimps(wrapper_object = out_per_variable, pooled = FALSE, text_size = 5))
+})
+
+test_that("plot_vimps creates a ggplot output", {
+  out_pooled <- vim_perm_sim_wrapper(alphas = c(0.3, 0.10, 0.05), nsims = c(10, 15, 20),
+                                     entire_data = df, outcome_var = "diagnosis")
+
+  plot <- plot_vimps(wrapper_object = out_pooled)
+  plot_filter <- plot_vimps(wrapper_object = out_pooled, filter_vars = 5)
+
+  expect_s3_class(plot, "gg")
+  expect_s3_class(plot_filter, "gg")
+
+})
+
 
 # Errors
 test_that("plot_vimps throws an error when inappropiate inputs are provided", {
-  # df data defined in helper.R
   out_wrapper <- vim_perm_sim_wrapper(
     alphas = c(0.3, 0.10, 0.05), nsims = c(10, 15, 20),
     entire_data = df, outcome_var = "diagnosis", method = "per_variable"
@@ -43,40 +72,27 @@ test_that("plot_vimps throws an error when `save_vimp_history` is set to `none`"
   expect_error(plot_vimps(wrapper_object = out_none), class = "simpleError")
 })
 
-
 # Warnings
-# TODO - 2 tests below are problematic - fix them
+test_that("plot_vimps gives a warning if user tries to filter another than integer number of covariates", {
+  out <- vim_perm_sim_wrapper(nsims = c(10,15,20), entire_data = df_large, outcome_var = "diagnosis")
+  expect_warning(plot_vimps(wrapper_object = out, filter_vars = 9.5), class = "simpleWarning")
+})
 
-# test_that("plot_vimps gives a warning if more than 40 variables are to be plotted", {
-#   df_large <- data.frame(diagnosis = c(rep(0, 50), rep(1, 50)))
-#   n_rows <- nrow(df_large)
-#   for (i in 1:50) {
-#     df_large[[paste0("v", i)]] <- c(rep(i, 50), rep(i+1, 50))
-#   }
-#
-#   out_large <- vim_perm_sim_wrapper(
-#     alphas = c(0.3, 0.10, 0.05), nsims = c(10, 15, 20),
-#     entire_data = df_large, outcome_var = "diagnosis"
-#   )
-#
-#   expect_warning(plot_vimps(wrapper_object = out_large), class =  "simpleWarning")
-#
-# })
-#
-# test_that("plot_vimps gives a warning if you try to plot more variables than the
-#           number of available variables", {
-#   out <- vim_perm_sim_wrapper(
-#     alphas = c(0.3, 0.10, 0.05), nsims = c(10, 15, 20),
-#     entire_data = df, outcome_var = "diagnosis"
-#   )
-#
-#   #change for 18 in filtering
-#   expect_warning(plot_vimps(wrapper_object = out, filter_vars = 25), class =  "simpleWarning")
-# })
-#
+test_that("plot_vimps gives a warning if more than 40 variables are to be plotted", {
+  out_large <- vim_perm_sim_wrapper(
+    alphas = c(0.3, 0.10, 0.05), nsims = c(10, 15, 20),
+    entire_data = df_large, outcome_var = "diagnosis"
+  )
 
+  expect_warning(plot_vimps(wrapper_object = out_large), class =  "simpleWarning")
 
+})
 
-
-
-
+test_that("plot_vimps gives a warning if you try to plot more variables than the
+          number of available variables", {
+  out <- vim_perm_sim_wrapper(
+    alphas = c(0.3, 0.10, 0.05), nsims = c(10, 15, 20),
+    entire_data = df, outcome_var = "diagnosis"
+  )
+  expect_warning(plot_vimps(wrapper_object = out, filter_vars = 18), class =  "simpleWarning")
+})

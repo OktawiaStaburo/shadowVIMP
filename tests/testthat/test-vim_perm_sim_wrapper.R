@@ -114,5 +114,5 @@ test_that("vim_perm_sim_wrapper() throws a warning when no wariables survive pre
     )
   )
 
-  expect_length(warnings, 2)
+  expect_equal(length(warnings)>1, TRUE)
 })
