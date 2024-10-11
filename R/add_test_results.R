@@ -94,16 +94,16 @@ add_test_results <- function(vimpermsim,
     "varname" = varnames_originals,
     "quantile_per_variable" = unlist(quants_per_variable)
   ) %>%
-    arrange(desc(quantile_per_variable)) %>%
+    arrange(desc(.data[["quantile_per_variable"]])) %>%
     mutate(
-      p_unadj = 1 - quantile_per_variable,
-      p_adj_FDR = p.adjust(1 - quantile_per_variable, "BH", n = init_num_vars),
-      p_adj_FWER = p.adjust(1 - quantile_per_variable, "holm", n = init_num_vars)
+      p_unadj = 1 - .data[["quantile_per_variable"]],
+      p_adj_FDR = p.adjust(1 - .data[["quantile_per_variable"]], "BH", n = init_num_vars),
+      p_adj_FWER = p.adjust(1 - .data[["quantile_per_variable"]], "holm", n = init_num_vars)
     ) %>%
     mutate(
-      Type1_confirmed = ifelse(p_unadj <= alpha, 1, 0),
-      FDR_confirmed = ifelse(p_adj_FDR <= alpha, 1, 0),
-      FWER_confirmed = ifelse(p_adj_FWER <= alpha, 1, 0)
+      Type1_confirmed = ifelse(.data[["p_unadj"]] <= alpha, 1, 0),
+      FDR_confirmed = ifelse(.data[["p_adj_FDR"]] <= alpha, 1, 0),
+      FWER_confirmed = ifelse(.data[["p_adj_FWER"]] <= alpha, 1, 0)
     )
 
 
@@ -135,16 +135,16 @@ add_test_results <- function(vimpermsim,
     "varname" = varnames_originals,
     "quantile_pooled" = unlist(quants_pooled)
   ) %>%
-    arrange(desc(quantile_pooled)) %>%
+    arrange(desc(.data[["quantile_pooled"]])) %>%
     mutate(
-      p_unadj = 1 - quantile_pooled,
-      p_adj_FDR = stats::p.adjust(1 - quantile_pooled, "BH", n = init_num_vars),
-      p_adj_FWER = stats::p.adjust(1 - quantile_pooled, "holm", n = init_num_vars)
+      p_unadj = 1 - .data[["quantile_pooled"]],
+      p_adj_FDR = stats::p.adjust(1 - .data[["quantile_pooled"]], "BH", n = init_num_vars),
+      p_adj_FWER = stats::p.adjust(1 - .data[["quantile_pooled"]], "holm", n = init_num_vars)
     ) %>%
     mutate(
-      Type1_confirmed = ifelse(p_unadj <= alpha, 1, 0),
-      FDR_confirmed = ifelse(p_adj_FDR <= alpha, 1, 0),
-      FWER_confirmed = ifelse(p_adj_FWER <= alpha, 1, 0)
+      Type1_confirmed = ifelse(.data[["p_unadj"]] <= alpha, 1, 0),
+      FDR_confirmed = ifelse(.data[["p_adj_FDR"]] <= alpha, 1, 0),
+      FWER_confirmed = ifelse(.data[["p_adj_FWER"]] <= alpha, 1, 0)
     )
 
   all_cols_names <- colnames(quants_pooled_df)
@@ -153,20 +153,20 @@ add_test_results <- function(vimpermsim,
     to_select <- grep("varname|unadj|Type1", all_cols_names, value = TRUE)
 
     quants_pooled_df <- quants_pooled_df %>%
-      select(all_of(to_select), "quantile_pooled")
+      select(all_of(to_select), .data[["quantile_pooled"]])
 
     quants_per_variable_df <- quants_per_variable_df %>%
-      select(all_of(to_select), "quantile_per_variable")
+      select(all_of(to_select), .data[["quantile_per_variable"]])
 
     warning("By setting the `to_show` parameter to `unadjusted` you will not be able to use the `plot_vimps()` function.")
   } else if (to_show == "FDR") {
     to_select <- grep("varname|unadj|Type1|FDR", all_cols_names, value = TRUE)
 
     quants_pooled_df <- quants_pooled_df %>%
-      select(all_of(to_select), "quantile_pooled")
+      select(all_of(to_select), .data[["quantile_pooled"]])
 
     quants_per_variable_df <- quants_per_variable_df %>%
-      select(all_of(to_select), "quantile_per_variable")
+      select(all_of(to_select), .data[["quantile_per_variable"]])
 
     warning("By setting the `to_show` parameter to `FDR` you will not be able to use the `plot_vimps()` function.")
   }
