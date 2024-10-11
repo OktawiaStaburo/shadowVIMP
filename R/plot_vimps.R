@@ -1,16 +1,20 @@
-#' Box plots of VIMPs obtained during the simulation along with unadjusted, FDR
-#' and FWER adjusted p-values.
+#' Box plot of VIMPs and corresponding p-values
 #'
+#' Box plot of variable importance measures obtained from the simulation, along
+#' with unadjusted, FDR, and FWER adjusted p-values indicating whether a given
+#' variable is informative.
 #'
-#' @param wrapper_object the output of the function `vim_perm_sim_wrapper()`
-#' @param pooled logical, argument indicating whether to display results
-#'   according to pooled or per_variable p-values
-#' @param filter_vars parameter indicating the number of variables to plot, the
-#'   default is `NULL`, which means that all variables considered in the last
-#'   step of the procedure are plotted
-#' @param text_size numeric, parameter controlling the size of the printed
-#'   p-values on the plot, default 3
-#' @param ... other options used to control the appearance of the output plot
+#' @param wrapper_object List, the output of the function
+#'   `vim_perm_sim_wrapper()`.
+#' @param pooled Boolean
+#'  * `TRUE` - passed `wrapper_object` contains pooled p-values.
+#'  * `FALSE` - passed `wrapper_object` contains per variable p-values.
+#' @param filter_vars Numeric, the number of variables to plot. The default is
+#'   `NULL`, which means that all variables considered in the last step of the
+#'   procedure (and included in the ` wrapper_object`) will be plotted.
+#' @param text_size Numeric, parameter that controls the size of the printed
+#'   p-values on the plot, default is 3.
+#' @param ... Other options used to control the appearance of the output plot.
 #' @return ggplot object
 #' @export
 #' @import dplyr ggplot2
@@ -19,7 +23,28 @@
 #' @importFrom tidyr pivot_longer
 #' @importFrom cowplot plot_grid
 #' @importFrom ggforce geom_circle
-#' @examples NULL
+#' @examples
+#' data(mtcars)
+#'
+#' # When working with real data, increase the value of the nsims and num.trees
+#' # parameters to obtain trustworthy results.
+#' # Pooled p-values
+#' out_pooled <- vim_perm_sim_wrapper(entire_data = mtcars, outcome_var = "vs",
+#'  nsims = c(10, 20, 30), num.trees = 30)
+#'
+#' # The following 2 lines of code produce identical plots
+#' plot_vimps(wrapper_object = out_pooled, pooled = TRUE, text_size = 4)
+#' plot_vimps(wrapper_object = out_pooled, text_size = 4)
+#'
+#' # Plot only 3 covariates
+#' plot_vimps(wrapper_object = out_pooled, filter_vars = 3)
+#'
+#' # Per variable p-values
+#' out_per_var <- vim_perm_sim_wrapper(entire_data = mtcars, outcome_var = "vs",
+#'  nsims = c(10, 20, 30), num.trees = 30, method = "per_variable")
+#'
+#' # Set pooled to `FALSE`, otherwise the function will throw an error.
+#' plot_vimps(wrapper_object = out_per_var, pooled = FALSE, text_size = 4)
 plot_vimps <- function(wrapper_object, pooled = TRUE, filter_vars = NULL, text_size = 3, ...){
 
   # Parameters check
@@ -31,7 +56,7 @@ plot_vimps <- function(wrapper_object, pooled = TRUE, filter_vars = NULL, text_s
     stop("Parameter `filter_vars` must be integer greater than 0. If you don't want to filter any variables, set filter_vars to `NULL` (the default).")
   } else if(is.null(filter_vars) == FALSE && filter_vars != as.integer(filter_vars)){
     filter_vars <- as.integer(filter_vars)
-    print("Parameter `filter_vars` will be converted to the nearest integer.")
+    warning("Parameter `filter_vars` will be converted to the nearest integer.")
   }
 
   # Select appropriate results
