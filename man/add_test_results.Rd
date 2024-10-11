@@ -2,8 +2,7 @@
 % Please edit documentation in R/add_test_results.R
 \name{add_test_results}
 \alias{add_test_results}
-\title{Calculate p-values (both per_variable and pooled) and identify important
-variables when using FWER, FDR or no p-value adjustment}
+\title{Identify significant covariates with FWER, FDR, or no p-value adjustment}
 \usage{
 add_test_results(
   vimpermsim,
@@ -13,30 +12,67 @@ add_test_results(
 )
 }
 \arguments{
-\item{vimpermsim}{list, an output from \code{vim_perm_sim()} function}
+\item{vimpermsim}{List, an output from \code{vim_perm_sim()} function.}
 
-\item{alpha}{numeric, the significance level, must be between 0 and 1}
+\item{alpha}{Numeric, the significance level, must be between 0 and 1.}
 
-\item{init_num_vars}{numeric, the number of covariates originally included in
-the data, required to correctly apply the Benjamini-Hochberg and Holm
-p-value correction}
+\item{init_num_vars}{Numeric, the number of covariates originally included in
+the data. Required to correctly apply the Benjamini-Hochberg (FDR) and Holm
+(FWER) p-value correction}
 
-\item{to_show}{character, one of "FWER", "FDR" or "unadjusted". If
-"unadjusted" is selected, then the final output will contain only raw,
-unadjusted p-values together with the decision. If "FDR" is selected, the
-final output will include both unadjusted and Benjamini-Hochberg adjusted
-p-values along with the decision. The last option "FWER" includes
-unadjusted, Benjamini-Hochberg and Holm adjusted p-values together with the
-decision. Default is "FWER".}
+\item{to_show}{Character, one of \code{"FWER"}, \code{"FDR"} or \code{"unadjusted"}.
+\itemize{
+\item \code{"FWER"} (the default) - the output of \code{add_test_results()} includes
+unadjusted, Benjamini-Hochberg (FDR) and Holm (FWER) adjusted p-values
+together with the decision whether the variable is significant or not (1 -
+significant, 0 - not significant) according to the chosen criterium.
+\item \code{"FDR"} - the output includes both unadjusted and FDR adjusted p-values along
+with the decision.
+\item \verb{"unadjusted:} - the output contains only raw, unadjusted p-values together
+with the decision.
+}}
 }
 \value{
-list, contains the results stored in the output of the
-\code{vim_perm_sim()} function Additionally, \verb{$test_results$per_variable} and
-\code{out_add$test_results$pooled} show which variables were found to be
-important when applying FWER, FDR and no p-value adjustments and when using
-"per_variable" and "pooled" p-values respectively.
+A list of length 3 containing the following elements:
+\itemize{
+\item \code{vim_simulated} -  a data frame with variable importances stored in a
+\code{vimpermsim} input object (obtained from the \code{vim_perm_sim()} function).
+\item \code{controls}- a list of control parameters used to create the \code{vimpermsim}
+input object.
+\item \code{test_results} - a list consisting of 2 data frames called \code{pooled} and
+\code{per_variable}. The \code{pooled} data frame contains pooled p-values, while the
+\code{per_variable} data frame stores per variable p-values. Both data frames
+also contain decisions about variable importance based on the displayed
+p-values. The type of decisions displayed (based on FWER/FDR/unadjusted
+p-values) depends on the selected value of the \code{to_show} parameter.
+}
+
+In fact, the output of the \code{add_test_results()} function is the output of
+\code{vim_perm_sim()} with an additional layer - the \code{test_results} list.
 }
 \description{
-Calculate p-values (both per_variable and pooled) and identify important
-variables when using FWER, FDR or no p-value adjustment
+Calculate pooled or per variable p-values and identify significant variables
+when using FWER, FDR or no p-value adjustment for a given alpha level of
+significance.
+}
+\examples{
+data(mtcars)
+# Create vimpermsim object first
+# When working with real data, increase num.trees value or leave default
+# Here this parameter is set to a small value in order to reduce the runtime
+cars_vps <- vim_perm_sim(entire_data = mtcars, outcome_var = "vs", nsim = 30,
+ num.trees = 50)
+init_num_vars <- ncol(x = mtcars) - 1
+
+# Display decisions based on all available p-values (FWER, FDR, unadjusted)
+cars_add_fwer <- add_test_results(vimpermsim = cars_vps, alpha = 0.05,
+init_num_vars = init_num_vars)
+
+# Display decisions based on FDR adjusted and unadjusted p-values, expect warnning
+cars_add_fdr <- add_test_results(vimpermsim = cars_vps, alpha = 0.05,
+init_num_vars = init_num_vars, to_show = "FDR")
+
+# Display decisions based on unadjusted p-values (Type1_confirmed column)
+cars_add_unadj <- add_test_results(vimpermsim = cars_vps, alpha = 0.05,
+init_num_vars = init_num_vars, to_show = "unadjusted")
 }

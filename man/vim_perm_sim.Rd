@@ -2,8 +2,7 @@
 % Please edit documentation in R/vim_perm_sim.R
 \name{vim_perm_sim}
 \alias{vim_perm_sim}
-\title{Calculate variable importance of original values of predictors and its
-row-wise permuted shadows}
+\title{Compute the variable importance of the predictors and their row-wise shadows}
 \usage{
 vim_perm_sim(
   entire_data,
@@ -11,7 +10,7 @@ vim_perm_sim(
   nsim = 100,
   importance = "permutation",
   num.threads = NULL,
-  write.forest = F,
+  write.forest = FALSE,
   num.trees = max(2 * (ncol(entire_data) - 1), 10000),
   data_name = NULL,
   num_cores_parallel = NULL,
@@ -19,45 +18,71 @@ vim_perm_sim(
 )
 }
 \arguments{
-\item{entire_data}{data frame}
+\item{entire_data}{Input data frame.}
 
-\item{outcome_var}{character, name of the column containing the outcome
-variable}
+\item{outcome_var}{Character, name of the column containing the outcome
+variable.}
 
-\item{nsim}{numeric, number of permutations, by default 100}
+\item{nsim}{Numeric, number of permutations of the initial predictor values,
+default is 100.}
 
-\item{importance}{character, variable importance mode passed directly to
-\code{ranger::ranger()}, default is "permutation"}
+\item{importance}{Character, the type of variable importance to be calculated
+for each independent variable. Argument passed to \code{\link[ranger:ranger]{ranger::ranger()}},
+default is \code{permutation}.}
 
-\item{num.threads}{numeric, number of threads, default is number of CPUs
-available}
+\item{num.threads}{Numeric, number of threads. Argument passed to
+\code{\link[ranger:ranger]{ranger::ranger()}}, default is \code{NULL}.}
 
-\item{write.forest}{logical, indicator whether to save \code{ranger.forest}
-object, default is \code{FALSE}}
+\item{write.forest}{Logical, indicator whether to save \code{ranger.forest}
+object. Passed to \code{\link[ranger:ranger]{ranger::ranger()}}, default is \code{FALSE}}
 
-\item{num.trees}{numeric, number of trees}
+\item{num.trees}{Numeric, number of trees. Passed to \code{\link[ranger:ranger]{ranger::ranger()}},
+default is \code{max(2 * (ncol(entire_data) - 1), 10000)}.}
 
-\item{data_name}{character, name of the object passed as \code{entire_data}. In
-\code{vim_perm_sim_wrapper()} set automatically}
+\item{data_name}{Character, name of the object passed as \code{entire_data}. In
+\code{vim_perm_sim_wrapper()} it is set automatically.}
 
-\item{num_cores_parallel}{numeric greater than 0 and and less than or equal to the
-number of cores available on your computer (\code{detectCores()}). This
-parameter specifies the number of cores to use to create a cluster by
-calling \code{parallel::makeCluster(num_cores_parallel)}. The default is \code{NULL}, which
-means that sequential computation is used.}
+\item{num_cores_parallel}{Numeric greater than 0 and and less than or equal
+to the number of cores available on your computer (check by running
+\code{\link[parallel:detectCores]{parallel::detectCores()}}). This parameter specifies the number of cores to
+use to create a cluster when calling
+\code{parallel::makeCluster(num_cores_parallel)}. For example, setting
+\code{num_cores_parallel} to 4 will use 4 cores to create a cluster. The default
+is \code{NULL}, which means that sequential computation is used.}
 
-\item{...}{additional parameters passed directly to \code{ranger::ranger()} or
-\code{party::cforest()}}
+\item{...}{Additional parameters passed to \code{\link[ranger:ranger]{ranger::ranger()}} or stored in
+the \code{controls} list in the output.}
 }
 \value{
-List where:
-\enumerate{
-\item \code{vim_simulated} stores \code{n_sim} variable importances calculated based
-on the original and row-wise permuted values of the predictors,
-\item \code{controls} stores used control parameters, by default - number of
-permutations \code{n_sim}.
+List consisting of 2 elements:
+\itemize{
+\item \code{vim_simulated} - a data frame with \code{n_sim} variable importances
+calculated based on the original and row-wise permuted values of the
+predictors.
+\item \code{controls} - a list storing the values of control parameters used,
+default is number of permutations \code{n_sim}.
 }
 }
 \description{
-Dependencies: dplyr, ranger, magrittr, parallel, foreach, doSNOW/doParallel, doRNG
+\code{vim_perm_sim()} calculates repeatedly (\code{nsim} times) the variable importance
+of the original values of the predictors and their row-wise permuted shadows.
+Each shadow's variable importance is computed based on a new permutation of
+the initial predictor values.
+}
+\examples{
+data(mtcars)
+# When working with real data, increase num.trees value or leave default
+# Here this parameter is set to a small value in order to reduce the runtime
+
+# Sequential computing mode:
+out_seq <- vim_perm_sim(entire_data = mtcars, outcome_var = "vs", nsim = 30,
+num.trees = 50)
+
+# Parallel computing - using a cluster:
+out_par_cores <- vim_perm_sim(entire_data = mtcars, outcome_var = "vs",
+ nsim = 30, num_cores_parallel = 2, num.trees = 50)
+
+# Parallelism through num.threads parameter from ranger::ranger()
+out_par <- vim_perm_sim(entire_data = mtcars, outcome_var = "vs", nsim = 30,
+ num.threads = 2, num.trees = 50)
 }
