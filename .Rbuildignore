@@ -1,2 +1,5 @@
 ^pertvimp\.Rproj$
 ^\.Rproj\.user$
+^\.Rhistory$
+^README\.Rmd$
+^README\.html$
