@@ -1,0 +1,25 @@
+image: r-base:latest  # Use a base R Docker image or a specific R version image
+
+stages:
+  - check
+
+variables:
+  _R_CHECK_TESTS_NLINES_: 0
+
+before_script:
+  # Install dependencies
+  - apt-get update
+  - apt-get install -y libcurl4-openssl-dev libssl-dev libxml2-dev
+  - Rscript -e 'install.packages(c("devtools", "roxygen2", "rcmdcheck", "remotes"), repos = "https://cran.rstudio.com/")'
+  # Install package dependencies from DESCRIPTION file
+  - Rscript -e 'remotes::install_deps(dependencies = TRUE)'
+
+check:
+  stage: check
+  script:
+    # Run R CMD check to check the package
+    - R CMD check .
+  artifacts:
+    paths:
+      - "*.Rcheck"  # Save the check results as an artifact
+  allow_failure: false  # Fail the job if the check fails
