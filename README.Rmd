@@ -26,7 +26,7 @@ The goal of pertvimp is to provide a tool that allows the selection of informati
 
 ## Installation
 
-The pertvimp package is not (yet!) available on Cran. You can install the development version like this:
+The `pertvimp` package is not (yet!) available on Cran. You can install the development version like this:
 
 ``` {r, eval = FALSE}
 devtools::install_gitlab("oktawia.miluch/pertvimp-package", host = "gitlab.staburo.de")
