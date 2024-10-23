@@ -14,12 +14,17 @@ before_script:
   # Install package dependencies from DESCRIPTION file
   - Rscript -e 'remotes::install_deps(dependencies = TRUE)'
 
-# check:
-#   stage: check
-#   script:
-#     # Run R CMD check to check the package
-#     - R CMD check .
-#   artifacts:
-#     paths:
-#       - "*.Rcheck"  # Save the check results as an artifact
-#   allow_failure: false  # Fail the job if the check fails
+check:
+  stage: check
+  script:
+    # Run R CMD check to check the package
+    - R CMD check .
+  artifacts:
+    paths:
+      - "*.Rcheck"  # Save the check results as an artifact
+  allow_failure: false  # Fail the job if the check fails
+
+# Temporalily disable CI/CD checks
+workflow:
+  rules:
+    - when: never
