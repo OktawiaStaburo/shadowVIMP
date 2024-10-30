@@ -74,8 +74,7 @@ based on them.
 based on them.
 }}
 
-\item{...}{Additional parameters passed to \code{\link[ranger:ranger]{ranger::ranger()}} or stored in
-the \code{controls} list in the output.}
+\item{...}{Additional parameters passed to \code{\link[ranger:ranger]{ranger::ranger()}}.}
 }
 \value{
 List with the following entries:
@@ -89,8 +88,6 @@ frame containing, depending on the specified value of the \code{to_show}
 parameter, p-values and corresponding decisions regarding variable
 informativeness from the last step of the procedure.
 \item \code{alpha} - numeric, significance level used in last step.
-\item \code{control_parameters} - a list storing the values of control parameters
-used in \code{vim_perm_sim()}.
 \item \code{result_taken_from_previous_step} - a boolean indicating whether the
 reported results are actually the results obtained in the last step. If
 \code{TRUE}, then no variables survived the preselection process, so the

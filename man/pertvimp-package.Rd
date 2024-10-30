@@ -4,12 +4,22 @@
 \name{pertvimp-package}
 \alias{pertvimp}
 \alias{pertvimp-package}
-\title{pertvimp: What the Package Does (One Line, Title Case)}
+\title{pertvimp: Covariate Selection Based on VIMP Permutation Testing}
 \description{
-What the package does (one paragraph).
+A tool for permutation-like testing of variable importance measures (VIMP) obtained from random forest (RF). It allows the user to make an informed choice of informative covariates based on the raw, FWER and FDR corrected p-values obtained from the tests. The package also provides a function that allows the results obtained to be conveniently visualised as box plots.
 }
 \author{
-\strong{Maintainer}: First Last \email{first.last@example.com} (\href{https://orcid.org/YOUR-ORCID-ID}{ORCID})
+\strong{Maintainer}: Tim Mueller \email{mueller@staburo.de} (\href{https://orcid.org/orcid number}{ORCID})
+
+Authors:
+\itemize{
+  \item Oktawia Miluch \email{oktawia.miluch@staburo.de} (\href{https://orcid.org/orcid number}{ORCID})
+}
+
+Other contributors:
+\itemize{
+  \item Staburo GmbH [copyright holder, funder]
+}
 
 }
 \keyword{internal}

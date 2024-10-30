@@ -50,18 +50,12 @@ use to create a cluster when calling
 \code{num_cores_parallel} to 4 will use 4 cores to create a cluster. The default
 is \code{NULL}, which means that sequential computation is used.}
 
-\item{...}{Additional parameters passed to \code{\link[ranger:ranger]{ranger::ranger()}} or stored in
-the \code{controls} list in the output.}
+\item{...}{Additional parameters passed to \code{\link[ranger:ranger]{ranger::ranger()}}.}
 }
 \value{
-List consisting of 2 elements:
-\itemize{
-\item \code{vim_simulated} - a data frame with \code{n_sim} variable importances
-calculated based on the original and row-wise permuted values of the
-predictors.
-\item \code{controls} - a list storing the values of control parameters used,
-default is number of permutations \code{n_sim}.
-}
+List consisting of \code{vim_simulated} - a data frame with \code{n_sim}
+variable importances calculated based on the original and row-wise permuted
+values of the predictors.
 }
 \description{
 \code{vim_perm_sim()} calculates repeatedly (\code{nsim} times) the variable importance

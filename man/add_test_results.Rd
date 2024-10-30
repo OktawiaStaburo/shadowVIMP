@@ -37,8 +37,6 @@ A list of length 3 containing the following elements:
 \itemize{
 \item \code{vim_simulated} -  a data frame with variable importances stored in a
 \code{vimpermsim} input object (obtained from the \code{vim_perm_sim()} function).
-\item \code{controls}- a list of control parameters used to create the \code{vimpermsim}
-input object.
 \item \code{test_results} - a list consisting of 2 data frames called \code{pooled} and
 \code{per_variable}. The \code{pooled} data frame contains pooled p-values, while the
 \code{per_variable} data frame stores per variable p-values. Both data frames
