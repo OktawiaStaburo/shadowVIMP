@@ -1,10 +1,20 @@
 Package: pertvimp
-Title: What the Package Does (One Line, Title Case)
 Version: 0.0.0.9000
-Authors@R: 
-    person("First", "Last", , "first.last@example.com", role = c("aut", "cre"),
-           comment = c(ORCID = "YOUR-ORCID-ID"))
-Description: What the package does (one paragraph).
+Title: Covariate Selection Based on VIMP Permutation Testing
+Authors@R: c(
+    person("Tim", "Mueller", , "mueller@staburo.de", role = c("aut", "cre"),
+           comment = c(ORCID = "orcid number")),
+    person("Oktawia", "Miluch", , "oktawia.miluch@staburo.de", role = "aut",
+           comment = c(ORCID = "orcid number")),
+    person("Staburo GmbH", role = c("cph", "fnd"))
+    )
+Description: A tool for permutation-like testing of variable 
+    importance measures (VIMP) obtained from random forest (RF).
+    It allows the user to make an informed choice of informative
+    covariates based on the raw, FWER and FDR corrected p-values
+    obtained from the tests. The package also provides a function 
+    that allows the results obtained to be conveniently
+    visualised as box plots.
 License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
     license
 Imports: 
@@ -31,3 +41,5 @@ Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.3.2
 VignetteBuilder: knitr
+
+
