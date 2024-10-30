@@ -21,8 +21,6 @@
 #' @return A list of length 3 containing the following elements:
 #'  * `vim_simulated` -  a data frame with variable importances stored in a
 #'   `vimpermsim` input object (obtained from the `vim_perm_sim()` function).
-#'  * `controls`- a list of control parameters used to create the `vimpermsim`
-#'   input object.
 #'  * `test_results` - a list consisting of 2 data frames called `pooled` and
 #'   `per_variable`. The `pooled` data frame contains pooled p-values, while the
 #'   `per_variable` data frame stores per variable p-values. Both data frames
@@ -161,20 +159,20 @@ add_test_results <- function(vimpermsim,
     to_select <- grep("varname|unadj|Type1", all_cols_names, value = TRUE)
 
     quants_pooled_df <- quants_pooled_df %>%
-      select(all_of(to_select), .data[["quantile_pooled"]])
+      select(all_of(c(to_select, "quantile_pooled")))
 
     quants_per_variable_df <- quants_per_variable_df %>%
-      select(all_of(to_select), .data[["quantile_per_variable"]])
+      select(all_of(c(to_select, "quantile_per_variable")))
 
     warning("By setting the `to_show` parameter to `unadjusted` you will not be able to use the `plot_vimps()` function.")
   } else if (to_show == "FDR") {
     to_select <- grep("varname|unadj|Type1|FDR", all_cols_names, value = TRUE)
 
     quants_pooled_df <- quants_pooled_df %>%
-      select(all_of(to_select), .data[["quantile_pooled"]])
+      select(all_of(c(to_select, "quantile_pooled")))
 
     quants_per_variable_df <- quants_per_variable_df %>%
-      select(all_of(to_select), .data[["quantile_per_variable"]])
+      select(all_of(c(to_select, "quantile_per_variable")))
 
     warning("By setting the `to_show` parameter to `FDR` you will not be able to use the `plot_vimps()` function.")
   }

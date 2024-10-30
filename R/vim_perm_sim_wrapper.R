@@ -34,8 +34,6 @@
 #'   parameter, p-values and corresponding decisions regarding variable
 #'   informativeness from the last step of the procedure.
 #'  * `alpha` - numeric, significance level used in last step.
-#'  * `control_parameters` - a list storing the values of control parameters
-#'   used in `vim_perm_sim()`.
 #'  * `result_taken_from_previous_step` - a boolean indicating whether the
 #'   reported results are actually the results obtained in the last step. If
 #'   `TRUE`, then no variables survived the preselection process, so the
@@ -236,7 +234,6 @@ vim_perm_sim_wrapper <- function(alphas = c(0.3, 0.10, 0.05),
     }
 
     pre_selection[[step_name]][["alpha"]] <- replicate[[i]]$alpha
-    pre_selection[[step_name]][["control_parameters"]] <- replicate[[i]]$vimpermsim$controls
     pre_selection[[step_name]][["result_taken_from_previous_step"]] <- replicate[[i]]$vimpermsim$result_taken_from_previous_step
   }
 
@@ -246,7 +243,6 @@ vim_perm_sim_wrapper <- function(alphas = c(0.3, 0.10, 0.05),
   output <- list(
     "vimp_history" = replicate[[last_idx]]$vimpermsim$vim_simulated,
     "alpha" = replicate[[last_idx]]$alpha,
-    "control_parameters" = replicate[[last_idx]]$vimpermsim$controls,
     "result_taken_from_previous_step" = replicate[[last_idx]]$result_taken_from_previous_step,
     "time_elapsed" = time,
     "pre_selection" = pre_selection,

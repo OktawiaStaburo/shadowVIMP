@@ -28,14 +28,10 @@
 #'   `parallel::makeCluster(num_cores_parallel)`. For example, setting
 #'   `num_cores_parallel` to 4 will use 4 cores to create a cluster. The default
 #'   is `NULL`, which means that sequential computation is used.
-#' @param ... Additional parameters passed to [ranger::ranger()] or stored in
-#'   the `controls` list in the output.
-#' @return List consisting of 2 elements:
-#'  * `vim_simulated` - a data frame with `n_sim` variable importances
-#'  calculated based on the original and row-wise permuted values of the
-#'  predictors.
-#'  * `controls` - a list storing the values of control parameters used,
-#'  default is number of permutations `n_sim`.
+#' @param ... Additional parameters passed to [ranger::ranger()].
+#' @return List consisting of `vim_simulated` - a data frame with `n_sim`
+#'   variable importances calculated based on the original and row-wise permuted
+#'   values of the predictors.
 #' @export
 #' @import foreach doRNG rlang dplyr
 #' @importFrom magrittr %>%
@@ -114,7 +110,7 @@ vim_perm_sim <- function(entire_data,
 
   # Renaming outcome variable to y
   entire_data <- entire_data %>%
-    rename(y = {{ outcome_var }})
+    rename(y = all_of(outcome_var))
 
   p <- ncol(entire_data) - 1
   n <- nrow(entire_data)
@@ -220,7 +216,6 @@ vim_perm_sim <- function(entire_data,
 
   # Storing result to be returned
   res <- list(
-    vim_simulated = df_sim,
-    controls = list(..., nsim = nsim)
+    vim_simulated = df_sim
   )
 }
