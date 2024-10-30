@@ -18,9 +18,4 @@
       9   0  0           0           0
       10  0  0           0           0
       
-      $controls
-      $controls$nsim
-      [1] 10
-      
-      
 

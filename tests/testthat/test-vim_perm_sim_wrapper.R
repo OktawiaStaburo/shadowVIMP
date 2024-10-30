@@ -5,11 +5,10 @@ test_that("vim_perm_sim_wrapper works as expected with default settings.", {
     entire_data = df, outcome_var = "diagnosis"
   )
 
-  expect_length(out, 8)
+  expect_length(out, 7)
   expect_s3_class(out$vimp_history, class = "data.frame")
   expect_s3_class(out$final_dec_pooled, class = "data.frame")
   expect_type(out$alpha, type = "double")
-  expect_type(out$control_parameters, type = "list")
   expect_type(out$result_taken_from_previous_step, type = "logical")
   expect_type(out$time_elapsed, type = "list")
   expect_type(out$pre_selection, type = "list")
@@ -30,11 +29,11 @@ test_that("Different variants of save_vimp_history parameter work as expected.",
   )
 
   expect_type(out_history_none$vimp_history, type = "NULL")
-  expect_length(out_history_none$pre_selection$step_1, n = 3)
-  expect_length(out_history_none$pre_selection$step_2, n = 3)
+  expect_length(out_history_none$pre_selection$step_1, n = 2)
+  expect_length(out_history_none$pre_selection$step_2, n = 2)
   expect_s3_class(out_history_last$vimp_history, class = "data.frame")
-  expect_length(out_history_last$pre_selection$step_1, n = 3)
-  expect_length(out_history_last$pre_selection$step_1, n = 3)
+  expect_length(out_history_last$pre_selection$step_1, n = 2)
+  expect_length(out_history_last$pre_selection$step_1, n = 2)
 })
 
 test_that("Different values of method parameter work as expected.", {
