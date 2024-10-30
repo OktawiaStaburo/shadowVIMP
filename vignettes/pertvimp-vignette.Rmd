@@ -1,8 +1,8 @@
 ---
-title: "pertvimp-vignette"
+title: "shadowVIMP-vignette"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{pertvimp-vignette}
+  %\VignetteIndexEntry{shadowVIMP-vignette}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
@@ -14,17 +14,86 @@ knitr::opts_chunk$set(
 )
 ```
 
-# Introduction to pertvimp package
+# Introduction to `shadowVIMP` package
 
-## Theoretical background
+## Theoretical framework
 
-Put there nicely and concisely written content of the slides "Permutation scheme" --> "Pooling: Non-parametric estimates of small p-values" together with necessary formulas.
+When working with high-dimensional data sets, one often wants to reduce the number of covariates considered. One way to do this is to run a Random Forest (RF) and compute the permutation variable importance (VIMP) for each predictor. In short, a VIMP of a covariate j measures the increase in a prediction error when variable j is randomly permuted. If a predictor j has a large impact on the predicted variable of interest, it will achieve a relatively large VIMP compared to other uninformative covariates. Then, the simplest way to decide which variables are informative would be to select the top n variables, or only those variables whose VIMP score is above the predefined threshold. 
+
+While this approach is simple and fast, it doesn't ensure that the results are not due to chance. To make better, more reliable decisions, we need a more sophisticated method for selecting informative covariates (variables). This method should work like a statistical test and provide some assurance that the selected covariates are truly informative and not just chosen at random. This is where the `shadowVIMP` package comes in. The procedure implemented in the `shadowVIMP` package can be described as follows:
+
+1. For p covariates included in the original data set, create p **r-shadow variables**. R-shadow variables are row-permuted copies of the original covariates (see the image below for a visualization of the permutation scheme). Repeat the permutation `nsim` times. Each permutation will result in a new set of r-shadow variables.
+
+```{r, echo=FALSE, out.width="85%", fig.cap="Permutation scheme"}
+knitr::include_graphics("rshadow.png")
+```
+
+2. For each of the `nsim` permutations, recompute the VIMP of the original and r-shadow covariates. As a result, you will get the following sets:
+
+    * $VI_{j}$ - set of VIMPs of variable j, consisting of `nsim` (number of permutations) elements,
+    * $VI_{j}^{(s)}$ -   set of VIMPs of r-shadows of variable j, consisting of `nsim` elements.
+3. Calculate and decide whether a covariate j is significant based on its non-parametric p-value. The p-value for variable j is defined as follows:
+
+$$p_{j} = 1 - \widehat{F}_{ \left\{VI_{j}^{(s)}, \infty \right\}}(median(VI_{j}))$$
+
+where:
+
+* $\widehat{F}_{\{VI_{j}^{(s)}, \infty\}}(\cdot)$ is an empirical cumulative distribution function (ECDF) based on the r-shadow VIMPs of variable j with an infinity added. The ECDF represents the proportion of r-shadow VIMPs that are less than or equal to a certain value (in our case $median(VI_{j})$). By including infinity in the data, we ensure that the ECDF covers all possible values up to infinity. In other words, if we query such a constructed ECDF with a specific value, it will return  $1$ if that value is greater than all observed VIMPs of the r-shadow variable.
+* $median(VI_{j})$ is the median of the VIMPs of the original variables over all `nsin` iterations of the random forest.
+
+In the rest of this tutorial, we will call this type of p-value **per variable p-value**. Overall, such a defined p-value represents a proportion of random forest iterations in which the r-shadow variable achieved a higher VIMP than the median of the original variable's VIMPs. The covariate $x_{j}$ is considered informative if, for a given significance level $\alpha$, the following inequality holds:
+
+$$p_{j} \le \alpha$$
+
+### High-dimensional data extension 1: pre-selection 
+
+The method described above works well for low-dimensional data, but some modifications are needed for the high-dimensional case. The first improvement we need for a high-dimensional setting is the **pre-selection** of covariates. The goal of preselection is to eliminate noisy covariates from the procedure as early as possible. The idea is to reduce the set of predictors in one or more preliminary steps, where the algorithm is run with a significance level $\alpha$ less strict than the target value of $\alpha$ used for the final decision. For example, if the target value of the significance level is the usual $0.05$, then the appropriate value of $\alpha$ for the pre-selection step could be set to $0.3$. This would involve first running the basic algorithm (possibly with fewer iterations) against a threshold of $0.3$, identifying variables that have a p-value of at most $0.3$. Only the variables confirmed by this initial pre-selection step (i.e., with a p-value of at most $0.3$) would proceed either to the final step of the algorithm or to another pre-selection step (see figure below for illustration).
+
+```{r, echo=FALSE, out.width="85%", fig.cap="Illustration of pre-selection procedure"}
+knitr::include_graphics("preselection.png")
+```
+
+The figure above illustrates the pre-selection procedure proposed in the `shadowVIMP' package. In this example, $30$ random forest models are trained in the first step. Based on the empirical cumulative distribution function (ECDF) built from the VIMPs of the r-shadow variables (obtained in $30 iterations of RF), only the covariates with a p-value less than or equal to $0.3$ are considered in the next step. The second round of pre-selection further reduces the set of considered variables against a significance threshold of $0.15$, based on $120$ random forest iterations. Only the covariates confirmed in the two pre-selection steps proceed to the final step. As a result, the final step only includes variables that showed early potential (survived the pre-selection) to exceed the target significance level of $0.05$.  
+
+### Addressing multiple testing issue
+
+The decision criterion discussed so far, namely the per variable p-value, was defined as $p_{j} = 1 - \widehat{F}_{\{VI_{j}^{(s)}, \infty\}}(median(VI_{j}))$. A key aspect of this criterion is the direct comparison of the VIMPs of the original variable with the VIMPs of its corresponding r-shadow variable. However, in practice, when analyzing high-dimensional data, one needs to account for the multiple testing issue by using an appropriate adjustment method. The `shadowVIMP` package provides two adjustment procedures:  Benjamini-Hochberg (BH), which controls for the expected false discovery rate (FDR), and the Holm procedure, which controls for the family-wise error rate (FWER).
+
+### High-dimensional data extension 1: pooled p-value
+
+In the considered setting of permorming many statistical tests, the application of multiple testing adjustment method is necessary. However, it also implies the need to calculate very small p-values. To put things into practical perspective, let's say we have $5000$ predictors in our data set, the target significance level is $0.05$, and we want to apply BH adjustment. In such a setting, the first significance threshold is $0.05/5000 = 0.00001$. This means that in order to reject the null hypothesis (a covariate is uninformative) about the variable with the smallest p-value, the corresponding p-value should be at most $0.00001$. Given the present definition of p-value, the smallest achievable p-value is $\frac{1}{n_{sim}}$. Therefore, to achieve a p-value lower than the significance threshold, we would need $\frac{5000}{0.05} = 100000$ iterations of the random forest (`n_sim`). Performing such a large number of iterations would be computationally expensive.  
+
+To reduce this cost, we introduce an alternative decision criterion: **pooled p-value**. The main idea behind pooling is to increase the sample size of the ECDF by including the VIMPs of all r-shadows instead of just the corresponding one. The pooled p-value for covariate j is defined as follows:
+
+$$
+p_j^{(\text{pooled})} = 1 - \widehat{F}_{ \left\{ \widetilde{VI}_{1}^{(s)}, \dots, \widetilde{VI}_{j}^{(s)}, \dots, \widetilde{VI}_{p}^{(s)}, \infty \right\} } \left( \text{median} \left( \widetilde{VI}_{j} \right) \right)
+$$
+
+
+where $\widetilde{VI}_{j}^{(s)}$ is a standardized r-shadow VIMP:
+
+$$
+\widetilde{VI}_{j}^{(s)} = \frac{VI_{j}^{(s)} - \text{mean}(VI_{j}^{(s)})}{\text{sd}(VI_{j}^{(s)})}
+$$
+and $\widetilde{VI}_{j}$ is a "standardized" VIMP of the original covariate, corrected using the mean and standard deviation of its corresponding r-shadow:
+
+$$
+\widetilde{VI}_{j} = \frac{VI_{j} - \text{mean}(VI_{j}^{(s)})}{\text{sd}(VI_{j}^{(s)})}
+$$
+Similar to per-variable p-values, when using the alternative formulation of the decision criterion, the covariate j is considered informative if:
+
+$$ p_j^{(\text{pooled})} \leq \alpha $$
+The main advantage of pooled p-values is the reduced run time.  Using the same example with $5000$ predictors as before, the smallest achievable p-value is $\frac{1}{n_{sim} \times 5000}$. The pooled decision criterion reduces the number of iterations required, making it possible (though not guaranteed) to reject at least one hypothesis, by a factor of $5000$ (or, in general, by the number of covariates included in the data).
+
+### Back to pre-selection
+
+Coming back to the idea of pre-selection, we could perform the pre-selection steps of the proposed method based on either per-variable or pooled p-values. However, in the current implementation of the `shadowVIMP` package, we use the pooled decision criterion in the preselection steps. This approach allows us to use a comparatively small number of iterations in the preselection steps while still maintaining a reasonable number of VIMPs used to construct the ECDF. In the final step of the procedure, the user can decide whether to report per-variable or pooled p-values along with the decisions based on them. More on this topic in the following practical guide to the `shadowVIMP` package.
 
 ## Quick start
 
 The purpose of this section is to give users a general idea of the package. We will briefly go through the main functions, possible values of their arguments, outputs and their interpretation. 
 
-First, let's install the `pertvimp` package. The `pertvimp` package is not (yet!) available on Cran, but you can install the development version like this:
+First, let's install the `shadowVIMP` package. The `shadowVIMP` package is not (yet!) available on Cran, but you can install the development version like this:
 
 ``` {r, eval = FALSE}
 devtools::install_gitlab("oktawia.miluch/pertvimp-package", host = "gitlab.staburo.de")
@@ -32,7 +101,7 @@ devtools::install_gitlab("oktawia.miluch/pertvimp-package", host = "gitlab.stabu
 
 Then, we load necessary packages:
 ```{r setup, warning = FALSE, message = FALSE}
-library(pertvimp)
+library(shadowVIMP)
 library(magrittr)
 library(dplyr)
 
@@ -113,7 +182,7 @@ vimp_none$vimp_history
 
 ## Parallelisation
 
-To speed up the computation, it is possible to run the main function of the `pertvimp` package in parallel. There are two ways to do this. The first is to use the parallelisation provided by the `ranger::ranger()` function, which is used internally. To use this functionality, the `num.threads` parameter must be set to a value greater than 1.
+To speed up the computation, it is possible to run the main function of the `shadowVIMP` package in parallel. There are two ways to do this. The first is to use the parallelisation provided by the `ranger::ranger()` function, which is used internally. To use this functionality, the `num.threads` parameter must be set to a value greater than 1.
 
 ````{r parallel1}
 vimp_parallel1 <- vim_perm_sim_wrapper(nsims = c(20,30,50), entire_data = data_sub, outcome_var = "diagnosis", num.threads = 4)
@@ -129,7 +198,7 @@ Of course, it is possible to use two types of parallelisation at the same time, 
  
 ## Choose decision criteria (pooled or per variable p-value)
 
-The `pertvimp` package also provides an option to select informative covariates based on the `per variable` p-values. By default, the printed decision whether a covariate is informative or not is based on the pooled p-value. In the output below, the decision about the informativeness of covariates is based on the per-variable p-value:
+The `shadowVIMP` package also provides an option to select informative covariates based on the `per variable` p-values. By default, the printed decision whether a covariate is informative or not is based on the pooled p-value. In the output below, the decision about the informativeness of covariates is based on the per-variable p-value:
 
 ````{r per_variable}
 vimp_per_variable <- vim_perm_sim_wrapper(nsims = c(20,30,50), entire_data = data_sub, outcome_var = "diagnosis", method = "per_variable")
@@ -219,7 +288,7 @@ vimp_def <- vim_perm_sim_wrapper(nsims = c(20,30,50), entire_data = data_sub, ou
 
 ````
 
-Instead of just looking at the table that stores the decisions from the last step about informative covariates, we would like to have an appealing visual representation of our results. In the `pertvimp` package this is easily accessible using the `plot_vimps()` function. If you want to plot the results based on the pooled p-values, just specify the output of the `vim_perm_sim_wrapper()` function as shown below: 
+Instead of just looking at the table that stores the decisions from the last step about informative covariates, we would like to have an appealing visual representation of our results. In the `shadowVIMP` package this is easily accessible using the `plot_vimps()` function. If you want to plot the results based on the pooled p-values, just specify the output of the `vim_perm_sim_wrapper()` function as shown below: 
 
 ````{r plot_base, fig.width=13, fig.asp=0.8, out.width="115%"}
 plot_vimps(wrapper_object = vimp_def)
