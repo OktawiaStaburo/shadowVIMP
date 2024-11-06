@@ -1,6 +1,8 @@
 ---
 title: "shadowVIMP-vignette"
-output: rmarkdown::html_vignette
+output: 
+  rmarkdown::html_vignette
+    mathjax: "https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.7/MathJax.js"
 vignette: >
   %\VignetteIndexEntry{shadowVIMP-vignette}
   %\VignetteEngine{knitr::rmarkdown}
@@ -101,7 +103,7 @@ devtools::install_gitlab("oktawia.miluch/pertvimp-package", host = "gitlab.stabu
 
 Then, we load necessary packages:
 ```{r setup, warning = FALSE, message = FALSE}
-library(shadowVIMP)
+library(pertvimp)
 library(magrittr)
 library(dplyr)
 
@@ -191,7 +193,14 @@ vimp_parallel1 <- vim_perm_sim_wrapper(nsims = c(20,30,50), entire_data = data_s
 Another way to perform parallel computations is to set the `num_cores_parallel` parameter to a value greater than 1. In this case, a cluster with the specified number of cores is created under the hood.
 
 ````{r parallel2}
-vimp_parallel2 <- vim_perm_sim_wrapper(nsims = c(20,30,50), entire_data = data_sub, outcome_var = "diagnosis", num_cores_parallel = 4)
+# Technical checks 
+# Detect if running on CRAN or non-interactive environments
+is_cran <- !interactive() || Sys.getenv("NOT_CRAN") != "true"
+
+# Limit to 1 core on CRAN; otherwise, use available cores - 2
+num_cores_parallel <- if (is_cran) 1 else round(parallel::detectCores()/2)
+
+vimp_parallel2 <- vim_perm_sim_wrapper(nsims = c(20,30,50), entire_data = data_sub, outcome_var = "diagnosis", num_cores_parallel = num_cores_parallel)
 ````
 
 Of course, it is possible to use two types of parallelisation at the same time, but this is not recommended by the authors of the package. In any case, it is important to set the value of these parameters so that they do not exceed the number of cores available on your machine. If you are unsure about the number of cores available on your machine, run `parallel::detectCores()`. Note that if you are working with small datasets or too small values of the `nsims` parameter, the benefit of parallelisation (if any) will be negligible.
