@@ -25,6 +25,7 @@ check:
   allow_failure: false  # Fail the job if the check fails
 
 # Temporalily disable CI/CD checks
+# Remove once you get an access to runners
 workflow:
   rules:
     - when: never
