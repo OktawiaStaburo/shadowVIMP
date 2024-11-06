@@ -34,7 +34,7 @@ devtools::install_gitlab("oktawia.miluch/shadowVIMP-package", host = "gitlab.sta
 
 ## Usage
 
-Imagine you are working with a dataset with many variables and you want to select the subset of the most informative covariates. Instead of computing the variable importance (VI), displaying it on variable importance plots, and (somewhat arbitrarily) selecting the set of informative features, you can use the method implemented in this package and select the subset of features in a more robust way. The following example shows the simple use case.
+Imagine you are working with a dataset with many variables and you want to select the subset of the most informative covariates. Instead of computing the variable importance (VI), displaying it on variable importance plots, and (somewhat arbitrarily) selecting the set of informative features, you can use the method implemented in this package and select the subset of features in a more robust way. The following example shows the basic use case.
 
 ```{r example, message = FALSE, warning = FALSE}
 library(shadowVIMP)
