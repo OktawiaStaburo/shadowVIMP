@@ -10,7 +10,6 @@ vim_perm_sim(
   nsim = 100,
   importance = "permutation",
   num.threads = NULL,
-  write.forest = FALSE,
   num.trees = max(2 * (ncol(entire_data) - 1), 10000),
   data_name = NULL,
   num_cores_parallel = NULL,
@@ -32,9 +31,6 @@ default is \code{permutation}.}
 
 \item{num.threads}{Numeric, number of threads. Argument passed to
 \code{\link[ranger:ranger]{ranger::ranger()}}, default is \code{NULL}.}
-
-\item{write.forest}{Logical, indicator whether to save \code{ranger.forest}
-object. Passed to \code{\link[ranger:ranger]{ranger::ranger()}}, default is \code{FALSE}}
 
 \item{num.trees}{Numeric, number of trees. Passed to \code{\link[ranger:ranger]{ranger::ranger()}},
 default is \code{max(2 * (ncol(entire_data) - 1), 10000)}.}
@@ -75,10 +71,11 @@ out_seq <- vim_perm_sim(
 )
 
 # Parallel computing - using a cluster:
+\donttest{
 out_par_cores <- vim_perm_sim(
   entire_data = mtcars, outcome_var = "vs",
   nsim = 30, num_cores_parallel = 2, num.trees = 50
-)
+)}
 
 # Parallelism through num.threads parameter from ranger::ranger()
 out_par <- vim_perm_sim(

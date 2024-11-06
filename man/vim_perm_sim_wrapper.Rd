@@ -10,7 +10,6 @@ vim_perm_sim_wrapper(
   nsims = c(30, 120, 1500),
   entire_data,
   outcome_var,
-  write.forest = F,
   num.threads = NULL,
   num_cores_parallel = NULL,
   save_vimp_history = c("all", "last", "none"),
@@ -30,9 +29,6 @@ step of the procedure, default \code{c(30, 120, 1500)}.}
 
 \item{outcome_var}{Character, name of the column containing the outcome
 variable.}
-
-\item{write.forest}{Logical, indicator whether to save \code{ranger.forest}
-object. Passed to \code{\link[ranger:ranger]{ranger::ranger()}}, default is \code{FALSE}}
 
 \item{num.threads}{Numeric, number of threads. Argument passed to
 \code{\link[ranger:ranger]{ranger::ranger()}}, default is \code{NULL}.}
@@ -122,16 +118,15 @@ out1 <- vim_perm_sim_wrapper(
 
 # Parallelisation provided by ranger::ranger() function --> increase the
 # value of the num.threads parameter to speed up the computation
+\donttest{
 out2 <- vim_perm_sim_wrapper(
   entire_data = mtcars, outcome_var = "vs",
-  nsims = c(10, 20, 30), num.threads = 2, num.trees = 30
-)
+  nsims = c(10, 20, 30), num.threads = 2, num.trees = 30)
 
 # Parallel computing using a cluster
 out3 <- vim_perm_sim_wrapper(
   entire_data = mtcars, outcome_var = "vs",
-  nsims = c(10, 20, 30), num_cores_parallel = 2, num.trees = 30
-)
+  nsims = c(10, 20, 30), num_cores_parallel = 2, num.trees = 30)
 
 # Save the simulated variable importance values for the last step only
 out4 <- vim_perm_sim_wrapper(
@@ -151,5 +146,5 @@ out5 <- vim_perm_sim_wrapper(
 out6 <- vim_perm_sim_wrapper(
   entire_data = mtcars, outcome_var = "vs",
   nsims = c(10, 20, 30), method = "per_variable", num.trees = 30
-)
+)}
 }

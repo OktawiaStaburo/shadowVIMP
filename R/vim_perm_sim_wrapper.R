@@ -62,16 +62,15 @@
 #'
 #' # Parallelisation provided by ranger::ranger() function --> increase the
 #' # value of the num.threads parameter to speed up the computation
+#' \donttest{
 #' out2 <- vim_perm_sim_wrapper(
 #'   entire_data = mtcars, outcome_var = "vs",
-#'   nsims = c(10, 20, 30), num.threads = 2, num.trees = 30
-#' )
+#'   nsims = c(10, 20, 30), num.threads = 2, num.trees = 30)
 #'
 #' # Parallel computing using a cluster
 #' out3 <- vim_perm_sim_wrapper(
 #'   entire_data = mtcars, outcome_var = "vs",
-#'   nsims = c(10, 20, 30), num_cores_parallel = 2, num.trees = 30
-#' )
+#'   nsims = c(10, 20, 30), num_cores_parallel = 2, num.trees = 30)
 #'
 #' # Save the simulated variable importance values for the last step only
 #' out4 <- vim_perm_sim_wrapper(
@@ -91,12 +90,11 @@
 #' out6 <- vim_perm_sim_wrapper(
 #'   entire_data = mtcars, outcome_var = "vs",
 #'   nsims = c(10, 20, 30), method = "per_variable", num.trees = 30
-#' )
+#' )}
 vim_perm_sim_wrapper <- function(alphas = c(0.3, 0.10, 0.05),
                                  nsims = c(30, 120, 1500),
                                  entire_data,
                                  outcome_var, # y,
-                                 write.forest = F,
                                  num.threads = NULL,
                                  num_cores_parallel = NULL,
                                  save_vimp_history = c("all", "last", "none"),
@@ -150,7 +148,6 @@ vim_perm_sim_wrapper <- function(alphas = c(0.3, 0.10, 0.05),
         outcome_var = outcome_var, # y
         nsim = nsims[j],
         importance = "permutation",
-        write.forest = write.forest,
         num.threads = num.threads,
         data_name = data_name,
         num_cores_parallel = num_cores_parallel,

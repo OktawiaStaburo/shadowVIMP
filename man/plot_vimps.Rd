@@ -44,6 +44,7 @@ data(mtcars)
 
 # When working with real data, increase the value of the nsims and num.trees
 # parameters to obtain trustworthy results.
+\donttest{
 # Pooled p-values
 out_pooled <- vim_perm_sim_wrapper(
   entire_data = mtcars, outcome_var = "vs",
@@ -65,4 +66,5 @@ out_per_var <- vim_perm_sim_wrapper(
 
 # Set pooled to `FALSE`, otherwise the function will throw an error.
 plot_vimps(wrapper_object = out_per_var, pooled = FALSE, text_size = 4)
+}
 }

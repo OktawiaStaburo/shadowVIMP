@@ -15,8 +15,6 @@
 #'   default is `permutation`.
 #' @param num.threads Numeric, number of threads. Argument passed to
 #'   [ranger::ranger()], default is `NULL`.
-#' @param write.forest Logical, indicator whether to save `ranger.forest`
-#'   object. Passed to [ranger::ranger()], default is `FALSE`
 #' @param num.trees Numeric, number of trees. Passed to [ranger::ranger()],
 #'   default is `max(2 * (ncol(entire_data) - 1), 10000)`.
 #' @param data_name Character, name of the object passed as `entire_data`. In
@@ -47,10 +45,11 @@
 #' )
 #'
 #' # Parallel computing - using a cluster:
+#' \donttest{
 #' out_par_cores <- vim_perm_sim(
 #'   entire_data = mtcars, outcome_var = "vs",
 #'   nsim = 30, num_cores_parallel = 2, num.trees = 50
-#' )
+#' )}
 #'
 #' # Parallelism through num.threads parameter from ranger::ranger()
 #' out_par <- vim_perm_sim(
@@ -62,7 +61,6 @@ vim_perm_sim <- function(entire_data,
                          nsim = 100,
                          importance = "permutation",
                          num.threads = NULL,
-                         write.forest = FALSE,
                          num.trees = max(2 * (ncol(entire_data) - 1), 10000),
                          data_name = NULL,
                          num_cores_parallel = NULL,
@@ -156,7 +154,7 @@ vim_perm_sim <- function(entire_data,
         num.trees = num.trees,
         scale.permutation.importance = TRUE,
         num.threads = num.threads,
-        write.forest = write.forest,
+        write.forest = FALSE,
         respect.unordered.factors = "order",
         ...
       ))$variable.importance %>%
@@ -191,7 +189,7 @@ vim_perm_sim <- function(entire_data,
         num.trees = num.trees,
         scale.permutation.importance = TRUE,
         num.threads = num.threads,
-        write.forest = write.forest,
+        write.forest = FALSE,
         respect.unordered.factors = "order",
         ...
       ))$variable.importance %>%
