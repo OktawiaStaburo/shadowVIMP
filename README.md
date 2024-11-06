@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# pertvimp
+# shadowVIMP
 
 <!-- badges: start -->
 <!-- badges: end -->
@@ -9,7 +9,7 @@
 
 ## Overview
 
-The goal of pertvimp is to provide a tool that allows the selection of
+The goal of shadowVIMP is to provide a tool that allows the selection of
 informative covariates in an informed manner. The method implemented in
 this package is based on testing the variable importance measures (VIMP)
 obtained from the random forest (RF). It also allows the user to
@@ -18,15 +18,15 @@ box plot. It is a convenient alternative to the standard approach,
 e.g. selecting the top n variables, selecting only those variables with
 an importance score above the predefined threshold. Details of the
 method, realistic example of usage and interpretation of the results can
-be found in `vignette("pertvimp-vignette")`.
+be found in `vignette("shadowVIMP-vignette")`.
 
 ## Installation
 
-The `pertvimp` package is not (yet!) available on Cran. You can install
+The `shadowVIMP` package is not (yet!) available on Cran. You can install
 the development version like this:
 
 ``` r
-devtools::install_gitlab("oktawia.miluch/pertvimp-package", host = "gitlab.staburo.de")
+devtools::install_gitlab("oktawia.miluch/shadowVIMP-package", host = "gitlab.staburo.de")
 ```
 
 ## Usage
@@ -40,7 +40,7 @@ and select the subset of features in a more robust way. The following
 example shows the simple use case.
 
 ``` r
-library(pertvimp)
+library(shadowVIMP)
 library(magrittr)
 
 data(mtcars)
@@ -137,7 +137,7 @@ You can visualize your results in the following way:
 <img src="man/figures/README-example_cont-1.png" width="100%" />
 
 A more realistic and detailed example of how to use this package can be
-found in `vignette("pertvimp-vignette")`.
+found in `vignette("shadowVIMP-vignette")`.
 
 ## Getting help
 

@@ -13,7 +13,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-# pertvimp
+# shadowVIMP
 
 <!-- badges: start -->
 <!-- badges: end -->
@@ -22,14 +22,14 @@ knitr::opts_chunk$set(
 
 ## Overview
 
-The goal of pertvimp is to provide a tool that allows the selection of informative covariates in an informed manner. The method implemented in this package is based on testing the variable importance measures (VIMP) obtained from the random forest (RF). It also allows the user to conveniently visualise the variables considered as informative on the box plot. It is a convenient alternative to the standard approach, e.g. selecting the top n variables, selecting only those variables with an importance score above the predefined threshold. Details of the method, realistic example of usage and interpretation of the results can be found in `vignette("pertvimp-vignette")`.
+The goal of shadowVIMP is to provide a tool that allows the selection of informative covariates in an informed manner. The method implemented in this package is based on testing the variable importance measures (VIMP) obtained from the random forest (RF). It also allows the user to conveniently visualise the variables considered as informative on the box plot. It is a convenient alternative to the standard approach, e.g. selecting the top n variables, selecting only those variables with an importance score above the predefined threshold. Details of the method, realistic example of usage and interpretation of the results can be found in `vignette("shadowVIMP-vignette")`.
 
 ## Installation
 
-The `pertvimp` package is not (yet!) available on Cran. You can install the development version like this:
+The `shadowVIMP` package is not (yet!) available on Cran. You can install the development version like this:
 
 ``` {r, eval = FALSE}
-devtools::install_gitlab("oktawia.miluch/pertvimp-package", host = "gitlab.staburo.de")
+devtools::install_gitlab("oktawia.miluch/shadowVIMP-package", host = "gitlab.staburo.de")
 ```
 
 ## Usage
@@ -37,7 +37,7 @@ devtools::install_gitlab("oktawia.miluch/pertvimp-package", host = "gitlab.stabu
 Imagine you are working with a dataset with many variables and you want to select the subset of the most informative covariates. Instead of computing the variable importance (VI), displaying it on variable importance plots, and (somewhat arbitrarily) selecting the set of informative features, you can use the method implemented in this package and select the subset of features in a more robust way. The following example shows the simple use case.
 
 ```{r example, message = FALSE, warning = FALSE}
-library(pertvimp)
+library(shadowVIMP)
 library(magrittr)
 
 data(mtcars)
@@ -80,7 +80,7 @@ You can visualize your results in the following way:
  plot_vimps(wrapper_object = vimp_seq, text_size = 4)
 ```
 
-A more realistic and detailed example of how to use this package can be found in `vignette("pertvimp-vignette")`.
+A more realistic and detailed example of how to use this package can be found in `vignette("shadowVIMP-vignette")`.
 
 ## Getting help
 

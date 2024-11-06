@@ -1,4 +1,4 @@
-Package: pertvimp
+Package: shadowVIMP
 Version: 0.0.0.9000
 Title: Covariate Selection Based on VIMP Permutation Testing
 Authors@R: c(

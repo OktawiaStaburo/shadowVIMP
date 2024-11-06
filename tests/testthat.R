@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/articles/special-files.html
 
 library(testthat)
-library(pertvimp)
+library(shadowVIMP)
 
-test_check("pertvimp")
+test_check("shadowVIMP")

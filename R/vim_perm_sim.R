@@ -33,6 +33,7 @@
 #' @export
 #' @import foreach doRNG rlang dplyr
 #' @importFrom magrittr %>%
+#' @importFrom stats runif
 #' @examples
 #' data(mtcars)
 #' # When working with real data, increase num.trees value or leave default
