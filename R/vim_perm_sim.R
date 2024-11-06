@@ -173,11 +173,16 @@ vim_perm_sim <- function(entire_data,
     progress <- function(n) utils::setTxtProgressBar(pb, n)
     opts <- list(progress = progress)
 
+    # Control seed
+    set.seed(1807)
+    seed_list <- floor(runif(nsim, min = 1, max = 999999))
+
     vimp_sim <- foreach(
       i = 1:nsim,
       .packages = c("ranger", "dplyr"),
       .options.snow = opts
     ) %dorng% {
+      set.seed(seed_list[i])
       # Reshuffle row-wise
       dt[, (ncol(predictors_p) + 1):(2 * ncol(predictors_p))] <- dt[sample(1:n), (ncol(predictors_p) + 1):(2 * ncol(predictors_p))]
 
