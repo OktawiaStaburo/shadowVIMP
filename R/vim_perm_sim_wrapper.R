@@ -217,21 +217,24 @@ vim_perm_sim_wrapper <- function(alphas = c(0.3, 0.10, 0.05),
     }
   }
 
-  # Create pre_selection list storing results of the pre-selection steps
-  pre_selection <- list()
+  # If pre-selection has been done - save its results
+  if(length(alphas) > 1){
+    # Create pre_selection list storing results of the pre-selection steps
+    pre_selection <- list()
 
-  for (i in 1:(length(alphas) - 1)) {
-    step_name <- paste0("step_", i)
-    pre_selection[[step_name]][["vimp_history"]] <- replicate[[i]]$vimpermsim$vim_simulated
+    for (i in 1:(length(alphas) - 1)) {
+      step_name <- paste0("step_", i)
+      pre_selection[[step_name]][["vimp_history"]] <- replicate[[i]]$vimpermsim$vim_simulated
 
-    if (method == "pooled") {
-      pre_selection[[step_name]][["decision_pooled"]] <- replicate[[i]]$vimpermsim$test_results$pooled
-    } else {
-      pre_selection[[step_name]][["decision_per_variable"]] <- replicate[[i]]$vimpermsim$test_results$per_variable
+      if (method == "pooled") {
+        pre_selection[[step_name]][["decision_pooled"]] <- replicate[[i]]$vimpermsim$test_results$pooled
+      } else {
+        pre_selection[[step_name]][["decision_per_variable"]] <- replicate[[i]]$vimpermsim$test_results$per_variable
+      }
+
+      pre_selection[[step_name]][["alpha"]] <- replicate[[i]]$alpha
+      pre_selection[[step_name]][["result_taken_from_previous_step"]] <- replicate[[i]]$vimpermsim$result_taken_from_previous_step
     }
-
-    pre_selection[[step_name]][["alpha"]] <- replicate[[i]]$alpha
-    pre_selection[[step_name]][["result_taken_from_previous_step"]] <- replicate[[i]]$vimpermsim$result_taken_from_previous_step
   }
 
   # Create list storing results of the final step
