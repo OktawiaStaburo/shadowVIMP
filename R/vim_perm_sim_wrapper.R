@@ -222,7 +222,7 @@ vim_perm_sim_wrapper <- function(alphas = c(0.3, 0.10, 0.05),
     # Create pre_selection list storing results of the pre-selection steps
     pre_selection <- list()
 
-    for (i in 1:(length(alphas) - 1)) {
+    for (i in 1:(length(alphas) - 1)){
       step_name <- paste0("step_", i)
       pre_selection[[step_name]][["vimp_history"]] <- replicate[[i]]$vimpermsim$vim_simulated
 
@@ -245,7 +245,7 @@ vim_perm_sim_wrapper <- function(alphas = c(0.3, 0.10, 0.05),
     "alpha" = replicate[[last_idx]]$alpha,
     "result_taken_from_previous_step" = replicate[[last_idx]]$result_taken_from_previous_step,
     "time_elapsed" = time,
-    "pre_selection" = pre_selection,
+    "pre_selection" = if (length(alphas) > 1) pre_selection else NULL,
     "call" = cl
   )
 
