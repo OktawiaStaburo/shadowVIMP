@@ -18,11 +18,15 @@ knitr::opts_chunk$set(
 
 ## Theoretical framework
 
-When working with high-dimensional data sets, one often wants to reduce the number of covariates considered. One way to do this is to run a Random Forest (RF) and compute the permutation variable importance (VIMP) for each predictor. In short, a VIMP of a covariate j measures the increase in a prediction error when variable j is randomly permuted. If a predictor j has a large impact on the predicted variable of interest, it will achieve a relatively large VIMP compared to other uninformative covariates. Then, the simplest way to decide which variables are informative would be to select the top n variables, or only those variables whose VIMP score is above the predefined threshold. 
+### Big picture
 
-While this approach is simple and fast, it does not ensure that the results are not due to chance. To make better, more reliable decisions, we need a more sophisticated method for selecting informative covariates (variables). This method should work like a statistical test and provide some assurance that the selected covariates are truly informative and not just chosen at random. This is where the `shadowVIMP` package comes in. The procedure implemented in the `shadowVIMP` package can be described as follows:
+### Gready details
 
-1. For p covariates included in the original data set, create p **r-shadow variables**. R-shadow variables are row-permuted copies of the original covariates (see the image below for a visualization of the permutation scheme). Repeat the permutation `nsim` times. Each permutation will result in a new set of r-shadow variables.
+When working with high-dimensional data, it is often desirable to reduce the number of covariates considered. **This reduction can help prevent overfitting, as too many covariates can cause the model to capture noise instead of the true relationship between predictors and outcome. In addition, using fewer covariates improves the interpretability of the model, making it easier to understand, and improves computational efficiency. In some cases, where the primary objective is to understand which variables contribute most to the accuracy of the model, reducing the number of covariates is key.** **There are several established methods of variable selection. The `shadowVIMP` package introduces a variable selection method based on variable importance (VIMP) from the random forest (RF) algorithm.** In short, the VIMP of a covariate *j* measures the increase **in prediction** error when that variable is randomly permuted. If a predictor *j* has a large impact on the outcome of interest, it will produce a relatively large VIMP compared to uninformative covariates.**VIMPs only allow us to rank covariates by their relative importance, but the absolute magnitude of a VIMP is context dependent, i.e. there is no universal cut-off for identifying truly important variables. Therefore, a simple approach of selecting covariates with a VIMP above a certain threshold is not appropriate as it could lead to arbitrary choices. Another common method is to select the top *n* predictors (e.g. top 5, 10 or 20), but this approach risks missing important variables or selecting false positives, especially if few or none of the covariates are related to the outcome. Therefore, a more reliable approach is needed to ensure that observed VIMPs are not simply due to chance. This is where the `shadowVIMP` package comes in. `shadowVIMP` provides a statistical framework for assessing whether a given VIMP is large enough to be considered statistically significant. In other words, it helps answer the question whether a given VIMP is large enough that it is unlikely to occur by chance.**
+
+The procedure implemented in the `shadowVIMP` package can be described as follows:
+
+1. For *p* covariates included in the original data set, create *p* **r-shadow variables**. **R-shadow variables are uninformative copies of all predictors added to the dataset for reference. They are created by permuting rows of copied original covariates, which effectively breaks any association with the outcome variable (see the figure below for a visualisation of the permutation process). This lack of association makes the R-shadow variables uninformative and allows them to act as a reference for comparison when assessing the importance of the original predictors.** Repeat the permutation `nsim` times. Each permutation will result in a new set of r-shadow variables. **At each step, the random forest model is run and new VIMPs are calculated. After `nsim` iterations, the algorithm generates a data frame with *nsim* rows and *2p* columns containing the VIMP values for each original variable, along with the corresponding r-shadow variables. The purpose of these iterations is to generate a distribution of VIMPs under the null hypothesis. The VIMP values for the r-shadow variables vary between iterations due to the permutation process, while the VIMPs of the original covariates vary due to the inherent randomness of the random forest algorithm.**
 
 ```{r, echo=FALSE, out.width="85%", fig.cap="Permutation scheme"}
 knitr::include_graphics("rshadow.png")
@@ -30,24 +34,24 @@ knitr::include_graphics("rshadow.png")
 
 2. For each of the `nsim` permutations, recompute the VIMP of the original and r-shadow covariates. As a result, you will get the following sets:
 
-    * $VI_{j}$ - set of VIMPs of variable j, consisting of `nsim` (number of permutations) elements,
-    * $VI_{j}^{(s)}$ -   set of VIMPs of r-shadows of variable j, consisting of `nsim` elements.
+  * $VI_{j}$ - **set of VIMPs of the original variable *j* across `nsim` iterations**,
+  * $VI_{j}^{(s)}$ -   set of VIMPs of r-shadows of variable j, consisting of `nsim` elements.
 3. Calculate and decide whether a covariate j is significant based on its non-parametric p-value. The p-value for variable j is defined as follows:
 
 $$p_{j} = 1 - \widehat{F}_{ \left\{VI_{j}^{(s)}, \infty \right\}}(median(VI_{j}))$$
 
 where:
 
-* $\widehat{F}_{\{VI_{j}^{(s)}, \infty\}}(\cdot)$ is an empirical cumulative distribution function (ECDF) based on the r-shadow VIMPs of variable j with an infinity added. The ECDF represents the proportion of r-shadow VIMPs that are less than or equal to a certain value (in our case $median(VI_{j})$). By including infinity in the data, we ensure that the ECDF covers all possible values up to infinity. In other words, if we query such a constructed ECDF with a specific value, it will return  $1$ if that value is greater than all observed VIMPs of the r-shadow variable.
+* $\widehat{F}_{\{VI_{j}^{(s)}, \infty\}}(\cdot)$ is an empirical cumulative distribution function (ECDF) based on the r-shadow VIMPs of variable *j* with an infinity added. **Adding infinity to the ECDF introduces a small offset to prevent p-values being exactly 0.**
 * $median(VI_{j})$ is the median of the VIMPs of the original variables over all `nsin` iterations of the random forest.
 
-In the rest of this tutorial, we will call this type of p-value **per variable p-value**. Overall, such a defined p-value represents a proportion of random forest iterations in which the r-shadow variable achieved a higher VIMP than the median of the original variable's VIMPs. The covariate $x_{j}$ is considered informative if, for a given significance level $\alpha$, the following inequality holds:
+In the rest of this tutorial, we will call this type of p-value **per variable p-value**. Overall, such a defined p-value represents a proportion of random forest iterations in which the r-shadow variable achieved a higher VIMP than the median of the original variable's VIMPs. **(I have deleted repetitive explanation from above point defining ECDF.)** The covariate $x_{j}$ is considered informative if, for a given significance level $\alpha$, the following inequality holds:
 
 $$p_{j} \le \alpha$$
 
-### High-dimensional data extension 1: pre-selection 
+#### High-dimensional data extension 1: pre-selection 
 
-The method described above works well for low-dimensional data, but some modifications are needed for the high-dimensional case. The first improvement we need for a high-dimensional setting is the **pre-selection** of covariates. The goal of preselection is to eliminate noisy covariates from the procedure as early as possible. The idea is to reduce the set of predictors in one or more preliminary steps, where the algorithm is run with a significance level $\alpha$ less strict than the target value of $\alpha$ used for the final decision. For example, if the target value of the significance level is the usual $0.05$, then the appropriate value of $\alpha$ for the pre-selection step could be set to $0.3$. This would involve first running the basic algorithm (possibly with fewer iterations) against a threshold of $0.3$, identifying variables that have a p-value of at most $0.3$. Only the variables confirmed by this initial pre-selection step (i.e., with a p-value of at most $0.3$) would proceed either to the final step of the algorithm or to another pre-selection step (see figure below for illustration).
+The method described above works well for low-dimensional data, but some modifications are needed for the high-dimensional case. The first improvement we need for a high-dimensional setting is the **pre-selection** of covariates. The goal of preselection is to **eliminate variables which appear uninformative early on**. The idea is to reduce the set of predictors in one or more preliminary steps, where the algorithm is run with a significance level $\alpha$ less strict than the target value of $\alpha$ used for the final decision. For example, if the target value of the significance level is the usual $0.05$, then the appropriate value of $\alpha$ for the pre-selection step could be set to $0.3$. This would involve first running the basic algorithm (possibly with fewer iterations) against a threshold of $0.3$, identifying variables that have a p-value of at most $0.3$. Only the variables confirmed by this initial pre-selection step (i.e., with a p-value of at most $0.3$) would proceed either to the final step of the algorithm or to another pre-selection step (see figure below for illustration).
 
 ```{r, echo=FALSE, out.width="85%", fig.cap="Illustration of pre-selection procedure"}
 knitr::include_graphics("preselection.png")
@@ -55,27 +59,27 @@ knitr::include_graphics("preselection.png")
 
 The figure above illustrates the pre-selection procedure proposed in the `shadowVIMP' package. In this example, $30$ random forest models are trained in the first step. Based on the empirical cumulative distribution function (ECDF) built from the VIMPs of the r-shadow variables (obtained in $30 iterations of RF), only the covariates with a p-value less than or equal to $0.3$ are considered in the next step. The second round of pre-selection further reduces the set of considered variables against a significance threshold of $0.15$, based on $120$ random forest iterations. Only the covariates confirmed in the two pre-selection steps proceed to the final step. As a result, the final step only includes variables that showed early potential (survived the pre-selection) to exceed the target significance level of $0.05$.  
 
-### Addressing multiple testing issue
+#### Addressing multiple testing issue
 
-The decision criterion discussed so far, namely the per variable p-value, was defined as $p_{j} = 1 - \widehat{F}_{\{VI_{j}^{(s)}, \infty\}}(median(VI_{j}))$. A key aspect of this criterion is the direct comparison of the VIMPs of the original variable with the VIMPs of its corresponding r-shadow variable. However, in practice, when analyzing high-dimensional data, one needs to account for the multiple testing issue by using an appropriate adjustment method. The `shadowVIMP` package provides two adjustment procedures:  Benjamini-Hochberg (BH), which controls for the expected false discovery rate (FDR), and the Holm procedure, which controls for the family-wise error rate (FWER).
+The decision criterion discussed so far, namely the per variable p-value, was defined as $p_{j} = 1 - \widehat{F}_{\{VI_{j}^{(s)}, \infty\}}(median(VI_{j}))$. A key aspect of this criterion is the direct comparison of the VIMPs of the original variable with the VIMPs of its corresponding r-shadow variable. **However, in practice, especially when analysing high-dimensional data, multiple testing should be addressed by appropriate p-value adjustment method.** The `shadowVIMP` package provides two adjustment procedures:  Benjamini-Hochberg (BH), which controls for the expected false discovery rate (FDR), and the Holm procedure, which controls for the family-wise error rate (FWER).
 
-### High-dimensional data extension 2: pooled p-value
+#### High-dimensional data extension 2: pooled p-value
 
-In the considered setting of permorming many statistical tests, the application of multiple testing adjustment method is necessary. However, it also implies the need to calculate very small p-values. To put things into practical perspective, let's say we have $5000$ predictors in our data set, the target significance level is $0.05$, and we want to apply BH adjustment. In such a setting, the first significance threshold is $0.05/5000 = 0.00001$. This means that in order to reject the null hypothesis (a covariate is uninformative) about the variable with the smallest p-value, the corresponding p-value should be at most $0.00001$. Given the present definition of p-value, the smallest achievable p-value is $\frac{1}{n_{sim}}$. Therefore, to achieve a p-value lower than the significance threshold, we would need $\frac{5000}{0.05} = 100000$ iterations of the random forest (`n_sim`). Performing such a large number of iterations would be computationally expensive.  
+In the considered setting of performing many statistical tests, the application of multiple testing adjustment method is necessary. **This requires calculating very small p-values.** To put things into practical perspective, let's say we have $5000$ predictors in our data set, the target significance level is $0.05$, and we want to apply BH adjustment. In such a setting, the first significance threshold is $0.05/5000 = 0.00001$. This means that in order to reject the null hypothesis (a covariate is uninformative) about the variable with the smallest p-value, the corresponding p-value should be at most $0.00001$. Given the present definition of p-value, the smallest achievable p-value is $\frac{1}{n_{sim}}$. Therefore, to achieve a p-value lower than the significance threshold, we would need $\frac{5000}{0.05} = 100000$ iterations of the random forest (`n_sim`). Performing such a large number of iterations would be computationally expensive.  
 
-To reduce this cost, we introduce an alternative decision criterion: **pooled p-value**. The main idea behind pooling is to increase the sample size of the ECDF by including the VIMPs of all r-shadows instead of just the corresponding one. The pooled p-value for covariate j is defined as follows:
+To reduce this computational cost, we introduce an alternative decision criterion: the pooled p-value. The main idea behind pooling is to increase the effective sample size of the ECDF by including the VIMP values of all r-shadow variables instead of just one. **Before pooling, it is essential to standardise the VIMPs of the r-shadow variables to ensure that their distributions are comparable.** The pooled p-value for covariate *j* is then defined as follows:
 
 $$
 p_j^{(\text{pooled})} = 1 - \widehat{F}_{ \left\{ \widetilde{VI}_{1}^{(s)}, \dots, \widetilde{VI}_{j}^{(s)}, \dots, \widetilde{VI}_{p}^{(s)}, \infty \right\} } \left( \text{median} \left( \widetilde{VI}_{j} \right) \right)
 $$
 
 
-where $\widetilde{VI}_{j}^{(s)}$ is a standardized r-shadow VIMP:
+where $\widetilde{VI}_{j}^{(s)}$ is a set of standardised r-shadow VIMPs:
 
 $$
 \widetilde{VI}_{j}^{(s)} = \frac{VI_{j}^{(s)} - \text{mean}(VI_{j}^{(s)})}{\text{sd}(VI_{j}^{(s)})}
 $$
-and $\widetilde{VI}_{j}$ is a "standardized" VIMP of the original covariate, corrected using the mean and standard deviation of its corresponding r-shadow:
+and $\widetilde{VI}_{j}$ is a "standardised" VIMP of the original covariate, corrected using the mean and standard deviation of its corresponding r-shadow:
 
 $$
 \widetilde{VI}_{j} = \frac{VI_{j} - \text{mean}(VI_{j}^{(s)})}{\text{sd}(VI_{j}^{(s)})}
@@ -85,7 +89,7 @@ Similar to per-variable p-values, when using the alternative formulation of the 
 $$ p_j^{(\text{pooled})} \leq \alpha $$
 The main advantage of pooled p-values is the reduced run time.  Using the same example with $5000$ predictors as before, the smallest achievable p-value is $\frac{1}{n_{sim} \times 5000}$. The pooled decision criterion reduces the number of iterations required, making it possible (though not guaranteed) to reject at least one hypothesis, by a factor of $5000$ (or, in general, by the number of covariates included in the data).
 
-### Back to pre-selection
+#### Back to pre-selection
 
 Coming back to the idea of pre-selection, we could perform the pre-selection steps of the proposed method based on either per-variable or pooled p-values. However, in the current implementation of the `shadowVIMP` package, we use the pooled decision criterion in the preselection steps. This approach allows us to use a comparatively small number of iterations in the preselection steps while still maintaining a reasonable number of VIMPs used to construct the ECDF. In the final step of the procedure, the user can decide whether to report per-variable or pooled p-values along with the decisions based on them. More on this topic in the following practical guide to the `shadowVIMP` package.
 
