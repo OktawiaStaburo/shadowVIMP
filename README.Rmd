@@ -26,15 +26,25 @@ The goal of shadowVIMP is to provide a tool that allows the selection of informa
 
 ## Installation
 
-The `shadowVIMP` package is not (yet!) available on Cran. You can install the development version like this:
+The `shadowVIMP` package is not (yet!) available on Cran, but you can install the development version. Installation instructions:
+
+1. Create a personal access token (PAT) for yourself. To do this:
+   - Login to your GitLab account.
+   - Click on your profile photo in the top right corner and select "Edit Profile".
+   - Select "Access Tokens" from the menu on the left.
+   - Choose a name and expiration date for your token, then save the token.
+2. In RStudio, run the following code with your credentials:
 
 ``` {r, eval = FALSE}
-devtools::install_gitlab("oktawia.miluch/shadowVIMP-package", host = "gitlab.staburo.de")
+devtools::install_git("https://gitlab.staburo.de/oktawia.miluch/shadowVIMP-package.git",
+                      credentials = git2r::cred_user_pass("YOUR-GITLAB-USERNAME", "YOUR-PAT-TOKEN"))
 ```
+
+Now, after calling `library(shadowVIMP)`, the package should be available to you. 
 
 ## Usage
 
-Imagine you are working with a dataset with many variables and you want to select the subset of the most informative covariates. Instead of computing the variable importance (VI), displaying it on variable importance plots, and (somewhat arbitrarily) selecting the set of informative features, you can use the method implemented in this package and select the subset of features in a more robust way. The following example shows the basic use case.
+Imagine you are working with a dataset with many variables and you want to select the subset of the most informative covariates. Instead of computing the variable importance, displaying it on variable importance plots, and (somewhat arbitrarily) selecting the set of informative features, you can use the method implemented in this package and select the subset of features in a more robust way. The following example shows the basic use case.
 
 ```{r example, message = FALSE, warning = FALSE}
 library(shadowVIMP)
@@ -80,7 +90,7 @@ You can visualize your results in the following way:
  plot_vimps(wrapper_object = vimp_seq, text_size = 4)
 ```
 
-A more realistic and detailed example of how to use this package can be found in `vignette("shadowVIMP-vignette")`.
+For a more realistic and detailed example of how to use this package, and the theory behind the method, see `vignette("shadowVIMP-vignette")`.
 
 ## Getting help
 

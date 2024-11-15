@@ -22,22 +22,35 @@ be found in `vignette("shadowVIMP-vignette")`.
 
 ## Installation
 
-The `shadowVIMP` package is not (yet!) available on Cran. You can
-install the development version like this:
+The `shadowVIMP` package is not (yet!) available on Cran, but you can
+install the development version. Installation instructions:
+
+1.  Create a personal access token (PAT) for yourself. To do this:
+    - Login to your GitLab account.
+    - Click on your profile photo in the top right corner and select
+      “Edit Profile”.
+    - Select “Access Tokens” from the menu on the left.
+    - Choose a name and expiration date for your token, then save the
+      token.
+2.  In RStudio, run the following code with your credentials:
 
 ``` r
-devtools::install_gitlab("oktawia.miluch/shadowVIMP-package", host = "gitlab.staburo.de")
+devtools::install_git("https://gitlab.staburo.de/oktawia.miluch/shadowVIMP-package.git",
+                      credentials = git2r::cred_user_pass("YOUR-GITLAB-USERNAME", "YOUR-PAT-TOKEN"))
 ```
+
+Now, after calling `library(shadowVIMP)`, the package should be
+available to you.
 
 ## Usage
 
 Imagine you are working with a dataset with many variables and you want
 to select the subset of the most informative covariates. Instead of
-computing the variable importance (VI), displaying it on variable
-importance plots, and (somewhat arbitrarily) selecting the set of
-informative features, you can use the method implemented in this package
-and select the subset of features in a more robust way. The following
-example shows the basic use case.
+computing the variable importance, displaying it on variable importance
+plots, and (somewhat arbitrarily) selecting the set of informative
+features, you can use the method implemented in this package and select
+the subset of features in a more robust way. The following example shows
+the basic use case.
 
 ``` r
 library(shadowVIMP)
@@ -52,18 +65,18 @@ set.seed(789)
 # When working with real data, increase the value of the nsims parameter or leave it at the default value
  vimp_seq <- vim_perm_sim_wrapper(entire_data = mtcars, outcome_var = "vs", nsims = c(30, 100, 150))
 #> alpha  0.3  
-#> 2024-11-06 15:53:20: dataframe = mtcars nsim = 30 num.trees = 10000. Running step 1
+#> 2024-11-15 09:19:30: dataframe = mtcars nsim = 30 num.trees = 10000. Running step 1
 #> Variables remaining:  10 
 #> alpha  0.1  
-#> 2024-11-06 15:53:26: dataframe = mtcars nsim = 100 num.trees = 10000. Running step 1
-#> 2024-11-06 15:53:33: dataframe = mtcars nsim = 100 num.trees = 10000. Running step 50
-#> 2024-11-06 15:53:39: dataframe = mtcars nsim = 100 num.trees = 10000. Running step 100
+#> 2024-11-15 09:19:37: dataframe = mtcars nsim = 100 num.trees = 10000. Running step 1
+#> 2024-11-15 09:19:44: dataframe = mtcars nsim = 100 num.trees = 10000. Running step 50
+#> 2024-11-15 09:19:51: dataframe = mtcars nsim = 100 num.trees = 10000. Running step 100
 #> Variables remaining:  9 
 #> alpha  0.05  
-#> 2024-11-06 15:53:40: dataframe = mtcars nsim = 150 num.trees = 10000. Running step 1
-#> 2024-11-06 15:53:46: dataframe = mtcars nsim = 150 num.trees = 10000. Running step 50
-#> 2024-11-06 15:53:54: dataframe = mtcars nsim = 150 num.trees = 10000. Running step 100
-#> 2024-11-06 15:54:00: dataframe = mtcars nsim = 150 num.trees = 10000. Running step 150
+#> 2024-11-15 09:19:51: dataframe = mtcars nsim = 150 num.trees = 10000. Running step 1
+#> 2024-11-15 09:19:58: dataframe = mtcars nsim = 150 num.trees = 10000. Running step 50
+#> 2024-11-15 09:20:05: dataframe = mtcars nsim = 150 num.trees = 10000. Running step 100
+#> 2024-11-15 09:20:12: dataframe = mtcars nsim = 150 num.trees = 10000. Running step 150
 #> Variables remaining:  7
 
 # Print informative covariates according to the pooled criterion (with and without p-value correction)
@@ -104,16 +117,16 @@ set.seed(789)
 # Check the time needed to execute each step of the algorithm and the entire procedure
   vimp_seq$time_elapsed
 #> $step_1
-#> [1] 0.09404811
+#> [1] 0.1066308
 #> 
 #> $step_2
-#> [1] 0.2305441
+#> [1] 0.2332473
 #> 
 #> $step_3
-#> [1] 0.3520235
+#> [1] 0.3567361
 #> 
 #> $total_time_mins
-#> [1] 0.6766157
+#> [1] 0.6966142
   
 # Check the call code that was used to create the inspected object
   vimp_seq$call
@@ -152,8 +165,8 @@ You can visualize your results in the following way:
 
 <img src="man/figures/README-example_cont-1.png" width="100%" />
 
-A more realistic and detailed example of how to use this package can be
-found in `vignette("shadowVIMP-vignette")`.
+For a more realistic and detailed example of how to use this package,
+and the theory behind the method, see `vignette("shadowVIMP-vignette")`.
 
 ## Getting help
 
