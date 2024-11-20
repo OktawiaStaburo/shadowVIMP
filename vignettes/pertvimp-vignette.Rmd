@@ -120,11 +120,10 @@ library(magrittr)
 library(dplyr)
 
 if (requireNamespace("AppliedPredictiveModeling", quietly = TRUE)) {
-    library(AppliedPredictiveModeling)
+  library(AppliedPredictiveModeling)
 } else {
-    stop("Package 'AppliedPredictiveModeling' is required for this vignette. Please install it.")
+  stop("Package 'AppliedPredictiveModeling' is required for this vignette. Please install it.")
 }
-
 ```
 
 In the examples below we use Alzheimer’s Disease CSF Data from the `AppliedPredictiveModeling` package. To reduce the time needed to build this vignette, we use the subset of the original data (100 observations taken from the original dataset) and smaller than recommended values of `nsims` parameters. If you are working on a real-life example, please keep the default values of `nsims` or at least increase the values used below. In the example below, we show the basic usage of our package with the default settings. By default, the functions of this package display informative covariates according to the pooled p-values. The default settings also display all possible p-values, namely unadjusted, FWER-adjusted and FDR-adjusted.
@@ -135,15 +134,14 @@ data_alz <- cbind(diagnosis, predictors)
 # To make the results reproducible
 set.seed(786)
 data_sub <- slice_sample(data_alz, n = 100)
-vimp_def <- vim_perm_sim_wrapper(nsims = c(20,30,50), entire_data = data_sub, outcome_var = "diagnosis")
-
+vimp_def <- vim_perm_sim_wrapper(nsims = c(20, 30, 50), entire_data = data_sub, outcome_var = "diagnosis")
 ```
 
 As shown below, in this case none of the variables are informative when applying the Holm p-value correction (column `FWER_confirmed`). Using the FDR p-value correction, the first 5 covariates appear to be informative.  
 
 ````{r ex_default2}
-vimp_def$final_dec_pooled %>% 
-  select(-quantile_pooled) %>% 
+vimp_def$final_dec_pooled %>%
+  select(-quantile_pooled) %>%
   head()
 ````
 
@@ -153,32 +151,32 @@ The `vim_perm_sim_wrapper()` function has a `save_vimp_history` argument. This a
 
 ````{r inspect_history1}
 # VIMP history from the 1st step
-vimp_def$pre_selection$step_1$vimp_history %>% 
-  select(1:6) %>% 
+vimp_def$pre_selection$step_1$vimp_history %>%
+  select(1:6) %>%
   head()
 
 # VIMP history from the 2nd step
 vimp_def$pre_selection$step_2$vimp_history %>%
-  select(1:6) %>% 
+  select(1:6) %>%
   head()
 ````
 
 The code below allows you to check the VIMP (Variable Importance) measures from the last step:
 
 ````{r vimp_last_step}
-vimp_def$vimp_history %>% 
-  select(1:6) %>% 
+vimp_def$vimp_history %>%
+  select(1:6) %>%
   head()
 ````
 
 Setting the parameter `save_vimp_history` to the value `"last"` will only save the variable importance from the last step of the procedure. Compared to the default setting (which sets `save_vimp_history` to `"all"`), under `pre_selection$step_1` or `pre_selection$step_2` there will be no data frame storing the variable importance obtained during the preselection phase. 
 
 ````{r vimp_last}
-vimp_last <- vim_perm_sim_wrapper(nsims = c(20,30,50), entire_data = data_sub, outcome_var = "diagnosis", save_vimp_history = "last")
+vimp_last <- vim_perm_sim_wrapper(nsims = c(20, 30, 50), entire_data = data_sub, outcome_var = "diagnosis", save_vimp_history = "last")
 
 # Inspect VIMP from the last step of the procedure
 vimp_last$vimp_history %>%
-  select(1:6) %>% 
+  select(1:6) %>%
   head()
 
 # There is no `vimp_history`data frame under `pre_selection$step_1` or `pre_selection$step_2`
@@ -189,9 +187,8 @@ vimp_last$vimp_history %>%
 If the parameter `save_vimp_history` is set to the value `"none"`, the variable importance of each step will not be saved. As shown below, under `vimp_history` there is no longer a data frame to store variable importance measures. Similarly, if you run `vimp_none$pre_selection$step_1` or `vimp_none$pre_selection$step_2`, as in the previous example, you will no longer find data frames storing VIMP from the preselection phase.
 
 ````{r vimp_none}
-vimp_none <- vim_perm_sim_wrapper(nsims = c(20,30,50), entire_data = data_sub, outcome_var = "diagnosis", save_vimp_history = "none")
+vimp_none <- vim_perm_sim_wrapper(nsims = c(20, 30, 50), entire_data = data_sub, outcome_var = "diagnosis", save_vimp_history = "none")
 vimp_none$vimp_history
-
 ````
 
 ## Parallelisation
@@ -199,24 +196,26 @@ vimp_none$vimp_history
 To speed up the computation, it is possible to run the main function of the `shadowVIMP` package in parallel. There are two ways to do this. The first is to use the parallelisation provided by the `ranger::ranger()` function, which is used internally. To use this functionality, the `num.threads` parameter must be set to a value greater than 1.
 
 ````{r parallel1}
-vimp_parallel1 <- vim_perm_sim_wrapper(nsims = c(20,30,50), entire_data = data_sub, outcome_var = "diagnosis", num.threads = 4)
+vimp_parallel1 <- vim_perm_sim_wrapper(nsims = c(20, 30, 50), entire_data = data_sub, outcome_var = "diagnosis", num.threads = 4)
 ````
 
 Another way to perform parallel computations is to set the `num_cores_parallel` parameter to a value greater than 1. In this case, a cluster with the specified number of cores is created under the hood.
 
 ````{r parallel2}
-# Technical checks 
+# Technical checks
 # Detect if running on non-interactive environments
 is_interactive <- interactive()
 
-if(is_interactive){
+if (is_interactive) {
   # When interactive - run parallel
   num_cores <- min(parallel::detectCores(), 4)
-  vimp_parallel2 <- vim_perm_sim_wrapper(nsims = c(20,30,50), entire_data = data_sub, outcome_var = "diagnosis",
-                                         num_cores_parallel = num_cores)
+  vimp_parallel2 <- vim_perm_sim_wrapper(
+    nsims = c(20, 30, 50), entire_data = data_sub, outcome_var = "diagnosis",
+    num_cores_parallel = num_cores
+  )
 } else {
   # When non-interactive - run sequantial
-  vimp_parallel2 <- vim_perm_sim_wrapper(nsims = c(20,30,50), entire_data = data_sub, outcome_var = "diagnosis")
+  vimp_parallel2 <- vim_perm_sim_wrapper(nsims = c(20, 30, 50), entire_data = data_sub, outcome_var = "diagnosis")
 }
 ````
 
@@ -227,9 +226,9 @@ Of course, it is possible to use two types of parallelisation at the same time, 
 The `shadowVIMP` package also provides an option to select informative covariates based on the `per variable` p-values. By default, the printed decision whether a covariate is informative or not is based on the pooled p-value. In the output below, the decision about the informativeness of covariates is based on the per-variable p-value:
 
 ````{r per_variable}
-vimp_per_variable <- vim_perm_sim_wrapper(nsims = c(20,30,50), entire_data = data_sub, outcome_var = "diagnosis", method = "per_variable")
+vimp_per_variable <- vim_perm_sim_wrapper(nsims = c(20, 30, 50), entire_data = data_sub, outcome_var = "diagnosis", method = "per_variable")
 
-vimp_per_variable$final_dec_per_variable %>% 
+vimp_per_variable$final_dec_per_variable %>%
   select(-quantile_per_variable) %>%
   head()
 ````
@@ -270,7 +269,7 @@ Let's say we want to select the informative covariates based on the per variable
 
 ````{r add_control, warning = FALSE}
 # Custom `control_parameters` list
-vimp_per_var_control <- vim_perm_sim_wrapper(nsims = c(20,30,50), entire_data = data_sub, outcome_var = "diagnosis", method = "per_variable", p_val_type = c("per variable p-value"))
+vimp_per_var_control <- vim_perm_sim_wrapper(nsims = c(20, 30, 50), entire_data = data_sub, outcome_var = "diagnosis", method = "per_variable", p_val_type = c("per variable p-value"))
 
 vimp_per_var_control$control_parameters
 ````
@@ -288,13 +287,13 @@ The code below demonstrates the described entries based on the example of the `v
 
 ````{r pre_selection}
 # VIMP from 1st step
-vimp_per_var_control$pre_selection$step_1$vimp_history %>% 
-  select(1:6) %>% 
+vimp_per_var_control$pre_selection$step_1$vimp_history %>%
+  select(1:6) %>%
   head()
 
 # Which covariates were considered as informative in the 1st step?
-vimp_per_var_control$pre_selection$step_1$decision_per_variable %>% 
-  select(-quantile_per_variable) %>% 
+vimp_per_var_control$pre_selection$step_1$decision_per_variable %>%
+  select(-quantile_per_variable) %>%
   head()
 
 # The significance level used in the 1st step
@@ -302,7 +301,6 @@ vimp_per_var_control$pre_selection$step_1$alpha
 
 # Control parameters used in the 1st step
 vimp_per_var_control$pre_selection$step_1$control_parameters
-
 ````
 
 ## Plot your results
@@ -310,8 +308,7 @@ vimp_per_var_control$pre_selection$step_1$control_parameters
 Let's use again the results obtained at the beginning of this tutorial, namely the following object:
 
 ````{r reminder,  eval = FALSE}
-vimp_def <- vim_perm_sim_wrapper(nsims = c(20,30,50), entire_data = data_sub, outcome_var = "diagnosis")
-
+vimp_def <- vim_perm_sim_wrapper(nsims = c(20, 30, 50), entire_data = data_sub, outcome_var = "diagnosis")
 ````
 
 Instead of just looking at the table that stores the decisions from the last step about informative covariates, we would like to have an appealing visual representation of our results. In the `shadowVIMP` package this is easily accessible using the `plot_vimps()` function. If you want to plot the results based on the pooled p-values, just specify the output of the `vim_perm_sim_wrapper()` function as shown below: 
@@ -333,7 +330,7 @@ If you are working with a large dataset and many covariates survive to the last 
 Let's use again the results of the proposed procedure based on per variable p-values (other parameters remain at their default values):
 
 ````{r plot_per_var, eval=FALSE}
-vimp_per_variable <- vim_perm_sim_wrapper(nsims = c(20,30,50), entire_data = data_sub, outcome_var = "diagnosis", method = "per_variable")
+vimp_per_variable <- vim_perm_sim_wrapper(nsims = c(20, 30, 50), entire_data = data_sub, outcome_var = "diagnosis", method = "per_variable")
 ````
 
 To use the `plot_vimps()` function for results based on per variable p-values, the `pooled` parameter in the plot function must be set to `FALSE`:

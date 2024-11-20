@@ -37,7 +37,8 @@ The `shadowVIMP` package is not (yet!) available on Cran, but you can install th
 
 ``` {r, eval = FALSE}
 devtools::install_git("https://gitlab.staburo.de/oktawia.miluch/shadowVIMP-package.git",
-                      credentials = git2r::cred_user_pass("YOUR-GITLAB-USERNAME", "YOUR-PAT-TOKEN"))
+  credentials = git2r::cred_user_pass("YOUR-GITLAB-USERNAME", "YOUR-PAT-TOKEN")
+)
 ```
 
 Now, after calling `library(shadowVIMP)`, the package should be available to you. 
@@ -57,29 +58,29 @@ set.seed(789)
 
 # Standard usage - sequential computing
 # When working with real data, increase the value of the nsims parameter or leave it at the default value
- vimp_seq <- vim_perm_sim_wrapper(entire_data = mtcars, outcome_var = "vs", nsims = c(30, 100, 150))
+vimp_seq <- vim_perm_sim_wrapper(entire_data = mtcars, outcome_var = "vs", nsims = c(30, 100, 150))
 
 # Print informative covariates according to the pooled criterion (with and without p-value correction)
- vimp_seq$final_dec_pooled
- 
+vimp_seq$final_dec_pooled
+
 # The significance level used for the test in the last step
-  vimp_seq$alpha
+vimp_seq$alpha
 
 # Check control parameters from the last step - you can specify what should be added to this list
-  vimp_seq$control_parameters
-  
+vimp_seq$control_parameters
+
 # Are the displayed results from the last or the previous step?
-  vimp_seq$result_taken_from_previous_step
-  
+vimp_seq$result_taken_from_previous_step
+
 # Check the time needed to execute each step of the algorithm and the entire procedure
-  vimp_seq$time_elapsed
-  
+vimp_seq$time_elapsed
+
 # Check the call code that was used to create the inspected object
-  vimp_seq$call
-  
+vimp_seq$call
+
 # Check VIMP measures of covariates and their shadows from the last step
-  vimp_seq$vimp_history %>% head()
-  
+vimp_seq$vimp_history %>% head()
+
 # Inspect in detail two steps of pre-selection
 #  vimp_seq$pre_selection
 ```
@@ -87,7 +88,7 @@ set.seed(789)
 You can visualize your results in the following way:
 
 ```{r example_cont, echo = FALSE, fig.width=28, fig.height=19}
- plot_vimps(wrapper_object = vimp_seq, text_size = 4)
+plot_vimps(wrapper_object = vimp_seq, text_size = 4)
 ```
 
 For a more realistic and detailed example of how to use this package, and the theory behind the method, see `vignette("shadowVIMP-vignette")`.

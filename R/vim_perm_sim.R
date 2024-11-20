@@ -50,7 +50,8 @@
 #' out_par_cores <- vim_perm_sim(
 #'   entire_data = mtcars, outcome_var = "vs",
 #'   nsim = 30, num_cores_parallel = 2, num.trees = 50
-#' )}
+#' )
+#' }
 #'
 #' # Parallelism through num.threads parameter from ranger::ranger()
 #' out_par <- vim_perm_sim(

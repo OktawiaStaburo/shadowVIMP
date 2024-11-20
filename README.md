@@ -36,7 +36,8 @@ install the development version. Installation instructions:
 
 ``` r
 devtools::install_git("https://gitlab.staburo.de/oktawia.miluch/shadowVIMP-package.git",
-                      credentials = git2r::cred_user_pass("YOUR-GITLAB-USERNAME", "YOUR-PAT-TOKEN"))
+  credentials = git2r::cred_user_pass("YOUR-GITLAB-USERNAME", "YOUR-PAT-TOKEN")
+)
 ```
 
 Now, after calling `library(shadowVIMP)`, the package should be
@@ -63,24 +64,24 @@ set.seed(789)
 
 # Standard usage - sequential computing
 # When working with real data, increase the value of the nsims parameter or leave it at the default value
- vimp_seq <- vim_perm_sim_wrapper(entire_data = mtcars, outcome_var = "vs", nsims = c(30, 100, 150))
+vimp_seq <- vim_perm_sim_wrapper(entire_data = mtcars, outcome_var = "vs", nsims = c(30, 100, 150))
 #> alpha  0.3  
-#> 2024-11-15 09:19:30: dataframe = mtcars nsim = 30 num.trees = 10000. Running step 1
+#> 2024-11-20 12:24:12: dataframe = mtcars nsim = 30 num.trees = 10000. Running step 1
 #> Variables remaining:  10 
 #> alpha  0.1  
-#> 2024-11-15 09:19:37: dataframe = mtcars nsim = 100 num.trees = 10000. Running step 1
-#> 2024-11-15 09:19:44: dataframe = mtcars nsim = 100 num.trees = 10000. Running step 50
-#> 2024-11-15 09:19:51: dataframe = mtcars nsim = 100 num.trees = 10000. Running step 100
+#> 2024-11-20 12:24:18: dataframe = mtcars nsim = 100 num.trees = 10000. Running step 1
+#> 2024-11-20 12:24:25: dataframe = mtcars nsim = 100 num.trees = 10000. Running step 50
+#> 2024-11-20 12:24:32: dataframe = mtcars nsim = 100 num.trees = 10000. Running step 100
 #> Variables remaining:  9 
 #> alpha  0.05  
-#> 2024-11-15 09:19:51: dataframe = mtcars nsim = 150 num.trees = 10000. Running step 1
-#> 2024-11-15 09:19:58: dataframe = mtcars nsim = 150 num.trees = 10000. Running step 50
-#> 2024-11-15 09:20:05: dataframe = mtcars nsim = 150 num.trees = 10000. Running step 100
-#> 2024-11-15 09:20:12: dataframe = mtcars nsim = 150 num.trees = 10000. Running step 150
+#> 2024-11-20 12:24:32: dataframe = mtcars nsim = 150 num.trees = 10000. Running step 1
+#> 2024-11-20 12:24:39: dataframe = mtcars nsim = 150 num.trees = 10000. Running step 50
+#> 2024-11-20 12:24:46: dataframe = mtcars nsim = 150 num.trees = 10000. Running step 100
+#> 2024-11-20 12:24:53: dataframe = mtcars nsim = 150 num.trees = 10000. Running step 150
 #> Variables remaining:  7
 
 # Print informative covariates according to the pooled criterion (with and without p-value correction)
- vimp_seq$final_dec_pooled
+vimp_seq$final_dec_pooled
 #>   varname quantile_pooled      p_unadj   p_adj_FDR  p_adj_FWER Type1_confirmed
 #> 1     cyl       0.9992598 0.0007401925 0.002467308 0.007401925               1
 #> 2    qsec       0.9992598 0.0007401925 0.002467308 0.007401925               1
@@ -101,40 +102,40 @@ set.seed(789)
 #> 7             1              0
 #> 8             0              0
 #> 9             0              0
- 
+
 # The significance level used for the test in the last step
-  vimp_seq$alpha
+vimp_seq$alpha
 #> [1] 0.05
 
 # Check control parameters from the last step - you can specify what should be added to this list
-  vimp_seq$control_parameters
+vimp_seq$control_parameters
 #> NULL
-  
+
 # Are the displayed results from the last or the previous step?
-  vimp_seq$result_taken_from_previous_step
+vimp_seq$result_taken_from_previous_step
 #> [1] FALSE
-  
+
 # Check the time needed to execute each step of the algorithm and the entire procedure
-  vimp_seq$time_elapsed
+vimp_seq$time_elapsed
 #> $step_1
-#> [1] 0.1066308
+#> [1] 0.1011885
 #> 
 #> $step_2
-#> [1] 0.2332473
+#> [1] 0.2283362
 #> 
 #> $step_3
-#> [1] 0.3567361
+#> [1] 0.3632199
 #> 
 #> $total_time_mins
-#> [1] 0.6966142
-  
+#> [1] 0.6927447
+
 # Check the call code that was used to create the inspected object
-  vimp_seq$call
+vimp_seq$call
 #> vim_perm_sim_wrapper(nsims = c(30, 100, 150), entire_data = mtcars, 
 #>     outcome_var = "vs")
-  
+
 # Check VIMP measures of covariates and their shadows from the last step
-  vimp_seq$vimp_history %>% head()
+vimp_seq$vimp_history %>% head()
 #>        mpg      cyl     disp       hp     qsec     carb       wt      drat
 #> 1 32.96580 37.83467 34.28494 44.40825 69.39776 24.06262 15.92240  6.592342
 #> 2 33.94531 37.67475 33.80626 43.52956 69.47350 22.87792 15.14960 11.407349
@@ -156,7 +157,7 @@ set.seed(789)
 #> 4    11.3272227    2.210888      1.430094    -2.1331894
 #> 5     0.8828882   -6.429090     -4.002469     0.4812786
 #> 6     0.1989782   -6.730972     -6.458763    -2.7823118
-  
+
 # Inspect in detail two steps of pre-selection
 #  vimp_seq$pre_selection
 ```
