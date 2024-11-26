@@ -1,7 +1,8 @@
 # Ignore temporary library paths generated during testing/building
-temp_libpath*/
-temp_libpath*/shadowVIMP/
-tests/testthat/temp_*/
+# temp_libpath*/
+# temp_libpath*/shadowVIMP/
+# tests/testthat/temp_*/
+# temp_libpathd720b101636/
 
 .Rproj.user
 *.Rproj
@@ -10,10 +11,13 @@ inst/doc
 README.html
 /doc/
 /Meta/
+#/Temp/
 
-# from vignettes:
-*.html
-*.R
+# Ignore compiled vignette files
+vignettes/*.html
+vignettes/*.pdf
+vignettes/*.md
+vignettes/pertvimp-vignette.Rmd
 
 # OS-specific files
 .DS_Store
