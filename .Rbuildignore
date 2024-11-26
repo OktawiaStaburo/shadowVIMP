@@ -1,5 +1,27 @@
+# Exclude temporary library paths
+^temp_libpath
+
+# Exclude any shadowVIMP directories within temporary library paths
+^temp_libpath/shadowVIMP/
+
+# Exclude any temporary directories within tests
+^tests/testthat/temp_
+
 ^shadowVIMP\.Rproj$
 ^\.Rproj\.user$
 ^\.Rhistory$
 ^README\.Rmd$
 ^README\.html$
+^dev$
+^vignettes/pertvimp-vignette\.Rmd$
+
+^doc$
+^Meta$
+
+# OS-specific files
+^\.DS_Store$
+^Thumbs\.db$
+
+# Other common temporary files
+^.*\.log$
+^.*\.tmp$

@@ -1,4 +1,24 @@
+# Ignore temporary library paths generated during testing/building
+temp_libpath*/
+temp_libpath*/shadowVIMP/
+tests/testthat/temp_*/
+
 .Rproj.user
+*.Rproj
 inst/doc
 .Rhistory
 README.html
+/doc/
+/Meta/
+
+# from vignettes:
+*.html
+*.R
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Other common ignores
+*.log
+*.tmp
