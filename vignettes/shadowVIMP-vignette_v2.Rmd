@@ -2,7 +2,7 @@
 title: "shadowVIMP-vignette_v2"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{shadowVIMP-vignette}
+  %\VignetteIndexEntry{shadowVIMP-vignette_v2}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 ---
