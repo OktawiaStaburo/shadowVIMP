@@ -167,8 +167,10 @@ vim_perm_sim <- function(entire_data,
     # Parallel implementation with cluster specified by the number of cores
     # Register cluster
     cluster <- parallel::makeCluster(num_cores_parallel)
-    # doParallel::registerDoParallel(cluster)
     doSNOW::registerDoSNOW(cluster)
+
+    # Ensure the cluster is stopped when the function exits
+    on.exit(parallel::stopCluster(cluster))
 
     # Progress track
     pb <- utils::txtProgressBar(max = nsim, style = 3)
@@ -207,9 +209,6 @@ vim_perm_sim <- function(entire_data,
     }
 
     close(pb)
-    # Stop the parallel backend
-    # parallel::stopCluster(cluster)
-    parallel::stopCluster(cluster)
 
     # Come back to sequential computing
     foreach::registerDoSEQ()
