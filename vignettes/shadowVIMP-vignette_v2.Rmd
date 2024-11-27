@@ -30,7 +30,7 @@ As mentioned in the previous chapter, we aim to conduct a statistical test to de
 2. **Calculate p-values**: Determine the proportion of iterations in which the VIMP of the randomly permuted variable exceeds the median VIMP of the original variable. 
 3. **Compare p-values**: Compare the calculated p-values to the pre-specified significance level to make the final decision.
 
-### Gready details
+### Details
 
 The procedure implemented in the `shadowVIMP` package can be described as follows:
 
@@ -91,7 +91,7 @@ The main advantage of pooled p-values is the reduced run time. Using the same ex
 
 #### Back to pre-selection
 
-The current implementation of the `shadowVIMP` package uses pooled p-values in the preselection steps. In the final step of the procedure, the user can decide whether to report per-variable or pooled p-values along with the decisions based on them. More on this topic in the following practical guide to the `shadowVIMP` package.
+The current implementation of the `shadowVIMP` package uses pooled p-values in the pre-selection steps. In the final step of the procedure, the user can decide whether to report per-variable or pooled p-values along with the decisions based on them. More on this topic in the following practical guide to the `shadowVIMP` package.
 
 ## Quick start
 
@@ -210,7 +210,7 @@ if (is_interactive) {
 }
 ````
 
-While it is possible to use two types of parallelization simultaneously, the package authors do not recommend doing so. In any case, it is important to set these parameters so they do not exceed the number of available cores on your machine. If you are unsure about the number of cores, run `parallel::detectCores()`. Note that for small datasets or low values of the `nsims` parameter, the benefit of parallelisation (if any) may be negligible.
+While it is possible to use two types of parallelisation simultaneously, the package authors do not recommend doing so. In any case, it is important to set these parameters so they do not exceed the number of available cores on your machine. If you are unsure about the number of cores, run `parallel::detectCores()`. Note that for small datasets or low values of the `nsims` parameter, the benefit of parallelisation (if any) may be negligible.
 
 ## Choose decision criteria for the final decision
 
