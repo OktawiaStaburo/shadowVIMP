@@ -9,11 +9,11 @@
 A tool for permutation-like testing of variable importance measures (VIMP) obtained from random forest (RF). It allows the user to make an informed choice of informative covariates based on the raw, FWER and FDR corrected p-values obtained from the tests. The package also provides a function that allows the results obtained to be conveniently visualised as box plots.
 }
 \author{
-\strong{Maintainer}: Tim Mueller \email{mueller@staburo.de} (\href{https://orcid.org/orcid number}{ORCID})
+\strong{Maintainer}: Oktawia Miluch \email{oktawia.miluch@staburo.de}
 
 Authors:
 \itemize{
-  \item Oktawia Miluch \email{oktawia.miluch@staburo.de} (\href{https://orcid.org/orcid number}{ORCID})
+  \item Tim Mueller \email{mueller@staburo.de}
 }
 
 Other contributors:
