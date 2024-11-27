@@ -16,6 +16,10 @@
 ^dev$
 ^vignettes/pertvimp-vignette\.Rmd$
 
+# Exclude CI/CD and development files from the built R package
+^\.gitlab-ci\.yml$
+^\.gitignore$
+
 ^doc$
 ^Meta$
 # ^Temp$
