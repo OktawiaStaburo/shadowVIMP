@@ -26,7 +26,7 @@ The goal of shadowVIMP is to provide a tool that allows the selection of informa
 
 ## Installation
 
-The `shadowVIMP` package is not (yet!) available on Cran, but you can install the development version. Installation instructions:
+The `shadowVIMP` package is not (yet!) available on CRAN, but you can install the development version. Installation instructions:
 
 1. Create a personal access token (PAT) for yourself. To do this:
    - Login to your GitLab account.
