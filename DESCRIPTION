@@ -1,6 +1,6 @@
 Package: shadowVIMP
 Title: Covariate Selection Based on VIMP Permutation-Like Testing
-Version: 0.0.0.9000
+Version: 0.1.0
 Authors@R: c(
     person("Tim", "Mueller", , "mueller@staburo.de", role = "aut"),
     person("Oktawia", "Miluch", , "oktawia.miluch@staburo.de", role = c("aut", "cre")),
@@ -17,7 +17,7 @@ License: `use_mit_license()`, `use_gpl3_license()` or friends to pick a
 Imports: 
     cowplot,
     doRNG,
-    doSNOW,
+    doParallel,
     dplyr,
     foreach,
     ggforce,
@@ -28,8 +28,7 @@ Imports:
     ranger,
     rlang,
     stats,
-    tidyr,
-    utils
+    tidyr
 Suggests: 
     AppliedPredictiveModeling,
     knitr,
