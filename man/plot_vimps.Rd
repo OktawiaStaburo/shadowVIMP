@@ -42,7 +42,7 @@ variable is informative.
 \examples{
 data(mtcars)
 
-# When working with real data, increase the value of the nsims and num.trees
+# When working with real data, increase the value of the `nsims` and `num.trees`
 # parameters to obtain trustworthy results.
 \donttest{
 # Pooled p-values

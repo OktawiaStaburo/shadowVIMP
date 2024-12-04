@@ -109,7 +109,7 @@ vim_perm_sim_wrapper <- function(alphas = c(0.3, 0.10, 0.05),
 
   # Check if there is the same number of alpha and nsim parameters
   if (length(alphas) != length(nsims)) {
-    stop("alphas and nsims must have the same length!")
+    stop("`alphas` and `nsims` must have the same length!")
   }
   if (is.unsorted(rev(alphas)) | any(alphas <= 0 | any(alphas >= 1))) {
     stop("Alphas must be in descending order. All alphas must be greater than 0 and less than 1.")

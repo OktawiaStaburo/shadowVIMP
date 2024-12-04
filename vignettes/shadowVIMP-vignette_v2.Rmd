@@ -95,7 +95,7 @@ The current implementation of the `shadowVIMP` package uses pooled p-values in t
 
 ## Quick start
 
-The purpose of this section is to give users a general idea of the package. First, let's install the `shadowVIMP` package, which is not (yet!) available on Cran, but you can install the development version like this:
+The purpose of this section is to give users a general idea of the package. First, let's install the `shadowVIMP` package, which is not (yet!) available on CRAN, but you can install the development version like this:
 
 ``` {r, eval = FALSE}
 # Modify the code below with your credentials
@@ -224,7 +224,7 @@ vimp_per_variable$final_dec_per_variable %>%
   head()
 ````
 
-As shown in the output above, when using per-variable p-values, ano variables are identified as informative after applying FWER or FDR correction. It is important to note that the `nsims` parameter in this example is set much lower than recommended in order to reduce vignette compilation time. For reliable results, `nsims` values should be increased.
+As shown in the output above, when using per-variable p-values, another variables are identified as informative after applying FWER or FDR correction. It is important to note that the `nsims` parameter in this example is set much lower than recommended in order to reduce vignette compilation time. For reliable results, `nsims` values should be increased.
 
 ## Output structure
 
