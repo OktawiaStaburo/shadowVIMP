@@ -34,6 +34,7 @@
 #' @import foreach doRNG rlang dplyr
 #' @importFrom magrittr %>%
 #' @importFrom stats runif
+#' @importFrom doParallel registerDoParallel
 #' @examples
 #' data(mtcars)
 #' # When working with real data, increase num.trees value or leave default
@@ -167,26 +168,29 @@ vim_perm_sim <- function(entire_data,
     # Parallel implementation with cluster specified by the number of cores
     # Register cluster
     cluster <- parallel::makeCluster(num_cores_parallel)
-    doSNOW::registerDoSNOW(cluster)
+    doParallel::registerDoParallel(cluster)
 
     # Ensure the cluster is stopped when the function exits
-    on.exit(parallel::stopCluster(cluster))
+    #on.exit(parallel::stopCluster(cluster))
 
-    # Progress track
-    pb <- utils::txtProgressBar(max = nsim, style = 3)
-    progress <- function(n) utils::setTxtProgressBar(pb, n)
-    opts <- list(progress = progress)
+    # # Progress track
+    # progressr::handlers("txtprogressbar")  # Choose the text progress bar handler
+    # p <- progressr::progressor(along = 1:nsim)
 
     # Control seed
     set.seed(1807)
     seed_list <- floor(runif(nsim, min = 1, max = 999999))
 
-    vimp_sim <- foreach(
-      i = 1:nsim,
-      .packages = c("ranger", "dplyr"),
-      .options.snow = opts
+    # vimp_sim <-  progressr::with_progress({
+    vimp_sim <-  foreach(
+        i = 1:nsim,
+        .packages = c("ranger", "dplyr")#,
+        # .export = c("p", "seed_list")
     ) %dorng% {
+
       set.seed(seed_list[i])
+      #p()
+
       # Reshuffle row-wise
       dt[, (ncol(predictors_p) + 1):(2 * ncol(predictors_p))] <- dt[sample(1:n), (ncol(predictors_p) + 1):(2 * ncol(predictors_p))]
 
@@ -206,17 +210,16 @@ vim_perm_sim <- function(entire_data,
         as.data.frame()
 
       vimp # Return the result of each iteration
-    }
+    }#})
 
-    close(pb)
-
+    parallel::stopCluster(cluster)
     # Come back to sequential computing
     foreach::registerDoSEQ()
+
   }
 
   # putting all results in a df
   df_sim <- as.data.frame(do.call(rbind, vimp_sim))
-
 
   # Storing result to be returned
   res <- list(
