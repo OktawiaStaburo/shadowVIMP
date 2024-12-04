@@ -51,17 +51,19 @@
 #'   init_num_vars = init_num_vars
 #' )
 #'
-#' # Display decisions based on FDR adjusted and unadjusted p-values, expect warnning
-#' cars_add_fdr <- add_test_results(
+#' # Display decisions based on FDR adjusted and unadjusted p-values,
+#' # expected warning
+#' cars_add_fdr <- suppressWarnings(add_test_results(
 #'   vimpermsim = cars_vps, alpha = 0.05,
 #'   init_num_vars = init_num_vars, to_show = "FDR"
-#' )
+#' ))
 #'
-#' # Display decisions based on unadjusted p-values (Type1_confirmed column)
-#' cars_add_unadj <- add_test_results(
+#' # Display decisions based on unadjusted p-values (Type1_confirmed column),
+#' # expected warning
+#' cars_add_unadj <- suppressWarnings(add_test_results(
 #'   vimpermsim = cars_vps, alpha = 0.05,
 #'   init_num_vars = init_num_vars, to_show = "unadjusted"
-#' )
+#' ))
 add_test_results <- function(vimpermsim,
                              alpha = 0.05,
                              init_num_vars,
