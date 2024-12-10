@@ -9,16 +9,25 @@
 
 ## Overview
 
-The goal of shadowVIMP is to provide a tool that allows the selection of
-informative covariates in an informed manner. The method implemented in
-this package is based on testing the variable importance measures (VIMP)
-obtained from the random forest (RF). It also allows the user to
-conveniently visualise the variables considered as informative on the
-box plot. It is a convenient alternative to the standard approach,
-e.g. selecting the top n variables, selecting only those variables with
-an importance score above the predefined threshold. Details of the
-method, realistic example of usage and interpretation of the results can
-be found in `vignette("shadowVIMP-vignette")`.
+The goal of `shadowVIMP` is to provide a tool for reducing the number of
+covariates considered in an analysis in an informed and statistically
+rigorous manner. This package implements a method that performs
+statistical tests on the Variable Importance Measures (VIMP) obtained
+from the Random Forest (RF) algorithm to determine whether each
+covariate is statistically significant and truly informative. In
+contrast to widely used methods, such as selecting the top *n*
+covariates with the highest VIMP or choosing covariates with a VIMP
+above a certain threshold, the method implemented in `shadowVIMP` allows
+for a statistical justification of whether a given VIMP is sufficiently
+large to be unlikely due to chance. The main function of the package,
+`vim_perm_sim_wrapper()`, outputs a table indicating whether each
+covariate is informative, along with its associated (adjusted) p-values.
+In addition `plot_vimps()` function provides a convenient way to
+visualise the VIMPs obtained from the simulation part of the algorithm,
+including unadjusted, FDR and FWER adjusted p-values. Details of the
+method, a realistic example of its usage, and guidance on interpreting
+the results can be found in the vignette:
+`vignette("shadowVIMP-vignette")`.
 
 ## Installation
 
@@ -66,18 +75,18 @@ set.seed(789)
 # When working with real data, increase the value of the nsims parameter or leave it at the default value
 vimp_seq <- vim_perm_sim_wrapper(entire_data = mtcars, outcome_var = "vs", nsims = c(30, 100, 150))
 #> alpha  0.3  
-#> 2024-12-03 15:19:30: dataframe = mtcars nsim = 30 num.trees = 10000. Running step 1
+#> 2024-12-10 14:05:37: dataframe = mtcars nsim = 30 num.trees = 10000. Running step 1
 #> Variables remaining:  10 
 #> alpha  0.1  
-#> 2024-12-03 15:19:35: dataframe = mtcars nsim = 100 num.trees = 10000. Running step 1
-#> 2024-12-03 15:19:41: dataframe = mtcars nsim = 100 num.trees = 10000. Running step 50
-#> 2024-12-03 15:19:46: dataframe = mtcars nsim = 100 num.trees = 10000. Running step 100
+#> 2024-12-10 14:05:43: dataframe = mtcars nsim = 100 num.trees = 10000. Running step 1
+#> 2024-12-10 14:05:49: dataframe = mtcars nsim = 100 num.trees = 10000. Running step 50
+#> 2024-12-10 14:05:55: dataframe = mtcars nsim = 100 num.trees = 10000. Running step 100
 #> Variables remaining:  9 
 #> alpha  0.05  
-#> 2024-12-03 15:19:47: dataframe = mtcars nsim = 150 num.trees = 10000. Running step 1
-#> 2024-12-03 15:19:52: dataframe = mtcars nsim = 150 num.trees = 10000. Running step 50
-#> 2024-12-03 15:19:58: dataframe = mtcars nsim = 150 num.trees = 10000. Running step 100
-#> 2024-12-03 15:20:05: dataframe = mtcars nsim = 150 num.trees = 10000. Running step 150
+#> 2024-12-10 14:05:56: dataframe = mtcars nsim = 150 num.trees = 10000. Running step 1
+#> 2024-12-10 14:06:02: dataframe = mtcars nsim = 150 num.trees = 10000. Running step 50
+#> 2024-12-10 14:06:08: dataframe = mtcars nsim = 150 num.trees = 10000. Running step 100
+#> 2024-12-10 14:06:14: dataframe = mtcars nsim = 150 num.trees = 10000. Running step 150
 #> Variables remaining:  7
 
 # Print informative covariates according to the pooled criterion (with and without p-value correction)
@@ -107,10 +116,6 @@ vimp_seq$final_dec_pooled
 vimp_seq$alpha
 #> [1] 0.05
 
-# Check control parameters from the last step - you can specify what should be added to this list
-vimp_seq$control_parameters
-#> NULL
-
 # Are the displayed results from the last or the previous step?
 vimp_seq$result_taken_from_previous_step
 #> [1] FALSE
@@ -118,23 +123,23 @@ vimp_seq$result_taken_from_previous_step
 # Check the time needed to execute each step of the algorithm and the entire procedure
 vimp_seq$time_elapsed
 #> $step_1
-#> [1] 0.08520775
+#> [1] 0.09694545
 #> 
 #> $step_2
-#> [1] 0.197448
+#> [1] 0.2101209
 #> 
 #> $step_3
-#> [1] 0.3129946
+#> [1] 0.3133037
 #> 
 #> $total_time_mins
-#> [1] 0.5956503
+#> [1] 0.6203701
 
 # Check the call code that was used to create the inspected object
 vimp_seq$call
 #> vim_perm_sim_wrapper(nsims = c(30, 100, 150), entire_data = mtcars, 
 #>     outcome_var = "vs")
 
-# Check VIMP measures of covariates and their shadows from the last step
+# Check the simulated VIMPs of the covariates and their shadows from the last step of the procedure
 vimp_seq$vimp_history %>% head()
 #>        mpg      cyl     disp       hp     qsec     carb       wt      drat
 #> 1 32.96580 37.83467 34.28494 44.40825 69.39776 24.06262 15.92240  6.592342
