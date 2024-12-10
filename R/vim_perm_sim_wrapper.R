@@ -26,9 +26,9 @@
 #'   based on them.
 #' @return List with the following entries:
 #'  * `vimp_history`- if `save_vimp_history` is set to `"all"` or `"last"` then
-#'   it is a data frame with variable importance of covariates and their shadows
-#'   from the last step. If `save_vimp_history` is set to `"none"`, then it is
-#'   `NULL`.
+#'   it is a data frame with simulated VIMPs of covariates and their shadows from
+#'   the last step of the procedure. If `save_vimp_history` is set to `"none"`,
+#'   then it is `NULL`.
 #'  * `final_dec_pooled` (the default) or `final_dec_per_variable` - a data
 #'   frame containing, depending on the specified value of the `to_show`
 #'   parameter, p-values and corresponding decisions regarding variable

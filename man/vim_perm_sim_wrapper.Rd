@@ -76,9 +76,9 @@ based on them.
 List with the following entries:
 \itemize{
 \item \code{vimp_history}- if \code{save_vimp_history} is set to \code{"all"} or \code{"last"} then
-it is a data frame with variable importance of covariates and their shadows
-from the last step. If \code{save_vimp_history} is set to \code{"none"}, then it is
-\code{NULL}.
+it is a data frame with simulated VIMPs of covariates and their shadows from
+the last step of the procedure. If \code{save_vimp_history} is set to \code{"none"},
+then it is \code{NULL}.
 \item \code{final_dec_pooled} (the default) or \code{final_dec_per_variable} - a data
 frame containing, depending on the specified value of the \code{to_show}
 parameter, p-values and corresponding decisions regarding variable

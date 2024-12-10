@@ -4,9 +4,9 @@
 \name{shadowVIMP-package}
 \alias{shadowVIMP}
 \alias{shadowVIMP-package}
-\title{shadowVIMP: Covariate Selection Based on VIMP Permutation Testing}
+\title{shadowVIMP: Covariate Selection Based on VIMP Permutation-Like Testing}
 \description{
-A tool for permutation-like testing of variable importance measures (VIMP) obtained from random forest (RF). It allows the user to make an informed choice of informative covariates based on the raw, FWER and FDR corrected p-values obtained from the tests. The package also provides a function that allows the results obtained to be conveniently visualised as box plots.
+A statistical tool for reducing the number of covariates in an analysis by evaluating Variable Importance Measures (VIMPs) derived from the Random Forest algorithm. It performs a statistical tests on the VIMPs and outputs a decision as to whether the covariate is significant along with the raw, FWER and FDR corrected p-values.
 }
 \author{
 \strong{Maintainer}: Oktawia Miluch \email{oktawia.miluch@staburo.de}
