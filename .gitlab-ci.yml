@@ -40,10 +40,10 @@ R_CMD_CHECK_4_4_2:
     - R CMD check . --no-manual --compact-vignettes=gs+qpdf
 
   # Optional: Cache R packages to speed up future runs
-  cache:
-    key: packages-4.4.2
-    paths:
-      - ~/R/x86_64-pc-linux-gnu-library/4.4
+  # cache:
+  #   key: packages-4.4.2
+  #   paths:
+  #     - ~/R/x86_64-pc-linux-gnu-library/4.4
 
   only:
     - main
