@@ -1,21 +1,32 @@
+# stages:
+#   - test
+#
+# test_job:
+#   stage: test
+#   image: alpine:latest
+#   script:
+#     - echo "CI/CD Pipeline is working!"
+#   # tags:
+#   #   - SaRxrHB7
+#   only:
+#     - main
+#     - master
+#     - merge_requests
+
+# Below code is intended to verify the R installation within the CI/CD environment.
 stages:
   - test
 
-test_job:
+test_R:
   stage: test
-  image: alpine:latest
+  image: rocker/r-ver:4.4.2
   script:
-    - echo "CI/CD Pipeline is working!"
-  # tags:
-  #   - SaRxrHB7
+    - echo "Testing R installation"
+    - R --version
   only:
     - main
     - master
     - merge_requests
-
-
-
-
 
 
 
