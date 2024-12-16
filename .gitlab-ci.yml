@@ -1,16 +1,69 @@
 stages:
-  - test
+  - check
 
-test_R:
-  stage: test
-  image: rocker/r-ver:4.4.2
+variables:
+  R_KEEP_PKG_SOURCE: "yes"
+
+R_CMD_CHECK_4_4_2:
+  stage: check
   script:
-    - echo "Testing R installation"
+    # 1. Update package lists
+    - sudo apt-get update -y
+
+    # 2. Install prerequisites for adding CRAN repository
+    - sudo apt-get install -y software-properties-common dirmngr
+
+    # 3. Add CRAN GPG key
+    - sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-keys E084DAB9
+
+    # 4. Add CRAN repository (replace 'focal' with your Ubuntu version if different)
+    - sudo add-apt-repository 'deb https://cloud.r-project.org/bin/linux/ubuntu focal-cran40/'
+
+    # 5. Update package lists again to include CRAN packages
+    - sudo apt-get update -y
+
+    # 6. Install specific R version (ensure the version exists in the repository)
+    - sudo apt-get install -y r-base=4.4.2-1.2004.0
+
+    # 7. Verify R installation
     - R --version
+
+    # 8. Install system dependencies for your R package
+    - sudo apt-get install -y pandoc libcurl4-openssl-dev libssl-dev libxml2-dev
+
+    # 9. Install R packages needed for testing
+    - R -e "install.packages('remotes', repos='https://cloud.r-project.org')"
+    - R -e "remotes::install_deps(dependencies = TRUE)"
+    - R -e "install.packages('rcmdcheck', repos='https://cloud.r-project.org')"
+
+    # 10. Run R CMD check
+    - R CMD check . --no-manual --compact-vignettes=gs+qpdf
+
+  # Optional: Cache R packages to speed up future runs
+  cache:
+    key: packages-4.4.2
+    paths:
+      - ~/R/x86_64-pc-linux-gnu-library/4.4
+
   only:
     - main
     - master
     - merge_requests
+
+
+# stages:
+#   - test
+#
+# test_R:
+#   stage: test
+#   image: rocker/r-ver:4.4.2
+#   script:
+#     - echo "Testing R installation"
+#     - R --version
+#   only:
+#     - main
+#     - master
+#     - merge_requests
 
 
 
