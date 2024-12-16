@@ -4,14 +4,14 @@ stages:
 variables:
   R_KEEP_PKG_SOURCE: "yes"
 
-# cache:
-#   key: packages-4.4.2
-#   paths:
-#     - /usr/local/lib/R/site-library
+cache:
+  key: packages
+  paths:
+    - /usr/local/lib/R/site-library
 
 R_CMD_CHECK_4_4_2:
   stage: check
-  image: rocker/r-ver:4.4.2
+  image: rocker/r-ver:4.4.2  # Specify the Docker image directly
   script:
     - echo "Running R CMD check with R version 4.4.2"
     - R --version
@@ -25,6 +25,14 @@ R_CMD_CHECK_4_4_2:
     - R -e "install.packages('rcmdcheck', repos='https://cloud.r-project.org')"
 
     - R CMD check . --no-manual --compact-vignettes=gs+qpdf
+  cache:
+    key: packages-4.4.2
+    paths:
+      - /usr/local/lib/R/site-library
+   only:
+    - main
+    - master
+    - merge_requests
 
 
 # stages:
@@ -86,7 +94,7 @@ R_CMD_CHECK_4_4_2:
 #     R_VERSION: "4.5.0"
 
 # Trigger pipeline on push and merge requests
-workflow:
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "push"
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+# workflow:
+#   rules:
+#     - if: $CI_PIPELINE_SOURCE == "push"
+#     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
