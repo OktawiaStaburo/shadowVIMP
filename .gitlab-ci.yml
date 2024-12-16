@@ -6,8 +6,8 @@ test_job:
   image: alpine:latest
   script:
     - echo "CI/CD Pipeline is working!"
-  tags:
-    - SaRxrHB7
+  # tags:
+  #   - SaRxrHB7
   only:
     - main
     - master
