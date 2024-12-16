@@ -1,70 +1,47 @@
-# .gitlab-ci.yml
-
 stages:
-  - setup
   - check
 
 variables:
   R_KEEP_PKG_SOURCE: "yes"
 
-# Define a job template for setting up the environment
-.setup_job_template: &setup_job_template
-  image: r-base:latest
-  before_script:
-    - apt-get update -y
-    - apt-get install -y pandoc pandoc-citeproc libcurl4-openssl-dev libssl-dev libxml2-dev
-    - R -e "install.packages('remotes')"
-    - R -e "remotes::install_deps(dependencies = TRUE)"
-  variables:
-    R_KEEP_PKG_SOURCE: "yes"
-
 # Define the R-CMD-check job
 R_CMD_CHECK:
   stage: check
+  image: rocker/r-ver:${R_VERSION}
   parallel:
     matrix:
-      - CONFIG_OS: macos-latest
-        CONFIG_R: release
-      - CONFIG_OS: windows-latest
-        CONFIG_R: release
-      - CONFIG_OS: ubuntu-latest
-        CONFIG_R: devel
-        CONFIG_HTTP_USER_AGENT: release
-      - CONFIG_OS: ubuntu-latest
-        CONFIG_R: release
-      - CONFIG_OS: ubuntu-latest
-        CONFIG_R: oldrel-1
+      - R_VERSION: "4.3.3"  # Old Release
+      - R_VERSION: "4.4.2"  # Current Release
+      - R_VERSION: "4.5.0"  # Development Version
   script:
-    # Setup OS-specific configurations if necessary
-    - echo "Running on $CONFIG_OS with R version $CONFIG_R"
-    # Setup R version
-    - |
-      if [ "$CONFIG_R" = "release" ]; then
-        R_VERSION="4.2.0" # Replace with actual release version
-      elif [ "$CONFIG_R" = "devel" ]; then
-        R_VERSION="4.3.0" # Replace with actual devel version
-      elif [[ "$CONFIG_R" == oldrel* ]]; then
-        R_VERSION="4.1.0" # Replace with actual old release version
-      fi
-    - echo "Setting up R version $R_VERSION"
-    - # Install specific R version (this is a placeholder; adjust based on your setup)
+    # Display the R version being used
+    - echo "Running R CMD check with R version $R_VERSION"
     - R --version
-    # Install dependencies
-    - R -e "install.packages(c('rcmdcheck'), repos='https://cloud.r-project.org/')"
+
+    # Install system dependencies
+    - apt-get update -y
+    - apt-get install -y pandoc pandoc-citeproc libcurl4-openssl-dev libssl-dev libxml2-dev
+
+    # Install necessary R packages
+    - R -e "install.packages('remotes', repos='https://cloud.r-project.org')"
+    - R -e "remotes::install_deps(dependencies = TRUE)"
+
+    # Install rcmdcheck for running R CMD check
+    - R -e "install.packages('rcmdcheck', repos='https://cloud.r-project.org')"
+
     # Run R CMD check
     - R CMD check . --no-manual --compact-vignettes=gs+qpdf
-  # tags:
-  #   - your-runner-tag # Optional: specify if using specific runners
-  variables:
-    GITHUB_PAT: "${CI_JOB_TOKEN}" # Replace or adjust as needed
+  tags:
+    - shared  # Use GitLab's shared runners
+  #variables:
+   # GITHUB_PAT: "${CI_JOB_TOKEN}"  # Optional: Set if needed for private dependencies
   only:
     - main
     - master
     - merge_requests
 
-
-# Temporalily disable CI/CD checks
-# Remove once you get an access to runners
+# Trigger pipeline on push and merge requests
 workflow:
   rules:
-    - when: never
+    - if: $CI_PIPELINE_SOURCE == "push"
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
