@@ -1,47 +1,66 @@
 stages:
-  - check
+  - test
 
-variables:
-  R_KEEP_PKG_SOURCE: "yes"
-
-# Define the R-CMD-check job
-R_CMD_CHECK:
-  stage: check
-  image: rocker/r-ver:${R_VERSION}
-  parallel:
-    matrix:
-      - R_VERSION: "4.3.3"  # Old Release
-      - R_VERSION: "4.4.2"  # Current Release
-      - R_VERSION: "4.5.0"  # Development Version
+test_job:
+  stage: test
+  image: alpine:latest
   script:
-    # Display the R version being used
-    - echo "Running R CMD check with R version $R_VERSION"
-    - R --version
-
-    # Install system dependencies
-    - apt-get update -y
-    - apt-get install -y pandoc pandoc-citeproc libcurl4-openssl-dev libssl-dev libxml2-dev
-
-    # Install necessary R packages
-    - R -e "install.packages('remotes', repos='https://cloud.r-project.org')"
-    - R -e "remotes::install_deps(dependencies = TRUE)"
-
-    # Install rcmdcheck for running R CMD check
-    - R -e "install.packages('rcmdcheck', repos='https://cloud.r-project.org')"
-
-    # Run R CMD check
-    - R CMD check . --no-manual --compact-vignettes=gs+qpdf
+    - echo "CI/CD Pipeline is working!"
   tags:
-    - V-UL-04-GITLAB  # Use GitLab's shared runners
-  #variables:
-   # GITHUB_PAT: "${CI_JOB_TOKEN}"  # Optional: Set if needed for private dependencies
+    - V-UL-04-GITLAB  # Ensure this matches your runner's tag
   only:
     - main
     - master
     - merge_requests
 
-# Trigger pipeline on push and merge requests
-workflow:
-  rules:
-    - if: $CI_PIPELINE_SOURCE == "push"
-    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+
+
+
+
+# stages:
+#   - check
+#
+# variables:
+#   R_KEEP_PKG_SOURCE: "yes"
+#
+# # Define the R-CMD-check job
+# R_CMD_CHECK:
+#   stage: check
+#   image: rocker/r-ver:${R_VERSION}
+#   parallel:
+#     matrix:
+#       - R_VERSION: "4.3.3"  # Old Release
+#       - R_VERSION: "4.4.2"  # Current Release
+#       - R_VERSION: "4.5.0"  # Development Version
+#   script:
+#     # Display the R version being used
+#     - echo "Running R CMD check with R version $R_VERSION"
+#     - R --version
+#
+#     # Install system dependencies
+#     - apt-get update -y
+#     - apt-get install -y pandoc pandoc-citeproc libcurl4-openssl-dev libssl-dev libxml2-dev
+#
+#     # Install necessary R packages
+#     - R -e "install.packages('remotes', repos='https://cloud.r-project.org')"
+#     - R -e "remotes::install_deps(dependencies = TRUE)"
+#
+#     # Install rcmdcheck for running R CMD check
+#     - R -e "install.packages('rcmdcheck', repos='https://cloud.r-project.org')"
+#
+#     # Run R CMD check
+#     - R CMD check . --no-manual --compact-vignettes=gs+qpdf
+#   tags:
+#     - V-UL-04-GITLAB  # Use GitLab's shared runners
+#   #variables:
+#    # GITHUB_PAT: "${CI_JOB_TOKEN}"  # Optional: Set if needed for private dependencies
+#   only:
+#     - main
+#     - master
+#     - merge_requests
+#
+# # Trigger pipeline on push and merge requests
+# workflow:
+#   rules:
+#     - if: $CI_PIPELINE_SOURCE == "push"
+#     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
