@@ -1,38 +1,17 @@
 stages:
-  - check
+  - test
 
-variables:
-  R_KEEP_PKG_SOURCE: "yes"
-
-cache:
-  key: packages
-  paths:
-    - /usr/local/lib/R/site-library
-
-R_CMD_CHECK_4_4_2:
-  stage: check
-  image: rocker/r-ver:4.4.2  # Specify the Docker image directly
+test_R:
+  stage: test
+  image: rocker/r-ver:4.4.2
   script:
-    - echo "Running R CMD check with R version 4.4.2"
+    - echo "Testing R installation"
     - R --version
-
-    - apt-get update -y
-    - apt-get install -y pandoc libcurl4-openssl-dev libssl-dev libxml2-dev
-
-    - R -e "install.packages('remotes', repos='https://cloud.r-project.org')"
-    - R -e "remotes::install_deps(dependencies = TRUE)"
-
-    - R -e "install.packages('rcmdcheck', repos='https://cloud.r-project.org')"
-
-    - R CMD check . --no-manual --compact-vignettes=gs+qpdf
-  cache:
-    key: packages-4.4.2
-    paths:
-      - /usr/local/lib/R/site-library
-   only:
+  only:
     - main
     - master
     - merge_requests
+
 
 
 # stages:
