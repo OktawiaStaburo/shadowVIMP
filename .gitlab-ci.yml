@@ -1,9 +1,18 @@
+stages:
+  - test
+
+test_job:
+  stage: test
   image: alpine:latest
   script:
     - echo "CI/CD Pipeline is working!"
+  # tags:
+  #   - SaRxrHB7
   only:
     - main
     - master
+    - merge_requests
+
 
 
 
