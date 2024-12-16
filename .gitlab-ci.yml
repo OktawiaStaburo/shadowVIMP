@@ -4,40 +4,86 @@ stages:
 variables:
   R_KEEP_PKG_SOURCE: "yes"
 
-# Define the R-CMD-check job
-R_CMD_CHECK:
+cache:
+  key: packages-4.4.2
+  paths:
+    - /usr/local/lib/R/site-library
+
+R_CMD_CHECK_4_4_2:
   stage: check
-  image: rocker/r-ver:${R_VERSION}
-  parallel:
-    matrix:
-      - R_VERSION: "4.3.3"  # Old Release
-      - R_VERSION: "4.4.2"  # Current Release
-      - R_VERSION: "4.5.0"  # Development Version
+  image: rocker/r-ver:4.4.2
   script:
-    # Display the R version being used
-    - echo "Running R CMD check with R version $R_VERSION"
+    - echo "Running R CMD check with R version 4.4.2"
     - R --version
 
-    # Install system dependencies
     - apt-get update -y
-    - apt-get install -y pandoc pandoc-citeproc libcurl4-openssl-dev libssl-dev libxml2-dev
+    - apt-get install -y pandoc libcurl4-openssl-dev libssl-dev libxml2-dev
 
-    # Install necessary R packages
     - R -e "install.packages('remotes', repos='https://cloud.r-project.org')"
     - R -e "remotes::install_deps(dependencies = TRUE)"
 
-    # Install rcmdcheck for running R CMD check
     - R -e "install.packages('rcmdcheck', repos='https://cloud.r-project.org')"
 
-    # Run R CMD check
     - R CMD check . --no-manual --compact-vignettes=gs+qpdf
 
-  #variables:
-   # GITHUB_PAT: "${CI_JOB_TOKEN}"  # Optional: Set if needed for private dependencies
-  only:
-    - main
-    - master
-    - merge_requests
+
+# stages:
+#   - check
+#
+# variables:
+#   R_KEEP_PKG_SOURCE: "yes"
+#
+# cache:
+#   key: packages
+#   paths:
+#     - /usr/local/lib/R/site-library
+#
+# # Define a job template
+# .setup_job_template: &setup_job_template
+#   script:
+#     - echo "Running R CMD check with R version $R_VERSION"
+#     - R --version
+#
+#     - apt-get update -y
+#     - apt-get install -y pandoc libcurl4-openssl-dev libssl-dev libxml2-dev
+#
+#     - R -e "install.packages('remotes', repos='https://cloud.r-project.org')"
+#     - R -e "remotes::install_deps(dependencies = TRUE)"
+#
+#     - R -e "install.packages('rcmdcheck', repos='https://cloud.r-project.org')"
+#
+#     - R CMD check . --no-manual --compact-vignettes=gs+qpdf
+#   cache:
+#     paths:
+#       - /usr/local/lib/R/site-library
+#   only:
+#     - main
+#     - master
+#     - merge_requests
+#
+# # Job for R 4.3.3
+# R_CMD_CHECK_4_3_3:
+#   stage: check
+#   image: rocker/r-ver:4.3.3
+#   <<: *setup_job_template
+#   variables:
+#     R_VERSION: "4.3.3"
+#
+# # Job for R 4.4.2
+# R_CMD_CHECK_4_4_2:
+#   stage: check
+#   image: rocker/r-ver:4.4.2
+#   <<: *setup_job_template
+#   variables:
+#     R_VERSION: "4.4.2"
+#
+# # Job for R 4.5.0
+# R_CMD_CHECK_4_5_0:
+#   stage: check
+#   image: rocker/r-ver:4.5.0
+#   <<: *setup_job_template
+#   variables:
+#     R_VERSION: "4.5.0"
 
 # Trigger pipeline on push and merge requests
 workflow:
