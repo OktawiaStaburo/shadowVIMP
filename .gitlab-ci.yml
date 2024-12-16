@@ -7,7 +7,7 @@ test_job:
   script:
     - echo "CI/CD Pipeline is working!"
   tags:
-    - V-UL-04-GITLAB  # Ensure this matches your runner's tag
+    - SaRxrHB7
   only:
     - main
     - master
