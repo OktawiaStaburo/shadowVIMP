@@ -32,7 +32,7 @@ R_CMD_CHECK:
     # Run R CMD check
     - R CMD check . --no-manual --compact-vignettes=gs+qpdf
   tags:
-    - shared  # Use GitLab's shared runners
+    - V-UL-04-GITLAB  # Use GitLab's shared runners
   #variables:
    # GITHUB_PAT: "${CI_JOB_TOKEN}"  # Optional: Set if needed for private dependencies
   only:
