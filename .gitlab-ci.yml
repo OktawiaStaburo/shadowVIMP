@@ -4,10 +4,10 @@ stages:
 variables:
   R_KEEP_PKG_SOURCE: "yes"
 
-cache:
-  key: packages-4.4.2
-  paths:
-    - /usr/local/lib/R/site-library
+# cache:
+#   key: packages-4.4.2
+#   paths:
+#     - /usr/local/lib/R/site-library
 
 R_CMD_CHECK_4_4_2:
   stage: check
