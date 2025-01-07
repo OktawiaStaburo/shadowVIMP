@@ -34,10 +34,12 @@ cache:
   paths:
     - R/library/
 
+# Default settings for all jobs
 default:
   before_script:
-    # Update system packages and install additional dependencies if needed
-    - apt-get update && apt-get install -y \
+    # Update system packages and install dependencies
+    - |
+      apt-get update && apt-get install -y \
         libcurl4-openssl-dev \
         libssl-dev \
         libxml2-dev \
@@ -51,15 +53,20 @@ default:
         libjpeg-dev \
         libpng-dev \
         libtiff5-dev
+    # Create a directory for R library if it doesn't exist
     - mkdir -p R/library
+    # Set R library path
     - export R_LIBS_USER=$PWD/R/library
+    # Install 'remotes' package
     - Rscript -e 'install.packages("remotes", repos = "https://cloud.r-project.org", lib=Sys.getenv("R_LIBS_USER"))'
+    # Install package dependencies
     - Rscript -e 'remotes::install_deps(dependencies = TRUE, repos = "https://cloud.r-project.org", lib=Sys.getenv("R_LIBS_USER"))'
+    # (Optional) List installed packages for debugging
     - Rscript -e 'print(installed.packages()[, "Package"])'
 
 check_R_4_4_2:
   stage: test
-  image: rocker/tidyverse:4.4.2
+  image: rocker/r-ver:4.4.2
   script:
     - echo "Running R CMD check on R 4.4.2"
     - R CMD build .
@@ -70,6 +77,7 @@ check_R_4_4_2:
   only:
     - main
     - merge_requests
+
 
 
 
