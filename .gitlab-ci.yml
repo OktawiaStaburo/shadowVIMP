@@ -31,13 +31,24 @@
 stages:
   - test
 
+cache:
+  key: "R-packages"
+  paths:
+    - R/library/
+
 # Default settings for all jobs
 default:
   before_script:
-    # Update system packages and install dependencies
-    - apt-get update -qq && apt-get install -y -qq libcurl4-openssl-dev libssl-dev libxml2-dev
-    # Install necessary R packages for checking
-    - Rscript -e 'install.packages(c("devtools", "roxygen2"), repos = "https://cloud.r-project.org")'
+    # Update system packages and install necessary system dependencies
+    - apt-get update -qq && apt-get install -y -qq libcurl4-openssl-dev libssl-dev libxml2-dev build-essential
+    # Create a directory for R library if it doesn't exist
+    - mkdir -p R/library
+    # Set R library path
+    - export R_LIBS_USER=$PWD/R/library
+    # Install necessary R packages for checking and dependencies
+    - Rscript -e 'install.packages(c("devtools", "roxygen2", "remotes"), repos = "https://cloud.r-project.org", lib=Sys.getenv("R_LIBS_USER"))'
+    # Install package dependencies
+    - Rscript -e 'remotes::install_deps(dependencies = TRUE, repos = "https://cloud.r-project.org", lib=Sys.getenv("R_LIBS_USER"))'
 
 check_R_4_4_2:
   stage: test
@@ -45,7 +56,7 @@ check_R_4_4_2:
   script:
     - echo "Running R CMD check on R 4.4.2"
     - R CMD build .
-    - "R CMD check *tar.gz --no-manual --as-cran"
+    - R CMD check *.tar.gz --no-manual --as-cran
   artifacts:
     paths:
       - "*.Rcheck/"
@@ -53,7 +64,19 @@ check_R_4_4_2:
     - main
     - merge_requests
 
-
+# check_R_4_3_3:
+#   stage: test
+#   image: rocker/r-ver:4.3.3
+#   script:
+#     - echo "Running R CMD check on R 4.3.3"
+#     - R CMD build .
+#     - "R CMD check *tar.gz --no-manual --as-cran"
+#   artifacts:
+#     paths:
+#       - "*.Rcheck/"
+#   only:
+#     - main
+#     - merge_requests
 
 
 
