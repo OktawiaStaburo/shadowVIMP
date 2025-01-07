@@ -6,6 +6,7 @@ Authors@R: c(
     person("Oktawia", "Miluch", , "oktawia.miluch@staburo.de", role = c("aut", "cre")),
     person("Staburo GmbH", role = c("cph", "fnd"))
   )
+Maintainer: Oktawia Miluch <oktawia.miluch@staburo.de>
 Description: A statistical tool for reducing the number of covariates in an
   analysis by evaluating Variable Importance Measures (VIMPs) derived from the    
   Random Forest algorithm. It performs a statistical tests on the VIMPs and    
