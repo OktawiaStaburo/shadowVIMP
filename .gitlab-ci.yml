@@ -38,7 +38,17 @@ cache:
 default:
   before_script:
     # Update system packages and install dependencies
-    - apt-get update -qq && apt-get install -y -qq libcurl4-openssl-dev libssl-dev libxml2-dev build-essential
+    - apt-get update -qq && apt-get install -y -qq \
+        libcurl4-openssl-dev \
+        libssl-dev \
+        libxml2-dev \
+        build-essential \
+        libfontconfig1-dev \
+        libfreetype6-dev \
+        libfribidi-dev \
+        libharfbuzz-dev \
+        libblas-dev \
+        liblapack-dev
     # Create a directory for R library if it doesn't exist
     - mkdir -p R/library
     # Set R library path
@@ -63,6 +73,7 @@ check_R_4_4_2:
   only:
     - main
     - merge_requests
+
 
 
 # check_R_4_3_3:
