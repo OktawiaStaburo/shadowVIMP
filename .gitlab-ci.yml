@@ -26,59 +26,29 @@
 #     - main
 #     - merge_requests
 
+# use the tidyverse rocker image, as it contains devtools preinstalled
+image: rocker/tidyverse
+
+# define stages of runner. at the moment,
+# just test (no build or deploy).
 stages:
   - test
+  - build
 
-cache:
-  key: "R-packages"
-  paths:
-    - R/library/
-
-# Default settings for all jobs
-default:
-  before_script:
-    # Update system packages and install dependencies
-    - |
-      apt-get update && apt-get install -y \
-        libcurl4-openssl-dev \
-        libssl-dev \
-        libxml2-dev \
-        build-essential \
-        libfontconfig1-dev \
-        libfreetype6-dev \
-        libfribidi-dev \
-        libharfbuzz-dev \
-        libblas-dev \
-        liblapack-dev \
-        libjpeg-dev \
-        libpng-dev \
-        libtiff5-dev
-    # Create a directory for R library if it doesn't exist
-    - mkdir -p R/library
-    # Set R library path
-    - export R_LIBS_USER=$PWD/R/library
-    # Install 'remotes' package
-    - Rscript -e 'install.packages("remotes", repos = "https://cloud.r-project.org", lib=Sys.getenv("R_LIBS_USER"))'
-    # Install package dependencies
-    - Rscript -e 'remotes::install_deps(dependencies = TRUE, repos = "https://cloud.r-project.org", lib=Sys.getenv("R_LIBS_USER"))'
-    # (Optional) List installed packages for debugging
-    - Rscript -e 'print(installed.packages()[, "Package"])'
-
-check_R_4_4_2:
+# define test job
+test-job:
   stage: test
-  image: rocker/r-ver:4.4.2
   script:
-    - echo "Running R CMD check on R 4.4.2"
-    - R CMD build .
-    - R CMD check *.tar.gz --no-manual --as-cran
-  artifacts:
-    paths:
-      - "*.Rcheck/"
-  only:
-    - main
-    - merge_requests
+    # run the R CMD check on the package (this path)
+    - R CMD check ./ --no-manual
+    # run the devtools test
+    - R -e 'devtools::test()'
 
-
+build-job:
+  stage: build
+  script:
+    # install
+    - R -e 'devtools::install()'
 
 
 # check_R_4_3_3:
