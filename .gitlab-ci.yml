@@ -45,13 +45,14 @@ check_R_4_4_2:
   script:
     - echo "Running R CMD check on R 4.4.2"
     - R CMD build .
-    - R CMD check *tar.gz --no-manual --as-cran
+    - "R CMD check *tar.gz --no-manual --as-cran"
   artifacts:
     paths:
-      - *.Rcheck/
+      - "*.Rcheck/"
   only:
     - main
     - merge_requests
+
 
 
 
