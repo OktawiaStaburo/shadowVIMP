@@ -39,6 +39,10 @@ stages:
 test-job:
   stage: test
   script:
+    # Install 'remotes' package if not already installed
+    - R -e 'if (!requireNamespace("remotes", quietly = TRUE)) install.packages("remotes")'
+    # Install all dependencies (including suggests)
+    - R -e 'remotes::install_deps(dependencies = TRUE, repos = "https://cloud.r-project.org")'
     # run the R CMD check on the package (this path)
     - R CMD check ./ --no-manual
     # run the devtools test
