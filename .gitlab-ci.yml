@@ -1,4 +1,18 @@
 # Below code is intended to verify the R installation within the CI/CD environment.
+# stages:
+#   - test
+#
+# test_R:
+#   stage: test
+#   image: rocker/tidyverse:4.4
+#   script:
+#     - echo "Testing R installation"
+#     - R --version
+#   only:
+#     - main
+#     - merge_requests
+
+
 stages:
   - test
 
@@ -6,54 +20,16 @@ test_R:
   stage: test
   image: rocker/tidyverse:4.4
   script:
-    - echo "Testing R installation"
+    - echo "Testing R CMD Check"
     - R --version
+    # run the R CMD check on the package (this path)
+    - R CMD check ./ --no-manual
+    # run the devtools test
+    - R -e 'devtools::test()'
+    # install the package
+    - R -e 'devtools::install()'
   only:
     - main
     - merge_requests
-
-# use the tidyverse rocker image, as it contains devtools preinstalled
-# image: rocker/tidyverse
-#
-# # define stages of runner. at the moment,
-# # just test (no build or deploy).
-# stages:
-#   - test
-#   - build
-#
-# # define test job
-# test-job:
-#   stage: test
-#   script:
-#     # Install 'remotes' package if not already installed
-#     - R -e 'if (!requireNamespace("remotes", quietly = TRUE)) install.packages("remotes")'
-#     # Install all dependencies (including suggests)
-#     - R -e 'remotes::install_deps(dependencies = TRUE, repos = "https://cloud.r-project.org")'
-#     # run the R CMD check on the package (this path)
-#     - R CMD check ./ --no-manual
-#     # run the devtools test
-#     - R -e 'devtools::test()'
-#
-# build-job:
-#   stage: build
-#   script:
-#     # install
-#     - R -e 'devtools::install()'
-
-
-# check_R_4_3_3:
-#   stage: test
-#   image: rocker/r-ver:4.3.3
-#   script:
-#     - echo "Running R CMD check on R 4.3.3"
-#     - R CMD build .
-#     - "R CMD check *tar.gz --no-manual --as-cran"
-#   artifacts:
-#     paths:
-#       - "*.Rcheck/"
-#   only:
-#     - main
-#     - merge_requests
-
 
 
