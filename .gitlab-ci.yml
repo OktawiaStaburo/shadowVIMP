@@ -11,8 +11,6 @@
 #   only:
 #     - main
 #     - merge_requests
-
-
 stages:
   - test
 
