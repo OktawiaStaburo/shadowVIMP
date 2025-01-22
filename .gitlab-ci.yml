@@ -1,58 +1,44 @@
-# Below the simplest CI/CD pipeline to check if I can connect with the runners
-# stages:
-#   - test
-#
-# test_job:
-#   stage: test
-#   image: alpine:latest
-#   script:
-#     - echo "CI/CD Pipeline is working!"
-#   only:
-#     - main
-#     - master
-#     - merge_requests
-
 # Below code is intended to verify the R installation within the CI/CD environment.
-# stages:
-#   - test
-#
-# test_R:
-#   stage: test
-#   image: rocker/r-ver:4.4.2
-#   script:
-#     - echo "Testing R installation"
-#     - R --version
-#   only:
-#     - main
-#     - merge_requests
-
-# use the tidyverse rocker image, as it contains devtools preinstalled
-image: rocker/tidyverse
-
-# define stages of runner. at the moment,
-# just test (no build or deploy).
 stages:
   - test
-  - build
 
-# define test job
-test-job:
+test_R:
   stage: test
+  image: rocker/tidyverse:4.4
   script:
-    # Install 'remotes' package if not already installed
-    - R -e 'if (!requireNamespace("remotes", quietly = TRUE)) install.packages("remotes")'
-    # Install all dependencies (including suggests)
-    - R -e 'remotes::install_deps(dependencies = TRUE, repos = "https://cloud.r-project.org")'
-    # run the R CMD check on the package (this path)
-    - R CMD check ./ --no-manual
-    # run the devtools test
-    - R -e 'devtools::test()'
+    - echo "Testing R installation"
+    - R --version
+  only:
+    - main
+    - merge_requests
 
-build-job:
-  stage: build
-  script:
-    # install
-    - R -e 'devtools::install()'
+# use the tidyverse rocker image, as it contains devtools preinstalled
+# image: rocker/tidyverse
+#
+# # define stages of runner. at the moment,
+# # just test (no build or deploy).
+# stages:
+#   - test
+#   - build
+#
+# # define test job
+# test-job:
+#   stage: test
+#   script:
+#     # Install 'remotes' package if not already installed
+#     - R -e 'if (!requireNamespace("remotes", quietly = TRUE)) install.packages("remotes")'
+#     # Install all dependencies (including suggests)
+#     - R -e 'remotes::install_deps(dependencies = TRUE, repos = "https://cloud.r-project.org")'
+#     # run the R CMD check on the package (this path)
+#     - R CMD check ./ --no-manual
+#     # run the devtools test
+#     - R -e 'devtools::test()'
+#
+# build-job:
+#   stage: build
+#   script:
+#     # install
+#     - R -e 'devtools::install()'
 
 
 # check_R_4_3_3:
