@@ -16,18 +16,21 @@
 ^dev$
 ^vignettes/pertvimp-vignette\.Rmd$
 
-# Exclude CI/CD and development files from the built R package
-^\.gitlab-ci\.yml$
+# Exclude version control directories
+^\.git$
 ^\.gitignore$
+^\.gitlab-ci\.yml$
 
+# Exclude R CMD check directories
+^..Rcheck$
+
+# Exclude other common hidden files
+^\.Rhistory$
+^\.Rproj.user$
 
 ^doc$
 ^Meta$
 # ^Temp$
-
-# OS-specific files
-^\.DS_Store$
-^Thumbs\.db$
 
 # Other common temporary files
 ^.*\.log$
