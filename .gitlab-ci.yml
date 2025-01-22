@@ -20,12 +20,23 @@ test_R:
   script:
     - echo "Testing R CMD Check"
     - R --version
-    # run the R CMD check on the package (this path)
-    - R CMD check ./ --no-manual
-    # run the devtools test
+
+    # Install devtools and other necessary packages
+    - R -e 'install.packages("remotes")'
+    - R -e 'remotes::install_deps(dependencies = TRUE)'
+
+    # Optionally, install suggested packages if you want a complete check
+    - R -e 'install.packages(c("AppliedPredictiveModeling", "spelling"))'
+
+    # Run R CMD check on the package without building the manual
+    - R CMD check ./ --no-manual --as-cran
+
+    # Run the devtools tests
     - R -e 'devtools::test()'
-    # install the package
+
+    # Install the package
     - R -e 'devtools::install()'
+
   only:
     - main
     - merge_requests
