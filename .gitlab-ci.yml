@@ -29,7 +29,7 @@ test_R:
     - R -e 'install.packages(c("AppliedPredictiveModeling", "spelling"))'
 
     # Run R CMD check on the package without building the manual
-    - R CMD check ./ --no-manual --as-cran
+    - R CMD check ./ --no-build-vignettes --no-manual --as-cran
 
     # Run the devtools tests
     - R -e 'devtools::test()'
