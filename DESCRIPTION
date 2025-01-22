@@ -4,8 +4,7 @@ Version: 0.1.0
 Authors@R: c(
     person(given = "Tim", family = "Mueller", email = "mueller@staburo.de", role = "aut"),
     person(given = "Oktawia", family = "Miluch", email = "oktawia.miluch@staburo.de", role = c("aut", "cre")),
-    person(given = "Staburo GmbH", role = c("cph", "fnd"))
-)
+    person(given = "Staburo GmbH", role = c("cph", "fnd")))
 Maintainer: Oktawia Miluch <oktawia.miluch@staburo.de>
 Description: A statistical tool for reducing the number of covariates in an
   analysis by evaluating Variable Importance Measures (VIMPs) derived from the    
