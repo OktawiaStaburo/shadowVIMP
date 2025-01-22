@@ -35,3 +35,4 @@
 # Other common temporary files
 ^.*\.log$
 ^.*\.tmp$
+^LICENSE\.md$
