@@ -66,7 +66,7 @@ stages:
     - echo "Displaying DESCRIPTION file:"
     - cat DESCRIPTION
     # Build the package tarball
-    - R CMD build .
+    - R CMD build . --no-build-vignettes
     # Run R CMD check on the built tarball; using --no-manual to speed things up
     - R CMD check *.tar.gz --no-manual --no-build-vignettes --as-cran
   only:
