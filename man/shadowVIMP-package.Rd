@@ -6,20 +6,6 @@
 \alias{shadowVIMP-package}
 \title{shadowVIMP: Covariate Selection Based on VIMP Permutation-Like Testing}
 \description{
-A statistical tool for reducing the number of covariates in an analysis by evaluating Variable Importance Measures (VIMPs) derived from the Random Forest algorithm. It performs a statistical tests on the VIMPs and outputs a decision as to whether the covariate is significant along with the raw, FWER and FDR corrected p-values.
-}
-\author{
-\strong{Maintainer}: Oktawia Miluch \email{oktawia.miluch@staburo.de}
-
-Authors:
-\itemize{
-  \item Tim Mueller \email{mueller@staburo.de}
-}
-
-Other contributors:
-\itemize{
-  \item Staburo GmbH [copyright holder, funder]
-}
-
+A statistical tool for reducing the number of covariates in an analysis by evaluating Variable Importance Measures (VIMPs) derived from the Random Forest algorithm. It performs statistical tests on the VIMPs and outputs whether the covariate is significant along with the p-values.
 }
 \keyword{internal}

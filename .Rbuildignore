@@ -8,7 +8,6 @@
 # Exclude any temporary directories within tests
 # ^tests/testthat/temp_
 
-^shadowVIMP\.Rproj$
 ^\.Rproj\.user$
 ^\.Rhistory$
 ^README\.Rmd$
@@ -27,12 +26,12 @@
 # Exclude other common hidden files
 ^\.Rhistory$
 ^\.Rproj.user$
-
 ^doc$
 ^Meta$
-# ^Temp$
+
 
 # Other common temporary files
 ^.*\.log$
 ^.*\.tmp$
 ^LICENSE\.md$
+^shadowVIMP\.Rproj$

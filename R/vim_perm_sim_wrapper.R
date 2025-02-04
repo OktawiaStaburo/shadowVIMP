@@ -60,19 +60,26 @@
 #'   nsims = c(10, 20, 30), num.trees = 30
 #' )
 #'
+#'# Function to make sure proper number of cores is specified in parallel
+#'# computing
+#' safe_num_threads <- function(n) {
+#'   available <- parallel::detectCores()
+#'   if (n > available) available else n
+#' }
+#'
 #' # Parallelisation provided by ranger::ranger() function --> increase the
 #' # value of the num.threads parameter to speed up the computation
 #' \donttest{
 #' out2 <- vim_perm_sim_wrapper(
 #'   entire_data = mtcars, outcome_var = "vs",
-#'   nsims = c(10, 20, 30), num.threads = 2, num.trees = 30
+#'   nsims = c(10, 20, 30), num.threads = safe_num_threads(2), num.trees = 30
 #' )
 #'
 #' # Parallel computing using a cluster
 #' out3 <- vim_perm_sim_wrapper(
 #'   entire_data = mtcars, outcome_var = "vs",
-#'   nsims = c(10, 20, 30), num_cores_parallel = 2, num.trees = 30
-#' )
+#'   nsims = c(10, 20, 30), num_cores_parallel = safe_num_threads(2),
+#'   num.trees = 30)
 #'
 #' # Save the simulated variable importance values for the last step only
 #' out4 <- vim_perm_sim_wrapper(

@@ -46,18 +46,25 @@
 #'   num.trees = 50
 #' )
 #'
+#'# Function to make sure proper number of cores is specified in parallel
+#'# computing
+#' safe_num_threads <- function(n) {
+#'   available <- parallel::detectCores()
+#'   if (n > available) available else n
+#' }
+#'
 #' # Parallel computing - using a cluster:
 #' \donttest{
 #' out_par_cores <- vim_perm_sim(
 #'   entire_data = mtcars, outcome_var = "vs",
-#'   nsim = 30, num_cores_parallel = 2, num.trees = 50
+#'   nsim = 30, num_cores_parallel = safe_num_threads(2), num.trees = 50
 #' )
 #' }
 #'
 #' # Parallelism through num.threads parameter from ranger::ranger()
 #' out_par <- vim_perm_sim(
 #'   entire_data = mtcars, outcome_var = "vs", nsim = 30,
-#'   num.threads = 2, num.trees = 50
+#'   num.threads = safe_num_threads(2), num.trees = 50
 #' )
 vim_perm_sim <- function(entire_data,
                          outcome_var, # y

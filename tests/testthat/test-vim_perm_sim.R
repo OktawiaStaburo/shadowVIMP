@@ -6,6 +6,7 @@ test_that("vim_perm_sim works as expected", {
 
 test_that("vim_perm_sim works as expected in parallel mode", {
   skip_on_cran() # it's not advisable to test parallel code on CRAN
+  skip_on_ci() # skipping parallel test on CI environment
   expect_length(vim_perm_sim(entire_data = df, outcome_var = "diagnosis", nsim = 10, num.threads = 4), n = 1)
   expect_length(vim_perm_sim(entire_data = df, outcome_var = "diagnosis", nsim = 10, num.threads = 2, num_cores_parallel = 2), n = 1)
   expect_length(vim_perm_sim(entire_data = df, outcome_var = "diagnosis", nsim = 10, num_cores_parallel = 2), n = 1)
@@ -42,6 +43,8 @@ test_that("vim_perm_sim throws a warning when inappropiate inputs are passed", {
 # })
 
 test_that("vim_perm_sim gives expected output in parallel mode", {
+  skip_on_cran()
+  skip_on_ci()
   data <- data.frame(diag = rep(1, 50), v1 = rep(2, 50), v2 = rep(3, 50))
   expect_snapshot(vim_perm_sim(entire_data = data, outcome_var = "diag", nsim = 10, num_cores_parallel = 2) %>% print())
 })

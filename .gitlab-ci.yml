@@ -32,7 +32,6 @@ test_R:
     - ls -la
     - echo "Showing DESCRIPTION found here:"
     - cat DESCRIPTION
-    - R -e 'print(read.dcf("DESCRIPTION"))'
 
     # Run R CMD check on the package without building the manual
     - R CMD check ./ --no-build-vignettes --no-manual --as-cran
