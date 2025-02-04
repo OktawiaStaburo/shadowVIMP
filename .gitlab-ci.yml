@@ -68,7 +68,7 @@ stages:
     # Build the package tarball
     - R CMD build .
     # Run R CMD check on the built tarball; using --no-manual to speed things up
-    - R CMD check *.tar.gz --no-manual --as-cran
+    - R CMD check *.tar.gz --no-manual --no-build-vignettes --as-cran
   only:
     - main
     - merge_requests
