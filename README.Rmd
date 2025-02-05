@@ -37,7 +37,7 @@ The `shadowVIMP` package is not (yet!) available on CRAN, but you can install th
 2. In RStudio, run the following code with your credentials:
 
 ``` {r, eval = FALSE}
-devtools::install_git("https://gitlab.staburo.de/oktawia.miluch/shadowVIMP-package.git",
+devtools::install_git("https://gitlab.staburo.de/personal/shadowVIMP-package.git",
   credentials = git2r::cred_user_pass("YOUR-GITLAB-USERNAME", "YOUR-PAT-TOKEN")
 )
 ```
