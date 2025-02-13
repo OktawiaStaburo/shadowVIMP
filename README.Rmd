@@ -27,6 +27,7 @@ The goal of `shadowVIMP` is to provide a tool for reducing the number of covaria
 
 ## Installation
 
+New installation required for the GitHub
 The `shadowVIMP` package is not (yet!) available on CRAN, but you can install the development version. Installation instructions:
 
 1. Create a personal access token (PAT) for yourself. To do this:
