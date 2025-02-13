@@ -4,7 +4,10 @@
 # shadowVIMP
 
 <!-- badges: start -->
+
+[![R-CMD-check](https://github.com/OktawiaStaburo/shadowVIMP/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/OktawiaStaburo/shadowVIMP/actions/workflows/R-CMD-check.yaml)
 <!-- badges: end -->
+
 <!-- keep`README.md` up-to-date -> use`devtools::build_readme()`-->
 
 ## Overview
@@ -76,18 +79,18 @@ set.seed(789)
 # When working with real data, increase the value of the nsims parameter or leave it at the default value
 vimp_seq <- vim_perm_sim_wrapper(entire_data = mtcars, outcome_var = "vs", nsims = c(30, 100, 150))
 #> alpha  0.3  
-#> 2025-02-13 11:38:13: dataframe = mtcars nsim = 30 num.trees = 10000. Running step 1
+#> 2025-02-13 13:13:19: dataframe = mtcars nsim = 30 num.trees = 10000. Running step 1
 #> Variables remaining:  10 
 #> alpha  0.1  
-#> 2025-02-13 11:38:18: dataframe = mtcars nsim = 100 num.trees = 10000. Running step 1
-#> 2025-02-13 11:38:25: dataframe = mtcars nsim = 100 num.trees = 10000. Running step 50
-#> 2025-02-13 11:38:32: dataframe = mtcars nsim = 100 num.trees = 10000. Running step 100
+#> 2025-02-13 13:13:24: dataframe = mtcars nsim = 100 num.trees = 10000. Running step 1
+#> 2025-02-13 13:13:30: dataframe = mtcars nsim = 100 num.trees = 10000. Running step 50
+#> 2025-02-13 13:13:37: dataframe = mtcars nsim = 100 num.trees = 10000. Running step 100
 #> Variables remaining:  9 
 #> alpha  0.05  
-#> 2025-02-13 11:38:32: dataframe = mtcars nsim = 150 num.trees = 10000. Running step 1
-#> 2025-02-13 11:38:38: dataframe = mtcars nsim = 150 num.trees = 10000. Running step 50
-#> 2025-02-13 11:38:45: dataframe = mtcars nsim = 150 num.trees = 10000. Running step 100
-#> 2025-02-13 11:38:52: dataframe = mtcars nsim = 150 num.trees = 10000. Running step 150
+#> 2025-02-13 13:13:37: dataframe = mtcars nsim = 150 num.trees = 10000. Running step 1
+#> 2025-02-13 13:13:44: dataframe = mtcars nsim = 150 num.trees = 10000. Running step 50
+#> 2025-02-13 13:13:51: dataframe = mtcars nsim = 150 num.trees = 10000. Running step 100
+#> 2025-02-13 13:13:58: dataframe = mtcars nsim = 150 num.trees = 10000. Running step 150
 #> Variables remaining:  7
 
 # Print informative covariates according to the pooled criterion (with and without p-value correction)
@@ -124,16 +127,16 @@ vimp_seq$result_taken_from_previous_step
 # Check the time needed to execute each step of the algorithm and the entire procedure
 vimp_seq$time_elapsed
 #> $step_1
-#> [1] 0.09463143
+#> [1] 0.0951395
 #> 
 #> $step_2
-#> [1] 0.2265033
+#> [1] 0.2113948
 #> 
 #> $step_3
-#> [1] 0.3357456
+#> [1] 0.355467
 #> 
 #> $total_time_mins
-#> [1] 0.6568803
+#> [1] 0.6620014
 
 # Check the call code that was used to create the inspected object
 vimp_seq$call

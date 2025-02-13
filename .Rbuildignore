@@ -35,3 +35,4 @@
 ^.*\.tmp$
 ^LICENSE\.md$
 ^shadowVIMP\.Rproj$
+^\.github$
