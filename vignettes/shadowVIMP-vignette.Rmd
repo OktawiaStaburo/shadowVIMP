@@ -187,7 +187,13 @@ vimp_none$vimp_history
 To speed up the computation, it is possible to run the main function of the `shadowVIMP` package in parallel. There are two ways to do this. The first is to use the parallelisation provided by the `ranger::ranger()` function used internally by the package. To use this functionality, the `num.threads` parameter must be set to a value greater than 1.
 
 ````{r parallel1}
-vimp_parallel1 <- vim_perm_sim_wrapper(nsims = c(20, 30, 50), entire_data = data_sub, outcome_var = "diagnosis", num.threads = 4)
+is_interactive <- interactive()
+if (is_interactive) {
+  num_cores <- min(parallel::detectCores(), 4)
+  vimp_parallel1 <- vim_perm_sim_wrapper(nsims = c(20, 30, 50), entire_data = data_sub, outcome_var = "diagnosis", num.threads = num_cores)
+} else {
+  vimp_parallel1 <- vim_perm_sim_wrapper(nsims = c(20, 30, 50), entire_data = data_sub, outcome_var = "diagnosis")
+}
 ````
 
 Another way to perform parallel computation is to set the `num_cores_parallel` parameter to a value greater than 1. In this case, a cluster with the specified number of cores is created under the hood.

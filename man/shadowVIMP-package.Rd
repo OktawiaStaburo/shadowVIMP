@@ -9,11 +9,11 @@
 A statistical tool for reducing the number of covariates in an analysis by evaluating Variable Importance Measures (VIMPs) derived from the Random Forest algorithm. It performs statistical tests on the VIMPs and outputs whether the covariate is significant along with the p-values.
 }
 \author{
-\strong{Maintainer}: Oktawia oktawia.miluch@staburo.de Miluch
+\strong{Maintainer}: Oktawia Miluch \email{oktawia.miluch@staburo.de}
 
 Authors:
 \itemize{
-  \item Tim mueller@staburo.de Mueller
+  \item Tim Mueller \email{mueller@staburo.de}
 }
 
 Other contributors:
