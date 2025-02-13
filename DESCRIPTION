@@ -9,7 +9,7 @@ Description: A statistical tool for reducing the number of covariates in an
   analysis by evaluating Variable Importance Measures (VIMPs) derived from
   the Random Forest algorithm. It performs statistical tests on the VIMPs
   and outputs whether the covariate is significant along with the p-values.
-License: GPL (>= 2)
+License: Apache License (>= 2)
 Imports: 
     cowplot,
     doRNG,
