@@ -182,24 +182,26 @@ vimp_none <- vim_perm_sim_wrapper(nsims = c(20, 30, 50), entire_data = data_sub,
 vimp_none$vimp_history
 ````
 
-## Parallelisation
+## Accelerating your analysis workflow
 
-To speed up the computation, it is possible to run the main function of the `shadowVIMP` package in parallel. There are two ways to do this. The first is to use the parallelisation provided by the `ranger::ranger()` function used internally by the package. To use this functionality, the `num.threads` parameter must be set to a value greater than 1.
+To speed up your computations, the `shadowVIMP`  package offers two options. The first option is to set the `num.threads` parameter (an argument of the `ranger::ranger()` function used in our package) to a non-zero value. This parameter specifies the number of threads that the `ranger::ranger()` function can use to train the random forest. By default, it is set to 2 cores.
 
 ````{r parallel1}
+# Detect if running on non-interactive environments
 is_interactive <- interactive()
 if (is_interactive) {
+  # When interactive - set num_cores to a selected value
   num_cores <- min(parallel::detectCores(), 4)
   vimp_parallel1 <- vim_perm_sim_wrapper(nsims = c(20, 30, 50), entire_data = data_sub, outcome_var = "diagnosis", num.threads = num_cores)
 } else {
+  # When non-interactive - run sequantial
   vimp_parallel1 <- vim_perm_sim_wrapper(nsims = c(20, 30, 50), entire_data = data_sub, outcome_var = "diagnosis")
 }
 ````
 
-Another way to perform parallel computation is to set the `num_cores_parallel` parameter to a value greater than 1. In this case, a cluster with the specified number of cores is created under the hood.
+The second option is to perform the analysis in parallel. To do this, set the`num_cores_parallel` parameter to a value greater than 1. In this case, a cluster with the specified number of cores is automatically created using functionalities from the `foreach` package.
 
 ````{r parallel2, results='hide'}
-# Technical checks
 # Detect if running on non-interactive environments
 is_interactive <- interactive()
 
