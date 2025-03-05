@@ -12,8 +12,10 @@
 #' @param filter_vars Numeric, the number of variables to plot. The default is
 #'   `NULL`, which means that all variables considered in the last step of the
 #'   procedure (and included in the ` wrapper_object`) will be plotted.
+#' @param  p_val_labels Boolean, controls whether the p-value labels should be
+#' printed on the plot, default `TRUE`.
 #' @param text_size Numeric, parameter that controls the size of the printed
-#'   p-values on the plot, default is 3.
+#'   p-values on the plot, default is 4.
 #' @param ... Other options used to control the appearance of the output plot.
 #' @return ggplot object
 #' @export
@@ -26,13 +28,13 @@
 #' @examples
 #' data(mtcars)
 #'
-#' # When working with real data, increase the value of the `nsims` and `num.trees`
+#' # When working with real data, increase the value of the `niters` and `num.trees`
 #' # parameters to obtain trustworthy results.
 #' \donttest{
 #' # Pooled p-values
 #' out_pooled <- vim_perm_sim_wrapper(
 #'   entire_data = mtcars, outcome_var = "vs",
-#'   nsims = c(10, 20, 30), num.trees = 30
+#'   niters = c(10, 20, 30), num.trees = 30
 #' )
 #'
 #' # The following 2 lines of code produce identical plots
@@ -42,19 +44,25 @@
 #' # Plot only 3 covariates
 #' plot_vimps(wrapper_object = out_pooled, filter_vars = 3)
 #'
+#' #' # Do not display p-values on the plot
+#' plot_vimps(wrapper_object = out_pooled, p_val_labels = FALSE)
+#'
+#' # Change the size of displayed p-values
+#' plot_vimps(wrapper_object = out_pooled, text_size = 6)
+#'
 #' # Per variable p-values
 #' out_per_var <- vim_perm_sim_wrapper(
 #'   entire_data = mtcars, outcome_var = "vs",
-#'   nsims = c(10, 20, 30), num.trees = 30, method = "per_variable"
+#'   niters = c(10, 20, 30), num.trees = 30, method = "per_variable"
 #' )
 #'
 #' # Set pooled to `FALSE`, otherwise the function will throw an error.
-#' plot_vimps(wrapper_object = out_per_var, pooled = FALSE, text_size = 4)
+#' plot_vimps(wrapper_object = out_per_var, pooled = FALSE)
 #' }
-plot_vimps <- function(wrapper_object, pooled = TRUE, filter_vars = NULL, text_size = 3, ...) {
+plot_vimps <- function(wrapper_object, pooled = TRUE, filter_vars = NULL, p_val_labels = TRUE, text_size = 4, ...) {
   # Parameters check
-  if (is.logical(pooled) == FALSE) {
-    stop("Parameter `pooled` must be logical.")
+  if (is.logical(pooled) == FALSE || is.logical(p_val_labels) == FALSE) {
+    stop("Parameter `pooled` and `p_val_labels` must be logical.")
   }
 
   if (is.null(filter_vars) == FALSE && (is.numeric(filter_vars) == FALSE || filter_vars <= 0)) {
@@ -185,43 +193,50 @@ plot_vimps <- function(wrapper_object, pooled = TRUE, filter_vars = NULL, text_s
       legend.position = "right",
       axis.title = element_blank(),
       legend.title = element_blank(), ...
-    ) +
-    geom_text(
-      data = p_values_df,
-      aes(
-        x = min(vimps_subset$VIMP) - 3.7,
-        y = .data[["ordered_varname"]],
-        label = paste0(.data[["p_val_unadj"]], ",")
-      ),
-      color = "#43B284FF",
-      hjust = 1,
-      size = text_size,
-      inherit.aes = FALSE, ...
-    ) +
-    geom_text(
-      data = p_values_df,
-      aes(
-        x = min(vimps_subset$VIMP) - 2,
-        y = .data[["ordered_varname"]],
-        label = paste0(.data[["p_val_FDR"]], ",")
-      ),
-      color = "#0F7BA2FF",
-      hjust = 1,
-      size = text_size,
-      inherit.aes = FALSE, ...
-    ) +
-    geom_text(
-      data = p_values_df,
-      aes(
-        x = min(vimps_subset$VIMP) - 0.3,
-        y = .data[["ordered_varname"]],
-        label = .data[["p_val_FWER"]]
-      ),
-      color = "#DD5129FF",
-      hjust = 1,
-      size = text_size,
-      inherit.aes = FALSE, ...
     )
+
+  if(p_val_labels == TRUE){
+    min_vimp <- min(vimps_subset$VIMP)
+
+    box_plot <- box_plot +
+      geom_text(
+        data = p_values_df,
+        aes(
+          x = min_vimp - 3.7,
+          y = .data[["ordered_varname"]],
+          label = paste0(.data[["p_val_unadj"]], ",")
+        ),
+        color = "#43B284FF",
+        hjust = 1,
+        size = text_size,
+        inherit.aes = FALSE, ...
+      ) +
+      geom_text(
+        data = p_values_df,
+        aes(
+          x = min_vimp - 2,
+          y = .data[["ordered_varname"]],
+          label = paste0(.data[["p_val_FDR"]], ",")
+        ),
+        color = "#0F7BA2FF",
+        hjust = 1,
+        size = text_size,
+        inherit.aes = FALSE, ...
+      ) +
+      geom_text(
+        data = p_values_df,
+        aes(
+          x = min_vimp - 0.3,
+          y = .data[["ordered_varname"]],
+          label = .data[["p_val_FWER"]]
+        ),
+        color = "#DD5129FF",
+        hjust = 1,
+        size = text_size,
+        inherit.aes = FALSE, ...
+      )
+  }
+
 
   # Extracting legend from the box plot
   legend <- get_legend(box_plot, position = "right") %>%
