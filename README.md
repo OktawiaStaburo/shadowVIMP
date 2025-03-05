@@ -12,25 +12,34 @@
 
 ## Overview
 
-The goal of `shadowVIMP` is to provide a tool for reducing the number of
-covariates considered in an analysis in an informed and statistically
-rigorous manner. This package implements a method that performs
-statistical tests on the Variable Importance Measures (VIMP) obtained
-from the Random Forest (RF) algorithm to determine whether each
-covariate is statistically significant and truly informative. In
-contrast to widely used methods, such as selecting the top *n*
-covariates with the highest VIMP or choosing covariates with a VIMP
-above a certain threshold, the method implemented in `shadowVIMP` allows
-for a statistical justification of whether a given VIMP is sufficiently
-large to be unlikely due to chance. The main function of the package,
+`shadowVIMP` is designed to perform variable selection by reducing the
+number of covariates in your analysis in a statistically rigorous and
+informed manner, thereby helping you identify the most informative
+predictors. This package implements a method that performs statistical
+tests on the Variable Importance Measures (VIMP) obtained from the
+Random Forest (RF) algorithm to determine whether each covariate is
+statistically significant and truly informative. In contrast to widely
+used methods, such as selecting the top *n* covariates with the highest
+VIMP or choosing covariates with a VIMP above a certain threshold, the
+method implemented in `shadowVIMP` allows for a statistical
+justification of whether a given VIMP is sufficiently large to be
+unlikely due to chance. The main function of the package,
 `vim_perm_sim_wrapper()`, outputs a table indicating whether each
 covariate is informative, along with its associated (adjusted) p-values.
-In addition `plot_vimps()` function provides a convenient way to
-visualise the VIMPs obtained from the simulation part of the algorithm,
-including unadjusted, FDR and FWER adjusted p-values. Details of the
-method, a realistic example of its usage, and guidance on interpreting
-the results can be found in the vignette:
-`vignette("shadowVIMP-vignette")`.
+In addition, the `plot_vimps()` function provides a convenient way to
+visualise the VIMPs obtained from our algorithm, including unadjusted,
+FDR- and FWER-adjusted p-values. Details on the method, a realistic
+example of its usage, and guidance on interpreting the results can be
+found in the vignette: `vignette("shadowVIMP-vignette")`.
+
+## Installation
+
+Although the `shadowVIMP` package is not (yet) available on CRAN, you
+can install the development version like this:
+
+``` r
+devtools::install_github("OktawiaStaburo/shadowVIMP")
+```
 
 ## Usage
 
@@ -52,21 +61,21 @@ data(mtcars)
 set.seed(789)
 
 # Standard usage - sequential computing
-# When working with real data, increase the value of the nsims parameter or leave it at the default value
-vimp_seq <- vim_perm_sim_wrapper(entire_data = mtcars, outcome_var = "vs", nsims = c(30, 100, 150))
+# When working with real data, increase the value of the niters parameter or leave it at the default value
+vimp_seq <- vim_perm_sim_wrapper(entire_data = mtcars, outcome_var = "vs", niters = c(30, 100, 150))
 #> alpha  0.3  
-#> 2025-02-13 16:46:46: dataframe = mtcars nsim = 30 num.trees = 10000. Running step 1
+#> 2025-03-05 13:40:03: dataframe = mtcars niters = 30 num.trees = 10000. Running step 1
 #> Variables remaining:  10 
 #> alpha  0.1  
-#> 2025-02-13 16:46:53: dataframe = mtcars nsim = 100 num.trees = 10000. Running step 1
-#> 2025-02-13 16:46:59: dataframe = mtcars nsim = 100 num.trees = 10000. Running step 50
-#> 2025-02-13 16:47:06: dataframe = mtcars nsim = 100 num.trees = 10000. Running step 100
+#> 2025-03-05 13:40:09: dataframe = mtcars niters = 100 num.trees = 10000. Running step 1
+#> 2025-03-05 13:40:16: dataframe = mtcars niters = 100 num.trees = 10000. Running step 50
+#> 2025-03-05 13:40:23: dataframe = mtcars niters = 100 num.trees = 10000. Running step 100
 #> Variables remaining:  9 
 #> alpha  0.05  
-#> 2025-02-13 16:47:07: dataframe = mtcars nsim = 150 num.trees = 10000. Running step 1
-#> 2025-02-13 16:47:14: dataframe = mtcars nsim = 150 num.trees = 10000. Running step 50
-#> 2025-02-13 16:47:21: dataframe = mtcars nsim = 150 num.trees = 10000. Running step 100
-#> 2025-02-13 16:47:28: dataframe = mtcars nsim = 150 num.trees = 10000. Running step 150
+#> 2025-03-05 13:40:23: dataframe = mtcars niters = 150 num.trees = 10000. Running step 1
+#> 2025-03-05 13:40:30: dataframe = mtcars niters = 150 num.trees = 10000. Running step 50
+#> 2025-03-05 13:40:37: dataframe = mtcars niters = 150 num.trees = 10000. Running step 100
+#> 2025-03-05 13:40:43: dataframe = mtcars niters = 150 num.trees = 10000. Running step 150
 #> Variables remaining:  7
 
 # Print informative covariates according to the pooled criterion (with and without p-value correction)
@@ -96,30 +105,30 @@ vimp_seq$final_dec_pooled
 vimp_seq$alpha
 #> [1] 0.05
 
-# Are the displayed results from the last or the previous step?
+# Are the displayed results from the last or the previous step  of the procedure?
 vimp_seq$result_taken_from_previous_step
 #> [1] FALSE
 
 # Check the time needed to execute each step of the algorithm and the entire procedure
 vimp_seq$time_elapsed
 #> $step_1
-#> [1] 0.1034733
+#> [1] 0.1053234
 #> 
 #> $step_2
-#> [1] 0.2353977
+#> [1] 0.2244211
 #> 
 #> $step_3
-#> [1] 0.3547382
+#> [1] 0.3430672
 #> 
 #> $total_time_mins
-#> [1] 0.6936093
+#> [1] 0.6728118
 
 # Check the call code that was used to create the inspected object
 vimp_seq$call
-#> vim_perm_sim_wrapper(nsims = c(30, 100, 150), entire_data = mtcars, 
+#> vim_perm_sim_wrapper(niters = c(30, 100, 150), entire_data = mtcars, 
 #>     outcome_var = "vs")
 
-# Check the simulated VIMPs of the covariates and their shadows from the last step of the procedure
+# Check the VIMPs of the covariates and their shadows from the last step of the procedure
 vimp_seq$vimp_history %>% head()
 #>        mpg      cyl     disp       hp     qsec     carb       wt      drat
 #> 1 32.96580 37.83467 34.28494 44.40825 69.39776 24.06262 15.92240  6.592342
