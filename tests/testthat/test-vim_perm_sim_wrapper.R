@@ -1,7 +1,7 @@
 # df defined in helper.R
-test_that("vim_perm_sim_wrapper works as expected with default settings.", {
-  out <- vim_perm_sim_wrapper(
-    alphas = c(0.3, 0.10, 0.05), nsims = c(10, 15, 20),
+test_that("shadow_vimp works as expected with default settings.", {
+  out <- shadow_vimp(
+    alphas = c(0.3, 0.10, 0.05), niters = c(10, 15, 20),
     entire_data = df, outcome_var = "diagnosis"
   )
 
@@ -16,14 +16,14 @@ test_that("vim_perm_sim_wrapper works as expected with default settings.", {
 })
 
 test_that("Different variants of save_vimp_history parameter work as expected.", {
-  out_history_none <- vim_perm_sim_wrapper(
-    alphas = c(0.3, 0.10, 0.05), nsims = c(10, 15, 20),
+  out_history_none <- shadow_vimp(
+    alphas = c(0.3, 0.10, 0.05), niters = c(10, 15, 20),
     entire_data = df, outcome_var = "diagnosis",
     save_vimp_history = "none"
   )
 
-  out_history_last <- vim_perm_sim_wrapper(
-    alphas = c(0.3, 0.10, 0.05), nsims = c(10, 15, 20),
+  out_history_last <- shadow_vimp(
+    alphas = c(0.3, 0.10, 0.05), niters = c(10, 15, 20),
     entire_data = df, outcome_var = "diagnosis",
     save_vimp_history = "last"
   )
@@ -37,14 +37,14 @@ test_that("Different variants of save_vimp_history parameter work as expected.",
 })
 
 test_that("Different values of method parameter work as expected.", {
-  out_pooled <- vim_perm_sim_wrapper(
-    alphas = c(0.3, 0.10, 0.05), nsims = c(10, 15, 20),
+  out_pooled <- shadow_vimp(
+    alphas = c(0.3, 0.10, 0.05), niters = c(10, 15, 20),
     entire_data = df, outcome_var = "diagnosis",
     method = "pooled"
   )
 
-  out_per_var <- vim_perm_sim_wrapper(
-    alphas = c(0.3, 0.10, 0.05), nsims = c(10, 15, 20),
+  out_per_var <- shadow_vimp(
+    alphas = c(0.3, 0.10, 0.05), niters = c(10, 15, 20),
     entire_data = df, outcome_var = "diagnosis",
     method = "per_variable"
   )
@@ -58,40 +58,40 @@ test_that("Different values of method parameter work as expected.", {
 })
 
 # Errors
-test_that("vim_perm_sim_wrapper() fails when inappropiate inputs are passed", {
-  expect_error(vim_perm_sim_wrapper(
-    alphas = c(0.3, 0.10, 0.05), nsims = c(10, 20),
+test_that("shadow_vimp() fails when inappropiate inputs are passed", {
+  expect_error(shadow_vimp(
+    alphas = c(0.3, 0.10, 0.05), niters = c(10, 20),
     entire_data = df, outcome_var = "diagnosis"
   ), class = "simpleError")
-  expect_error(vim_perm_sim_wrapper(
-    alphas = c(0.3, 0.05, 0.15), nsims = c(10, 20, 30),
+  expect_error(shadow_vimp(
+    alphas = c(0.3, 0.05, 0.15), niters = c(10, 20, 30),
     entire_data = df, outcome_var = "diagnosis"
   ), class = "simpleError")
-  expect_error(vim_perm_sim_wrapper(
-    alphas = c(-0.3, 0.05, 0.15), nsims = c(10, 20, 30),
+  expect_error(shadow_vimp(
+    alphas = c(-0.3, 0.05, 0.15), niters = c(10, 20, 30),
     entire_data = df, outcome_var = "diagnosis"
   ), class = "simpleError")
-  expect_error(vim_perm_sim_wrapper(
-    alphas = c(0.3, 0.15, 1.15), nsims = c(10, 20, 30),
+  expect_error(shadow_vimp(
+    alphas = c(0.3, 0.15, 1.15), niters = c(10, 20, 30),
     entire_data = df, outcome_var = "diagnosis"
   ), class = "simpleError")
   expect_error(
-    vim_perm_sim_wrapper(
-      alphas = c(0.3, 0.10, 0.05), nsims = c(10, 20, 30),
+    shadow_vimp(
+      alphas = c(0.3, 0.10, 0.05), niters = c(10, 20, 30),
       entire_data = df, outcome_var = "diagnosis", save_vimp_history = "cat"
     ),
     class = "simpleError"
   )
   expect_error(
-    vim_perm_sim_wrapper(
-      alphas = c(0.3, 0.10, 0.05), nsims = c(10, 20, 30),
+    shadow_vimp(
+      alphas = c(0.3, 0.10, 0.05), niters = c(10, 20, 30),
       entire_data = df, outcome_var = "diagnosis", to_show = "cat"
     ),
     class = "simpleError"
   )
   expect_error(
-    vim_perm_sim_wrapper(
-      alphas = c(0.3, 0.10, 0.05), nsims = c(10, 20, 30),
+    shadow_vimp(
+      alphas = c(0.3, 0.10, 0.05), niters = c(10, 20, 30),
       entire_data = df, outcome_var = "diagnosis", method = "cat"
     ),
     class = "simpleError"
@@ -99,7 +99,7 @@ test_that("vim_perm_sim_wrapper() fails when inappropiate inputs are passed", {
 })
 
 # Warnings
-test_that("vim_perm_sim_wrapper() throws a warning when no wariables survive pre-selection process.", {
+test_that("shadow_vimp() throws a warning when no wariables survive pre-selection process.", {
   nonsense_df <- data.frame(
     diagnosis = c(rep(1, 50), rep(0, 50)),
     v1 = rep(45, 100), v2 = rep(55, 100), v3 = rep(65, 100)
@@ -107,8 +107,8 @@ test_that("vim_perm_sim_wrapper() throws a warning when no wariables survive pre
 
   # Capture all warnings
   warnings <- capture_warnings(
-    vim_perm_sim_wrapper(
-      alphas = c(0.3, 0.10, 0.05), nsims = c(10, 20, 30),
+    shadow_vimp(
+      alphas = c(0.3, 0.10, 0.05), niters = c(10, 20, 30),
       entire_data = nonsense_df, outcome_var = "diagnosis"
     )
   )
