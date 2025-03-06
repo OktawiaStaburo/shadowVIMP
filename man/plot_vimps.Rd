@@ -8,13 +8,15 @@ plot_vimps(
   wrapper_object,
   pooled = TRUE,
   filter_vars = NULL,
-  text_size = 3,
+  p_val_labels = TRUE,
+  text_size = 4,
+  legend.position = c("right", "left", "top", "bottom", "none"),
   ...
 )
 }
 \arguments{
-\item{wrapper_object}{List, the output of the function
-\code{vim_perm_sim_wrapper()}.}
+\item{wrapper_object}{Object of the class "shadow_vimp", the output of the
+function \code{shadow_vimp()}.}
 
 \item{pooled}{Boolean
 \itemize{
@@ -26,8 +28,14 @@ plot_vimps(
 \code{NULL}, which means that all variables considered in the last step of the
 procedure (and included in the \code{ wrapper_object}) will be plotted.}
 
+\item{p_val_labels}{Boolean, controls whether the p-value labels should be
+printed on the plot, default \code{TRUE}.}
+
 \item{text_size}{Numeric, parameter that controls the size of the printed
-p-values on the plot, default is 3.}
+p-values on the plot, default is 4.}
+
+\item{legend.position}{Character, one of "right", "left", "top", "bottom" or
+"none". Argument specifying the position of the legend.}
 
 \item{...}{Other options used to control the appearance of the output plot.}
 }
@@ -42,13 +50,13 @@ variable is informative.
 \examples{
 data(mtcars)
 
-# When working with real data, increase the value of the `nsims` and `num.trees`
+# When working with real data, increase the value of the `niters` and `num.trees`
 # parameters to obtain trustworthy results.
 \donttest{
 # Pooled p-values
-out_pooled <- vim_perm_sim_wrapper(
-  entire_data = mtcars, outcome_var = "vs",
-  nsims = c(10, 20, 30), num.trees = 30
+out_pooled <- shadow_vimp(
+  data = mtcars, outcome_var = "vs",
+  niters = c(10, 20, 30), num.trees = 30
 )
 
 # The following 2 lines of code produce identical plots
@@ -58,13 +66,19 @@ plot_vimps(wrapper_object = out_pooled, text_size = 4)
 # Plot only 3 covariates
 plot_vimps(wrapper_object = out_pooled, filter_vars = 3)
 
+#' # Do not display p-values on the plot
+plot_vimps(wrapper_object = out_pooled, p_val_labels = FALSE)
+
+# Change the size of displayed p-values
+plot_vimps(wrapper_object = out_pooled, text_size = 6)
+
 # Per variable p-values
-out_per_var <- vim_perm_sim_wrapper(
-  entire_data = mtcars, outcome_var = "vs",
-  nsims = c(10, 20, 30), num.trees = 30, method = "per_variable"
+out_per_var <- shadow_vimp(
+  data = mtcars, outcome_var = "vs",
+  niters = c(10, 20, 30), num.trees = 30, method = "per_variable"
 )
 
 # Set pooled to `FALSE`, otherwise the function will throw an error.
-plot_vimps(wrapper_object = out_per_var, pooled = FALSE, text_size = 4)
+plot_vimps(wrapper_object = out_per_var, pooled = FALSE)
 }
 }

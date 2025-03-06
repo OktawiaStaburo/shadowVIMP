@@ -4,8 +4,8 @@
 #' with unadjusted, FDR, and FWER adjusted p-values indicating whether a given
 #' variable is informative.
 #'
-#' @param wrapper_object List, the output of the function
-#'   `vim_perm_sim_wrapper()`.
+#' @param wrapper_object Object of the class "shadow_vimp", the output of the
+#'   function `shadow_vimp()`.
 #' @param pooled Boolean
 #'  * `TRUE` - passed `wrapper_object` contains pooled p-values.
 #'  * `FALSE` - passed `wrapper_object` contains per variable p-values.
@@ -13,9 +13,11 @@
 #'   `NULL`, which means that all variables considered in the last step of the
 #'   procedure (and included in the ` wrapper_object`) will be plotted.
 #' @param  p_val_labels Boolean, controls whether the p-value labels should be
-#' printed on the plot, default `TRUE`.
+#'   printed on the plot, default `TRUE`.
 #' @param text_size Numeric, parameter that controls the size of the printed
 #'   p-values on the plot, default is 4.
+#' @param legend.position Character, one of "right", "left", "top", "bottom" or
+#'   "none". Argument specifying the position of the legend.
 #' @param ... Other options used to control the appearance of the output plot.
 #' @return ggplot object
 #' @export
@@ -32,8 +34,8 @@
 #' # parameters to obtain trustworthy results.
 #' \donttest{
 #' # Pooled p-values
-#' out_pooled <- vim_perm_sim_wrapper(
-#'   entire_data = mtcars, outcome_var = "vs",
+#' out_pooled <- shadow_vimp(
+#'   data = mtcars, outcome_var = "vs",
 #'   niters = c(10, 20, 30), num.trees = 30
 #' )
 #'
@@ -51,16 +53,20 @@
 #' plot_vimps(wrapper_object = out_pooled, text_size = 6)
 #'
 #' # Per variable p-values
-#' out_per_var <- vim_perm_sim_wrapper(
-#'   entire_data = mtcars, outcome_var = "vs",
+#' out_per_var <- shadow_vimp(
+#'   data = mtcars, outcome_var = "vs",
 #'   niters = c(10, 20, 30), num.trees = 30, method = "per_variable"
 #' )
 #'
 #' # Set pooled to `FALSE`, otherwise the function will throw an error.
 #' plot_vimps(wrapper_object = out_per_var, pooled = FALSE)
 #' }
-plot_vimps <- function(wrapper_object, pooled = TRUE, filter_vars = NULL, p_val_labels = TRUE, text_size = 4, ...) {
+plot_vimps <- function(wrapper_object, pooled = TRUE, filter_vars = NULL, p_val_labels = TRUE, text_size = 4,
+                       legend.position = c("right", "left", "top", "bottom", "none"),
+                       ...) {
   # Parameters check
+  legend.position <- match.arg(legend.position)
+
   if (is.logical(pooled) == FALSE || is.logical(p_val_labels) == FALSE) {
     stop("Parameter `pooled` and `p_val_labels` must be logical.")
   }
@@ -88,7 +94,7 @@ plot_vimps <- function(wrapper_object, pooled = TRUE, filter_vars = NULL, p_val_
   available_cols <- colnames(data)
 
   if (sum(required_cols %in% available_cols) != length(required_cols)) {
-    stop("Not all of the required columns are present in the `wrapper_object`.\n Consider changing  the `to_show` parameter when running `vim_perm_sim_wrapper()` function.")
+    stop("Not all of the required columns are present in the `wrapper_object`.\n Consider changing  the `to_show` parameter when running `shadow_vimp()` function.")
   }
 
   # Check if vimp_history for the last step is available
@@ -190,7 +196,7 @@ plot_vimps <- function(wrapper_object, pooled = TRUE, filter_vars = NULL, p_val_
     ) +
     theme_bw() +
     theme(
-      legend.position = "right",
+      legend.position = legend.position,
       axis.title = element_blank(),
       legend.title = element_blank(), ...
     )
@@ -237,27 +243,56 @@ plot_vimps <- function(wrapper_object, pooled = TRUE, filter_vars = NULL, p_val_
       )
   }
 
+  # If user selected plot without the legend:
+  if(legend.position == "none"){
+    box_plot
+  } else {
+    # Customize the legend and place it in the correct place
+    # Extracting legend from the box plot
+    legend <- get_legend(box_plot, position = legend.position) %>%
+      as_ggplot()
 
-  # Extracting legend from the box plot
-  legend <- get_legend(box_plot, position = "right") %>%
-    as_ggplot()
+    # Box plot without legend
+    bp_no_legend <- box_plot + theme(legend.position = "none")
 
-  # Box plot without legend
-  bp_no_legend <- box_plot + theme(legend.position = "none")
+    # Creating subplot displayed next to main legend - the dependency between Type-1, FDR and FWER
+    fdr_fwer_type1_plot <- .helper_plot()
 
-  # Creating subplot displayed in the right corner - the dependency between Type-1, FDR and FWER
-  fdr_fwer_type1_plot <- .helper_plot()
+    # Use a 1-column layout for left/right legends, 2 columns = 1 row for top/bottom
+    ncol_helper <- if(legend.position %in% c("left", "right")) 1 else if(legend.position %in% c("bottom", "top")) 2
 
-  # Merged legend and subplot
-  legend_helper <- plot_grid(legend,
-    fdr_fwer_type1_plot,
-    ncol = 1,
-    rel_widths = c(3, 1),
-    rel_heights = c(3, 1)
-  )
+    # Merged legend and circle subplot
+    legend_helper <- plot_grid(legend,
+                               fdr_fwer_type1_plot,
+                               ncol = ncol_helper,
+                               rel_widths = c(3, 1),
+                               rel_heights = c(3, 1)
+    )
 
-  # Box plot with legend and subplot
-  plot_grid(bp_no_legend, legend_helper, ncol = 2, rel_widths = c(7, 1))
+    # Arrange the box plot and the legend_helper based on legend.position
+    if (legend.position %in% c("left", "right")) {
+      # Horizontal layout
+      if (legend.position == "left") {
+        final_plot <- plot_grid(legend_helper, bp_no_legend,
+                                ncol = 2, rel_widths = c(1, 7))
+      } else {
+        final_plot <- plot_grid(bp_no_legend, legend_helper,
+                                ncol = 2, rel_widths = c(7, 1))
+      }
+    } else if (legend.position %in% c("top", "bottom")) {
+      # Vertical layout
+      if (legend.position == "top") {
+        final_plot <- plot_grid(legend_helper, bp_no_legend,
+                                nrow = 2, rel_heights = c(1, 7))
+      } else {
+        final_plot <- plot_grid(bp_no_legend, legend_helper,
+                                nrow = 2, rel_heights = c(7, 1))
+      }
+    }
+
+    final_plot
+
+  }
 }
 
 # Internal function creating a circular plot of dependencies between FWER, FDR
