@@ -4,20 +4,24 @@
 #' with unadjusted, FDR, and FWER adjusted p-values indicating whether a given
 #' variable is informative.
 #'
-#' @param wrapper_object Object of the class "shadow_vimp", the output of the
+#' @param shadow_vimp_out Object of the class "shadow_vimp", the output of the
 #'   function `shadow_vimp()`.
 #' @param pooled Boolean
-#'  * `TRUE` - passed `wrapper_object` contains pooled p-values.
-#'  * `FALSE` - passed `wrapper_object` contains per variable p-values.
+#'  * `TRUE` - passed `shadow_vimp_out` contains pooled p-values.
+#'  * `FALSE` - passed `shadow_vimp_out` contains per variable p-values.
 #' @param filter_vars Numeric, the number of variables to plot. The default is
 #'   `NULL`, which means that all variables considered in the last step of the
-#'   procedure (and included in the ` wrapper_object`) will be plotted.
+#'   procedure (and included in the ` shadow_vimp_out`) will be plotted.
 #' @param  p_val_labels Boolean, controls whether the p-value labels should be
 #'   printed on the plot, default `TRUE`.
 #' @param text_size Numeric, parameter that controls the size of the printed
 #'   p-values on the plot, default is 4.
 #' @param legend.position Character, one of "right", "left", "top", "bottom" or
 #'   "none". Argument specifying the position of the legend.
+#' @param category_colors Character of length 4, contains color assignment for
+#'   each of four possible outcomes: variable not significant, confirmed by
+#'   unadjusted, FDR and FWER adjusted p-value. The default colors are color
+#'   blind friendly.
 #' @param ... Other options used to control the appearance of the output plot.
 #' @return ggplot object
 #' @export
@@ -40,17 +44,17 @@
 #' )
 #'
 #' # The following 2 lines of code produce identical plots
-#' plot_vimps(wrapper_object = out_pooled, pooled = TRUE, text_size = 4)
-#' plot_vimps(wrapper_object = out_pooled, text_size = 4)
+#' plot_vimps(shadow_vimp_out = out_pooled, pooled = TRUE, text_size = 4)
+#' plot_vimps(shadow_vimp_out = out_pooled, text_size = 4)
 #'
 #' # Plot only 3 covariates
-#' plot_vimps(wrapper_object = out_pooled, filter_vars = 3)
+#' plot_vimps(shadow_vimp_out = out_pooled, filter_vars = 3)
 #'
 #' #' # Do not display p-values on the plot
-#' plot_vimps(wrapper_object = out_pooled, p_val_labels = FALSE)
+#' plot_vimps(shadow_vimp_out = out_pooled, p_val_labels = FALSE)
 #'
 #' # Change the size of displayed p-values
-#' plot_vimps(wrapper_object = out_pooled, text_size = 6)
+#' plot_vimps(shadow_vimp_out = out_pooled, text_size = 6)
 #'
 #' # Per variable p-values
 #' out_per_var <- shadow_vimp(
@@ -59,10 +63,17 @@
 #' )
 #'
 #' # Set pooled to `FALSE`, otherwise the function will throw an error.
-#' plot_vimps(wrapper_object = out_per_var, pooled = FALSE)
+#' plot_vimps(shadow_vimp_out = out_per_var, pooled = FALSE)
 #' }
-plot_vimps <- function(wrapper_object, pooled = TRUE, filter_vars = NULL, p_val_labels = TRUE, text_size = 4,
+plot_vimps <- function(shadow_vimp_out, pooled = TRUE, filter_vars = NULL,
+                       p_val_labels = TRUE, text_size = 4,
                        legend.position = c("right", "left", "top", "bottom", "none"),
+                       category_colors = c(
+                         "FWER conf." = "#DD5129FF",
+                         "FDR conf." = "#0F7BA2FF",
+                         "Unadjusted conf." = "#43B284FF",
+                         "Not significant" = "#898E9FFF"
+                       ),
                        ...) {
   # Parameters check
   legend.position <- match.arg(legend.position)
@@ -80,9 +91,9 @@ plot_vimps <- function(wrapper_object, pooled = TRUE, filter_vars = NULL, p_val_
 
   # Select appropriate results
   if (pooled == TRUE) {
-    data <- wrapper_object$final_dec_pooled
+    data <- shadow_vimp_out$final_dec_pooled
   } else {
-    data <- wrapper_object$final_dec_per_variable
+    data <- shadow_vimp_out$final_dec_per_variable
   }
 
   if (is.null(data)) {
@@ -94,11 +105,11 @@ plot_vimps <- function(wrapper_object, pooled = TRUE, filter_vars = NULL, p_val_
   available_cols <- colnames(data)
 
   if (sum(required_cols %in% available_cols) != length(required_cols)) {
-    stop("Not all of the required columns are present in the `wrapper_object`.\n Consider changing  the `to_show` parameter when running `shadow_vimp()` function.")
+    stop("Not all of the required columns are present in the `shadow_vimp_out`.\n Consider changing  the `to_show` parameter when running `shadow_vimp()` function.")
   }
 
   # Check if vimp_history for the last step is available
-  if (is.null(wrapper_object$vimp_history) == TRUE) {
+  if (is.null(shadow_vimp_out$vimp_history) == TRUE) {
     stop("`vimp_history` for the last step is not available. Consider running the wrapper object with the `save_vimp_history` argument set to `all` or `last`.")
   }
 
@@ -122,7 +133,7 @@ plot_vimps <- function(wrapper_object, pooled = TRUE, filter_vars = NULL, p_val_
     select(-c("p_unadj":"FWER_confirmed"))
 
   # Append VIMPs from simulations
-  vimps <- wrapper_object$vimp_history %>%
+  vimps <- shadow_vimp_out$vimp_history %>%
     pivot_longer(cols = everything(), names_to = "varname", values_to = "VIMP") %>%
     filter(!grepl("_permuted", .data[["varname"]])) %>%
     left_join(decisions, by = "varname")
@@ -172,14 +183,6 @@ plot_vimps <- function(wrapper_object, pooled = TRUE, filter_vars = NULL, p_val_
     select(c("ordered_varname", "p_val_unadj", "p_val_FDR", "p_val_FWER")) %>%
     distinct()
 
-  # Assign color to each type of confirmation
-  category_colors <- c(
-    "FWER conf." = "#DD5129FF",
-    "FDR conf." = "#0F7BA2FF",
-    "Unadjusted conf." = "#43B284FF",
-    "Not significant" = "#898E9FFF"
-  )
-
   # Create box plot
   box_plot <- ggplot(
     vimps_subset,
@@ -212,7 +215,7 @@ plot_vimps <- function(wrapper_object, pooled = TRUE, filter_vars = NULL, p_val_
           y = .data[["ordered_varname"]],
           label = paste0(.data[["p_val_unadj"]], ",")
         ),
-        color = "#43B284FF",
+        color = category_colors["Unadjusted conf."][[1]],
         hjust = 1,
         size = text_size,
         inherit.aes = FALSE, ...
@@ -224,7 +227,7 @@ plot_vimps <- function(wrapper_object, pooled = TRUE, filter_vars = NULL, p_val_
           y = .data[["ordered_varname"]],
           label = paste0(.data[["p_val_FDR"]], ",")
         ),
-        color = "#0F7BA2FF",
+        color = category_colors["FDR conf."][[1]],
         hjust = 1,
         size = text_size,
         inherit.aes = FALSE, ...
@@ -236,7 +239,7 @@ plot_vimps <- function(wrapper_object, pooled = TRUE, filter_vars = NULL, p_val_
           y = .data[["ordered_varname"]],
           label = .data[["p_val_FWER"]]
         ),
-        color = "#DD5129FF",
+        color = category_colors["FWER conf."][[1]],
         hjust = 1,
         size = text_size,
         inherit.aes = FALSE, ...
@@ -256,7 +259,7 @@ plot_vimps <- function(wrapper_object, pooled = TRUE, filter_vars = NULL, p_val_
     bp_no_legend <- box_plot + theme(legend.position = "none")
 
     # Creating subplot displayed next to main legend - the dependency between Type-1, FDR and FWER
-    fdr_fwer_type1_plot <- .helper_plot()
+    fdr_fwer_type1_plot <- .helper_plot(category_colors = category_colors)
 
     # Use a 1-column layout for left/right legends, 2 columns = 1 row for top/bottom
     ncol_helper <- if(legend.position %in% c("left", "right")) 1 else if(legend.position %in% c("bottom", "top")) 2
@@ -297,7 +300,7 @@ plot_vimps <- function(wrapper_object, pooled = TRUE, filter_vars = NULL, p_val_
 
 # Internal function creating a circular plot of dependencies between FWER, FDR
 # and Type-1 error (right bottom corner of main plot)
-.helper_plot <- function() {
+.helper_plot <- function(category_colors) {
   data_fr <- data.frame(
     x_coord = c(1, 1, 1),
     y_coord = c(1, 1, 1),
@@ -324,9 +327,9 @@ plot_vimps <- function(wrapper_object, pooled = TRUE, filter_vars = NULL, p_val_
     coord_fixed() +
     theme_void() +
     scale_fill_manual(values = c(
-      "Type-1" = "#43B284FF",
-      "FWER" = "#DD5129FF",
-      "FDR" = "#0F7BA2FF"
+      "Type-1" = category_colors["Unadjusted conf."][[1]],
+      "FWER" = category_colors["FWER conf."][[1]],
+      "FDR" = category_colors["FDR conf."][[1]]
     )) +
     geom_text(
       aes(

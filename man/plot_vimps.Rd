@@ -5,28 +5,30 @@
 \title{Box plot of VIMPs and corresponding p-values}
 \usage{
 plot_vimps(
-  wrapper_object,
+  shadow_vimp_out,
   pooled = TRUE,
   filter_vars = NULL,
   p_val_labels = TRUE,
   text_size = 4,
   legend.position = c("right", "left", "top", "bottom", "none"),
+  category_colors = c(`FWER conf.` = "#DD5129FF", `FDR conf.` = "#0F7BA2FF",
+    `Unadjusted conf.` = "#43B284FF", `Not significant` = "#898E9FFF"),
   ...
 )
 }
 \arguments{
-\item{wrapper_object}{Object of the class "shadow_vimp", the output of the
+\item{shadow_vimp_out}{Object of the class "shadow_vimp", the output of the
 function \code{shadow_vimp()}.}
 
 \item{pooled}{Boolean
 \itemize{
-\item \code{TRUE} - passed \code{wrapper_object} contains pooled p-values.
-\item \code{FALSE} - passed \code{wrapper_object} contains per variable p-values.
+\item \code{TRUE} - passed \code{shadow_vimp_out} contains pooled p-values.
+\item \code{FALSE} - passed \code{shadow_vimp_out} contains per variable p-values.
 }}
 
 \item{filter_vars}{Numeric, the number of variables to plot. The default is
 \code{NULL}, which means that all variables considered in the last step of the
-procedure (and included in the \code{ wrapper_object}) will be plotted.}
+procedure (and included in the \code{ shadow_vimp_out}) will be plotted.}
 
 \item{p_val_labels}{Boolean, controls whether the p-value labels should be
 printed on the plot, default \code{TRUE}.}
@@ -36,6 +38,11 @@ p-values on the plot, default is 4.}
 
 \item{legend.position}{Character, one of "right", "left", "top", "bottom" or
 "none". Argument specifying the position of the legend.}
+
+\item{category_colors}{Character of length 4, contains color assignment for
+each of four possible outcomes: variable not significant, confirmed by
+unadjusted, FDR and FWER adjusted p-value. The default colors are color
+blind friendly.}
 
 \item{...}{Other options used to control the appearance of the output plot.}
 }
@@ -60,17 +67,17 @@ out_pooled <- shadow_vimp(
 )
 
 # The following 2 lines of code produce identical plots
-plot_vimps(wrapper_object = out_pooled, pooled = TRUE, text_size = 4)
-plot_vimps(wrapper_object = out_pooled, text_size = 4)
+plot_vimps(shadow_vimp_out = out_pooled, pooled = TRUE, text_size = 4)
+plot_vimps(shadow_vimp_out = out_pooled, text_size = 4)
 
 # Plot only 3 covariates
-plot_vimps(wrapper_object = out_pooled, filter_vars = 3)
+plot_vimps(shadow_vimp_out = out_pooled, filter_vars = 3)
 
 #' # Do not display p-values on the plot
-plot_vimps(wrapper_object = out_pooled, p_val_labels = FALSE)
+plot_vimps(shadow_vimp_out = out_pooled, p_val_labels = FALSE)
 
 # Change the size of displayed p-values
-plot_vimps(wrapper_object = out_pooled, text_size = 6)
+plot_vimps(shadow_vimp_out = out_pooled, text_size = 6)
 
 # Per variable p-values
 out_per_var <- shadow_vimp(
@@ -79,6 +86,6 @@ out_per_var <- shadow_vimp(
 )
 
 # Set pooled to `FALSE`, otherwise the function will throw an error.
-plot_vimps(wrapper_object = out_per_var, pooled = FALSE)
+plot_vimps(shadow_vimp_out = out_per_var, pooled = FALSE)
 }
 }
