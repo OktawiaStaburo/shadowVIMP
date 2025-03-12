@@ -7,7 +7,7 @@
 #' @param shadow_vimp_out Object of the class "shadow_vimp", the output of the
 #'   function `shadow_vimp()`.
 #' @param pooled Boolean
-#'  * `TRUE` - passed `shadow_vimp_out` contains pooled p-values.
+#'  * `TRUE` - passed `shadow_vimp_out` contains pooled p-values. Default.
 #'  * `FALSE` - passed `shadow_vimp_out` contains per variable p-values.
 #' @param filter_vars Numeric, the number of variables to plot. The default is
 #'   `NULL`, which means that all variables considered in the last step of the
@@ -22,6 +22,9 @@
 #'   each of four possible outcomes: variable not significant, confirmed by
 #'   unadjusted, FDR and FWER adjusted p-value. The default colors are color
 #'   blind friendly.
+#' @param helper.legend Boolean. Indicates whether the circle subplot displaying
+#'   the relationship between the FWER, FDR, and unadjusted p-values should be
+#'   shown alongside the legend. The default is `TRUE`.
 #' @param ... Other options used to control the appearance of the output plot.
 #' @return ggplot object
 #' @export
@@ -29,25 +32,27 @@
 #' @importFrom magrittr %>%
 #' @importFrom ggpubr get_legend as_ggplot
 #' @importFrom tidyr pivot_longer
-#' @importFrom cowplot plot_grid
+#' @import patchwork
 #' @importFrom ggforce geom_circle
 #' @examples
 #' data(mtcars)
 #'
-#' # When working with real data, increase the value of the `niters` and `num.trees`
-#' # parameters to obtain trustworthy results.
+#' # When working with real data, increase the value of the `niters` and
+#' # `num.trees` parameters to obtain trustworthy results.
 #' \donttest{
 #' # Pooled p-values
+#' set.seed(789)
 #' out_pooled <- shadow_vimp(
 #'   data = mtcars, outcome_var = "vs",
 #'   niters = c(10, 20, 30), num.trees = 30
 #' )
 #'
-#' # The following 2 lines of code produce identical plots
+#' # The following 3 lines of code produce identical plots
 #' plot_vimps(shadow_vimp_out = out_pooled, pooled = TRUE, text_size = 4)
 #' plot_vimps(shadow_vimp_out = out_pooled, text_size = 4)
+#' plot_vimps(shadow_vimp_out = out_pooled)
 #'
-#' # Plot only 3 covariates
+#' # Plot only top 3 covariates with the lowest p-values
 #' plot_vimps(shadow_vimp_out = out_pooled, filter_vars = 3)
 #'
 #' #' # Do not display p-values on the plot
@@ -56,7 +61,26 @@
 #' # Change the size of displayed p-values
 #' plot_vimps(shadow_vimp_out = out_pooled, text_size = 6)
 #'
-#' # Per variable p-values
+#' # Change the position of the legend, available options: "right", "left",
+#' #"top","bottom", "none"
+#' plot_vimps(shadow_vimp_out = out_pooled, legend.position = "bottom")
+#' plot_vimps(shadow_vimp_out = out_pooled, legend.position = "left")
+#'
+#' # Remove the legend
+#' plot_vimps(shadow_vimp_out = out_pooled, legend.position = "none")
+#'
+#' # Remove the subplot that displays the relationship between FWER, FDR, and
+#' # unadjusted p-values
+#' plot_vimps(shadow_vimp_out = out_pooled, helper.legend = FALSE)
+#'
+#' # Change colours of the boxes
+#' plot_vimps(shadow_vimp_out = out_pooled, category_colors = c(
+#'   "FWER conf." = "#EE2617FF",
+#'   "FDR conf." = "#F2A241FF",
+#'   "Unadjusted conf." = "#558934FF",
+#'   "Not significant" = "#0E54B6FF"))
+#'
+#' # Per variable p-values plot
 #' out_per_var <- shadow_vimp(
 #'   data = mtcars, outcome_var = "vs",
 #'   niters = c(10, 20, 30), num.trees = 30, method = "per_variable"
@@ -74,12 +98,13 @@ plot_vimps <- function(shadow_vimp_out, pooled = TRUE, filter_vars = NULL,
                          "Unadjusted conf." = "#43B284FF",
                          "Not significant" = "#898E9FFF"
                        ),
+                       helper.legend = TRUE,
                        ...) {
   # Parameters check
   legend.position <- match.arg(legend.position)
 
-  if (is.logical(pooled) == FALSE || is.logical(p_val_labels) == FALSE) {
-    stop("Parameter `pooled` and `p_val_labels` must be logical.")
+  if (is.logical(pooled) == FALSE || is.logical(p_val_labels) == FALSE || is.logical(helper.legend) == FALSE) {
+    stop("Parameter `pooled`, `p_val_labels` and `helper.legend` must be logical.")
   }
 
   if (is.null(filter_vars) == FALSE && (is.numeric(filter_vars) == FALSE || filter_vars <= 0)) {
@@ -200,7 +225,7 @@ plot_vimps <- function(shadow_vimp_out, pooled = TRUE, filter_vars = NULL,
     scale_fill_manual(
       values = category_colors,
       guide = guide_legend(keywidth = unit(2, "cm")),
-      labels = function(x) stringr::str_wrap(x, width = 8) # wrap text of the legend labels
+      labels = function(x) stringr::str_wrap(x, width = 8) #wrap text of the legend labels
     ) +
     # add extra space on the left and right side of the x‑axis (in percentage)
     scale_x_continuous(expand = expansion(mult = c(0.15, 0.05))) +
@@ -211,7 +236,8 @@ plot_vimps <- function(shadow_vimp_out, pooled = TRUE, filter_vars = NULL,
       axis.title = element_blank(),
       legend.title = element_blank(),
       legend.text = element_text(margin = margin(r = 2, unit = "pt")),
-      legend.box.margin = margin(5, 5, 5, 5)
+      legend.box.margin = margin(5, 5, 5, 5),
+      ...
     )
 
 
@@ -272,38 +298,42 @@ plot_vimps <- function(shadow_vimp_out, pooled = TRUE, filter_vars = NULL,
     # Box plot without legend
     bp_no_legend <- box_plot + theme(legend.position = "none")
 
-    # Creating subplot displayed next to main legend - the dependency between Type-1, FDR and FWER
-    fdr_fwer_type1_plot <- .helper_plot(category_colors = category_colors)
+    # Should the plot showing the dependency between Type-1, FDR and FWER be displayed?
+    if(helper.legend == FALSE){
+      legend_helper <- legend
+    } else {
+      # Creating subplot displayed next to main legend - the dependency between Type-1, FDR and FWER
+      fdr_fwer_type1_plot <- .helper_plot(category_colors = category_colors)
 
-    # Use a 1-column layout for left/right legends, 2 columns = 1 row for top/bottom
-    ncol_helper <- if(legend.position %in% c("left", "right")) 1 else if(legend.position %in% c("bottom", "top")) 2
-
-    # Merged legend and circle subplot
-    legend_helper <- plot_grid(legend,
-                               fdr_fwer_type1_plot,
-                               ncol = ncol_helper,
-                               rel_widths = c(4, 1),
-                               rel_heights = c(3, 1)
-    )
+      # Merged legend and circle subplots
+      if(legend.position %in% c("left", "right")){
+        legend_helper <- (legend / fdr_fwer_type1_plot) +
+          plot_layout(heights = c(2, 1))
+      } else if(legend.position %in% c("bottom", "top")){
+        legend_helper <- (legend + fdr_fwer_type1_plot) +
+          plot_layout(widths = c(2, 1))
+      }
+    }
 
     # Arrange the box plot and the legend_helper based on legend.position
     if (legend.position %in% c("left", "right")) {
       # Horizontal layout
       if (legend.position == "left") {
-        final_plot <- plot_grid(legend_helper, bp_no_legend,
-                                ncol = 2, rel_widths = c(1, 7))
+        final_plot <- (wrap_plots(legend_helper) + bp_no_legend) +
+          plot_layout(widths = c(1, 7))
       } else {
-        final_plot <- plot_grid(bp_no_legend, legend_helper,
-                                ncol = 2, rel_widths = c(7, 1))
+        final_plot <- (bp_no_legend + legend_helper) +
+          plot_layout(widths = c(7, 1))
       }
     } else if (legend.position %in% c("top", "bottom")) {
       # Vertical layout
       if (legend.position == "top") {
-        final_plot <- plot_grid(legend_helper, bp_no_legend,
-                                nrow = 2, rel_heights = c(1, 7))
+        final_plot <- (legend_helper/bp_no_legend) +
+          plot_layout(heights  = c(1, 7))
+
       } else {
-        final_plot <- plot_grid(bp_no_legend, legend_helper,
-                                nrow = 2, rel_heights = c(7, 1))
+        final_plot <- (bp_no_legend/legend_helper) +
+          plot_layout(heights  = c(7,1))
       }
     }
 
