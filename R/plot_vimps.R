@@ -183,67 +183,81 @@ plot_vimps <- function(shadow_vimp_out, pooled = TRUE, filter_vars = NULL,
     select(c("ordered_varname", "p_val_unadj", "p_val_FDR", "p_val_FWER")) %>%
     distinct()
 
-  # Create box plot
+  # Calculate x-axis range and minimum
+  x_range <- diff(range(vimps_subset$VIMP))
+  min_vimp <- min(vimps_subset$VIMP)
+
+  # Box plot
   box_plot <- ggplot(
     vimps_subset,
     aes(
       y = .data[["ordered_varname"]],
       x = .data[["VIMP"]],
       fill = .data[["decision"]]
-    ), ...
+    )
   ) +
     geom_boxplot(outlier.size = 0.5) +
     scale_fill_manual(
       values = category_colors,
-      guide = guide_legend(keywidth = unit(3, "cm"))
+      guide = guide_legend(keywidth = unit(2, "cm")),
+      labels = function(x) stringr::str_wrap(x, width = 8) # wrap text of the legend labels
     ) +
+    # add extra space on the left and right side of the x‑axis (in percentage)
+    scale_x_continuous(expand = expansion(mult = c(0.15, 0.05))) +
+    coord_cartesian(clip = "off") +
     theme_bw() +
     theme(
       legend.position = legend.position,
       axis.title = element_blank(),
-      legend.title = element_blank(), ...
+      legend.title = element_blank(),
+      legend.text = element_text(margin = margin(r = 2, unit = "pt")),
+      legend.box.margin = margin(5, 5, 5, 5)
     )
 
-  if(p_val_labels == TRUE){
-    min_vimp <- min(vimps_subset$VIMP)
 
+  if (p_val_labels == TRUE) {
+
+    # Transform p-values data to long format
+    p_values_long <- p_values_df %>%
+      pivot_longer(
+        cols = c("p_val_unadj", "p_val_FDR", "p_val_FWER"),
+        names_to = "p_type",
+        values_to = "p_value"
+      )
+
+    # Define fixed offsets for each p-value type (as a fraction of the x_range)
+    offsets <- c(p_val_unadj = 0.15, p_val_FDR = 0.08, p_val_FWER = 0.01)
+
+    # Compute the actual x position for each label and set color based on p-value type
+    p_values_long <- p_values_long %>%
+      mutate(
+        offset_fraction = offsets[p_type],
+        x_pos = min_vimp - (x_range * offset_fraction),
+        color_val = case_when(
+          p_type == "p_val_unadj" ~ category_colors["Unadjusted conf."][[1]],
+          p_type == "p_val_FDR"   ~ category_colors["FDR conf."][[1]],
+          p_type == "p_val_FWER"  ~ category_colors["FWER conf."][[1]]
+        ),
+        # For all but the last label, add a comma between the p-values
+        label_text = ifelse(p_type == "p_val_FWER", p_value, paste0(p_value, ","))
+      )
+
+    # Add a single geom_text layer with p-values
     box_plot <- box_plot +
       geom_text(
-        data = p_values_df,
+        data = p_values_long,
         aes(
-          x = min_vimp - 3.7,
+          x = x_pos,
           y = .data[["ordered_varname"]],
-          label = paste0(.data[["p_val_unadj"]], ",")
+          label = label_text,
+          color = color_val
         ),
-        color = category_colors["Unadjusted conf."][[1]],
         hjust = 1,
         size = text_size,
-        inherit.aes = FALSE, ...
+        inherit.aes = FALSE,
+        show.legend = FALSE
       ) +
-      geom_text(
-        data = p_values_df,
-        aes(
-          x = min_vimp - 2,
-          y = .data[["ordered_varname"]],
-          label = paste0(.data[["p_val_FDR"]], ",")
-        ),
-        color = category_colors["FDR conf."][[1]],
-        hjust = 1,
-        size = text_size,
-        inherit.aes = FALSE, ...
-      ) +
-      geom_text(
-        data = p_values_df,
-        aes(
-          x = min_vimp - 0.3,
-          y = .data[["ordered_varname"]],
-          label = .data[["p_val_FWER"]]
-        ),
-        color = category_colors["FWER conf."][[1]],
-        hjust = 1,
-        size = text_size,
-        inherit.aes = FALSE, ...
-      )
+      scale_color_identity()
   }
 
   # If user selected plot without the legend:
@@ -268,7 +282,7 @@ plot_vimps <- function(shadow_vimp_out, pooled = TRUE, filter_vars = NULL,
     legend_helper <- plot_grid(legend,
                                fdr_fwer_type1_plot,
                                ncol = ncol_helper,
-                               rel_widths = c(3, 1),
+                               rel_widths = c(4, 1),
                                rel_heights = c(3, 1)
     )
 
