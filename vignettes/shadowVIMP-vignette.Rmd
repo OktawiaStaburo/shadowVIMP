@@ -16,6 +16,54 @@ knitr::opts_chunk$set(
 
 # Introduction to `shadowVIMP` package
 
+## Quick start
+
+The purpose of `shadowVIMP` package is to provide a tool for the reduction of the number of covariates in an analysis in an informed and statistically rigorous manner. It implements a method that performs statistical tests on the Variable Importance Measures (VIMP) derived from the Random Forest (RF) algorithm to determine whether each covariate is statistically significant and truly informative.
+
+In this section, we demonstrate a basic use case of the `shadowVIMP` package. First, let's install the package. Although it is not (yet) available on CRAN, you can install the development version like this:
+
+``` {r, eval = FALSE}
+devtools::install_github("OktawiaStaburo/shadowVIMP")
+```
+
+Then, we load necessary packages:
+```{r setup, warning = FALSE, message = FALSE}
+library(shadowVIMP)
+library(magrittr)
+library(dplyr)
+
+if (requireNamespace("AppliedPredictiveModeling", quietly = TRUE)) {
+  library(AppliedPredictiveModeling)
+} else {
+  stop("Package 'AppliedPredictiveModeling' is required for this vignette. Please install it.")
+}
+```
+
+In the examples below we use Alzheimer’s Disease CSF data from the `AppliedPredictiveModeling` package. To reduce the time needed to build this vignette, we use the subset of 100 observations from the original data and lower `niters` values than recommended. For real-world analyses, please use the default or higher than below values of `niters` parameter. In the example below, we show the basic usage of our package. By default, the functions of this package display informative covariates based on pooled p-values and all p-value types: unadjusted, FWER-adjusted, and FDR-adjusted.
+
+```{r ex_default}
+data(AlzheimerDisease)
+data_alz <- cbind(diagnosis, predictors)
+# Set seed to make the results reproducible
+set.seed(786)
+data_sub <- slice_sample(data_alz, n = 100)
+vimp_def <- shadow_vimp(niters = c(20, 30, 50), data = data_sub, outcome_var = "diagnosis")
+```
+
+As shown below, in this case none of the variables are informative when applying the Holm p-value correction (column `FWER_confirmed`). Using the FDR p-value correction, the first 5 covariates appear to be informative.  
+
+````{r ex_default2}
+vimp_def$final_dec_pooled %>%
+  select(-quantile_pooled) %>%
+  head()
+````
+
+You can visualise your results by running the following code:
+
+````{r plot_base_starts, fig.width=13, fig.asp=0.8, out.width="115%"}
+plot_vimps(shadow_vimp_out = vimp_def)
+````
+
 ## Theoretical framework
 
 ### Motivation
@@ -34,13 +82,13 @@ As mentioned in the previous chapter, we aim to conduct a statistical test to de
 
 The procedure implemented in the `shadowVIMP` package can be described as follows:
 
-1. For each of the *p* covariates in the dataset, create *p* r-shadow variables by permuting rows of copied original covariates, thereby removing any association with the outcome (see the figure below). These uninformative r-shadow variables serve as a reference for evaluating the importance of the original predictors. Repeat this permutation process *nsim* times, generating new r-shadow variables in each iteration.
+1. For each of the *p* covariates in the dataset, create *p* r-shadow variables by permuting rows of copied original covariates, thereby removing any association with the outcome (see the figure below). These uninformative r-shadow variables serve as a reference for evaluating the importance of the original predictors. Repeat this permutation process *niters* times, generating new r-shadow variables in each iteration.
 
 ```{r, echo=FALSE, out.width="85%", fig.cap="Permutation scheme"}
 knitr::include_graphics("rshadow.png")
 ```
 
-2.  For each of the `nsim` permutations, run the random forest model and calculate VIMP of the original and r-shadow covariates. After *nsim* iterations, the algorithm produces a data frame with *nsim* rows and *2p* columns containing VIMPs for both original and r-shadow variables. This process establishes a null distribution of VIMPs. Between iterations, the r-shadow VIMPs vary due to permutation, and the VIMPs of the original covariates vary due to the inherent randomness of the random forest. 
+2.  For each of the `niters` permutations, run the random forest model and calculate VIMP of the original and r-shadow covariates. After *niters* iterations, the algorithm produces a data frame with *niters* rows and *2p* columns containing VIMPs for both original and r-shadow variables. This process establishes a null distribution of VIMPs. Between iterations, the r-shadow VIMPs vary due to permutation, and the VIMPs of the original covariates vary due to the inherent randomness of the random forest. 
 
 3. Calculate and decide whether a covariate *j* is significant based on its non-parametric p-value. The p-value for variable *j* is defined as follows:
 
@@ -93,52 +141,10 @@ The main advantage of pooled p-values is the reduced run time. Using the same ex
 
 The current implementation of the `shadowVIMP` package uses pooled p-values in the pre-selection steps. In the final step of the procedure, the user can decide whether to report per-variable or pooled p-values along with the decisions based on them. More on this topic in the following practical guide to the `shadowVIMP` package.
 
-## Quick start
+## Hands-On Insights: Mastering `shadowVIMP`
+### Select output components
 
-The purpose of this section is to give users a general idea of the package. First, let's install the `shadowVIMP` package, which is not (yet!) available on CRAN, but you can install the development version like this:
-
-``` {r, eval = FALSE}
-# Modify the code below with your credentials
-devtools::install_git("https://gitlab.staburo.de/oktawia.miluch/shadowVIMP-package.git",
-  credentials = git2r::cred_user_pass("YOUR-GITLAB-USERNAME", "YOUR-PAT-TOKEN")
-)
-```
-
-Then, we load necessary packages:
-```{r setup, warning = FALSE, message = FALSE}
-library(shadowVIMP)
-library(magrittr)
-library(dplyr)
-
-if (requireNamespace("AppliedPredictiveModeling", quietly = TRUE)) {
-  library(AppliedPredictiveModeling)
-} else {
-  stop("Package 'AppliedPredictiveModeling' is required for this vignette. Please install it.")
-}
-```
-
-In the examples below we use Alzheimer’s Disease CSF data from the `AppliedPredictiveModeling` package. To reduce the time needed to build this vignette, we use the subset of 100 observations from the original data and lower `nsims` values than recommended. For real-world analyses, please use the default or higher than below values of `nsims` parameter. In the example below, we show the basic usage of our package. By default, the functions of this package display informative covariates based on pooled p-values and display all p-value types: unadjusted, FWER-adjusted, and FDR-adjusted.
-
-```{r ex_default}
-data(AlzheimerDisease)
-data_alz <- cbind(diagnosis, predictors)
-# To make the results reproducible
-set.seed(786)
-data_sub <- slice_sample(data_alz, n = 100)
-vimp_def <- vim_perm_sim_wrapper(nsims = c(20, 30, 50), entire_data = data_sub, outcome_var = "diagnosis")
-```
-
-As shown below, in this case none of the variables are informative when applying the Holm p-value correction (column `FWER_confirmed`). Using the FDR p-value correction, the first 5 covariates appear to be informative.  
-
-````{r ex_default2}
-vimp_def$final_dec_pooled %>%
-  select(-quantile_pooled) %>%
-  head()
-````
-
-## Select output components
-
-The `vim_perm_sim_wrapper()` function has a `save_vimp_history` argument, allowing users to specify what is stored in the output object. By default, it is set to `"all"`, which saves variable importance measures from every step of the procedure. To inspect the VIMPs from the first or second simulation steps in the previously created object, use the following command:
+The `shadow_vimp()` function has a `save_vimp_history` argument, allowing users to specify what is stored in the output object. By default, it is set to `"all"`, which saves variable importance measures from every step of the procedure. To inspect the VIMPs from the first or second simulation steps in the previously created object, use the following command:
 
 ````{r inspect_history1}
 # VIMP history from the 1st step for 5 covariates
@@ -163,7 +169,7 @@ vimp_def$vimp_history %>%
 Setting the  `save_vimp_history` to `"last"` saves only the variable importance from the final step of the procedure. Unlike the default setting, this option does not save the VIMPs obtained in the pre-selection phase.
 
 ````{r vimp_last}
-vimp_last <- vim_perm_sim_wrapper(nsims = c(20, 30, 50), entire_data = data_sub, outcome_var = "diagnosis", save_vimp_history = "last")
+vimp_last <- shadow_vimp(niters = c(20, 30, 50), data = data_sub, outcome_var = "diagnosis", save_vimp_history = "last")
 
 # Inspect VIMP from the last step of the procedure
 vimp_last$vimp_history %>%
@@ -178,11 +184,11 @@ vimp_last$vimp_history %>%
 When `save_vimp_history` is set to `"none"`, variable importance won’t be saved for any steps. As shown below, under `vimp_history` there is no longer a data frame storing variable importance measures. Similarly, accessing `vimp_none$pre_selection$step_1` or `vimp_none$pre_selection$step_2` will not display data frames storing VIMPs from the pre-selection phase.
 
 ````{r vimp_none}
-vimp_none <- vim_perm_sim_wrapper(nsims = c(20, 30, 50), entire_data = data_sub, outcome_var = "diagnosis", save_vimp_history = "none")
+vimp_none <- shadow_vimp(niters = c(20, 30, 50), data = data_sub, outcome_var = "diagnosis", save_vimp_history = "none")
 vimp_none$vimp_history
 ````
 
-## Accelerating your analysis workflow
+### Accelerate your analysis workflow
 
 To speed up your computations, the `shadowVIMP`  package offers two options. The first option is to set the `num.threads` parameter (an argument of the `ranger::ranger()` function used in our package) to a non-zero value. This parameter specifies the number of threads that the `ranger::ranger()` function can use to train the random forest. By default, it is set to 2 cores.
 
@@ -192,10 +198,10 @@ is_interactive <- interactive()
 if (is_interactive) {
   # When interactive - set num_cores to a selected value
   num_cores <- min(parallel::detectCores(), 4)
-  vimp_parallel1 <- vim_perm_sim_wrapper(nsims = c(20, 30, 50), entire_data = data_sub, outcome_var = "diagnosis", num.threads = num_cores)
+  vimp_parallel1 <- shadow_vimp(niters = c(20, 30, 50), data = data_sub, outcome_var = "diagnosis", num.threads = num_cores)
 } else {
   # When non-interactive - run sequantial
-  vimp_parallel1 <- vim_perm_sim_wrapper(nsims = c(20, 30, 50), entire_data = data_sub, outcome_var = "diagnosis")
+  vimp_parallel1 <- shadow_vimp(niters = c(20, 30, 50), data = data_sub, outcome_var = "diagnosis")
 }
 ````
 
@@ -208,41 +214,41 @@ is_interactive <- interactive()
 if (is_interactive) {
   # When interactive - run parallel
   num_cores <- min(parallel::detectCores(), 4)
-  vimp_parallel2 <- vim_perm_sim_wrapper(
-    nsims = c(20, 30, 50), entire_data = data_sub, outcome_var = "diagnosis",
+  vimp_parallel2 <- shadow_vimp(
+    niters = c(20, 30, 50), data = data_sub, outcome_var = "diagnosis",
     num_cores_parallel = num_cores
   )
 } else {
   # When non-interactive - run sequantial
-  vimp_parallel2 <- vim_perm_sim_wrapper(nsims = c(20, 30, 50), entire_data = data_sub, outcome_var = "diagnosis")
+  vimp_parallel2 <- shadow_vimp(niters = c(20, 30, 50), data = data_sub, outcome_var = "diagnosis")
 }
 ````
 
-While it is possible to use two types of parallelisation simultaneously, the package authors do not recommend doing so. In any case, it is important to set these parameters so they do not exceed the number of available cores on your machine. If you are unsure about the number of cores, run `parallel::detectCores()`. Note that for small datasets or low values of the `nsims` parameter, the benefit of parallelisation (if any) may be negligible.
+While it is possible to use two types of parallelisation simultaneously, the package authors do not recommend doing so. In any case, it is important to set these parameters so they do not exceed the number of available cores on your machine. If you are unsure about the number of cores, run `parallel::detectCores()`. Note that for small datasets or low values of the `niters` parameter, the benefit of parallelisation (if any) may be negligible.
 
-## Choose decision criteria for the final decision
+### Choose decision criteria for the final decision
 
 By default, the decision on whether a covariate is informative is based on the pooled p-value. However, per-variable p-values can also be used to select informative covariates in the final step of the procedure. In the output below, the informativeness of covariates is determined based on per-variable p-values:
 
 ````{r per_variable}
-vimp_per_variable <- vim_perm_sim_wrapper(nsims = c(20, 30, 50), entire_data = data_sub, outcome_var = "diagnosis", method = "per_variable")
+vimp_per_variable <- shadow_vimp(niters = c(20, 30, 50), data = data_sub, outcome_var = "diagnosis", method = "per_variable")
 
 vimp_per_variable$final_dec_per_variable %>%
   select(-quantile_per_variable) %>%
   head()
 ````
 
-As shown in the output above, when using per-variable p-values, another variables are identified as informative after applying FWER or FDR correction. It is important to note that the `nsims` parameter in this example is set much lower than recommended in order to reduce vignette compilation time. For reliable results, `nsims` values should be increased.
+As shown in the output above, when using per-variable p-values, another variables are identified as informative after applying FWER or FDR correction. It is important to note that the `niters` parameter in this example is set much lower than recommended in order to reduce vignette compilation time. For reliable results, `niters` values should be increased.
 
-## Output structure
+### Output structure
 
-So far, we have explored the `vimp_history` and `final_dec_pooled` (or `final_dec_per_variable`) elements in the output of the `vim_perm_sim_wrapper()` function. In addition to these, the output contains several other components. To demonstrate them, let’s revisit the output from the previous paragraph. As shown below, the `alpha` entry records the significance level $\alpha$ used in the final step of the procedure:
+So far, we have explored the `vimp_history` and `final_dec_pooled` (or `final_dec_per_variable`) elements in the output of the `shadow_vimp()` function. In addition to these, the output contains several other components. To demonstrate them, let’s revisit the output from the previous paragraph. As shown below, the `alpha` entry records the significance level $\alpha$ used in the final step of the procedure:
 
 ````{r alpha}
 vimp_per_variable$alpha
 ````
 
-The next element in the output of the `vim_perm_sim_wrapper()` function is `result_taken_from_previous_step`. If this entry is `TRUE`, it indicates that no variables survived the pre-selection process, so the reported results are taken from one of the pre-selection steps. If it is set to `FALSE` (as below), the results were obtained during the final step of the procedure.
+The next element in the output of the `shadow_vimp()` function is `result_taken_from_previous_step`. If this entry is `TRUE`, it indicates that no variables survived the pre-selection process, so the reported results are taken from one of the pre-selection steps. If it is set to `FALSE` (as below), the results were obtained during the final step of the procedure.
 
 ````{r from_last_step}
 vimp_per_variable$result_taken_from_previous_step
@@ -255,7 +261,7 @@ vimp_per_variable$time_elapsed
 vimp_per_variable$call
 ````
 
-The last entry in the output of the `vim_perm_sim_wrapper()` function is the `pre_selection` list, which contains two sublists: `step_1` and `step_2`. Both have the same structure. By default, each sublist includes:
+The last entry in the output of the `shadow_vimp()` function is the `pre_selection` list, which contains two sublists: `step_1` and `step_2`. Both have the same structure. By default, each sublist includes:
 
 - `vimp_history` - data frame storing VIMPs,
 - `decision_per_variable` - data frame with p-values and decisions on whether a covariate is informative,
@@ -283,39 +289,77 @@ vimp_per_variable$pre_selection$step_1$alpha
 vimp_per_variable$pre_selection$step_1$control_parameters
 ````
 
-## Plot your results
+### Plot your results
 
 Let's use again the results obtained at the beginning of this tutorial, namely the following object:
 
 ````{r reminder,  eval = FALSE}
-vimp_def <- vim_perm_sim_wrapper(nsims = c(20, 30, 50), entire_data = data_sub, outcome_var = "diagnosis")
+vimp_def <- shadow_vimp(niters = c(20, 30, 50), data = data_sub, outcome_var = "diagnosis")
 ````
 
-Instead of just looking at the table that stores the decisions from the last step, we would like to have an appealing visual representation of our results. The `shadowVIMP` package provides an easy way to achieve this with the `plot_vimps()` function. To plot results based on pooled p-values, simply pass the output of the `vim_perm_sim_wrapper()` function as demonstrated below:
+Instead of just looking at the table that stores the decisions from the last step, we would like to have an appealing visual representation of our results. The `shadowVIMP` package provides an easy way to achieve this with the `plot_vimps()` function. To plot results based on pooled p-values, simply pass the output of the `shadow_vimp()` function as demonstrated below:
 
 ````{r plot_base, fig.width=13, fig.asp=0.8, out.width="115%"}
-plot_vimps(wrapper_object = vimp_def)
+plot_vimps(shadow_vimp_out = vimp_def)
 ````
 
-The boxplots in the figure above display the VIMP measures for each covariate based on the `nsims` simulations from the final step of the procedure. The numbers on the left of the boxplots are unadjusted, FDR-adjusted and FWER-adjusted p-values respectively. To adjust the size of displayed p-values, increase the `text_size` parameter in the `plot_vimps()` function (default is 3).
+The boxes in the figure above display the VIMP measures for each covariate based on the `niters` iterations from the final step of the procedure. The numbers on the left of the plot are unadjusted, FDR-adjusted and FWER-adjusted p-values respectively. To adjust the size of displayed p-values, increase the `text_size` parameter in the `plot_vimps()` function (default is 4) in the following way:
+
+````{r plot_txt_size, fig.width=13, fig.asp=0.8, out.width="115%"}
+plot_vimps(shadow_vimp_out = vimp_def, text_size  = 5)
+````
 
 To display a specific number of covariates, such as $10$, use the `filter_vars` parameter as shown below:
 
 ````{r filter_vars, fig.width=13, fig.asp=0.8, out.width="115%"}
-plot_vimps(wrapper_object = vimp_def, filter_vars = 10, text_size = 4)
+plot_vimps(shadow_vimp_out = vimp_def, filter_vars = 10)
 ````
 
-If you are working with a large dataset and many covariates survive to the last step of the procedure, it is recommended to set the `filter_vars` parameter to ensure the plot remains readable.
+All covariates are displayed by default. If you are working with a large dataset and many covariates are retained until the final step of the procedure, it is recommended to set the `filter_vars` arameter to ensure the plot remains readable.
 
-Here, we will again use the results based on per-variable p-values, keeping all other parameters at their default values:
+If you want to remove the legend or change its position, set the appropriate value for the `legend.position` parameter:
+
+````{r legend_position, fig.width=13, fig.asp=0.8, out.width="115%"}
+# Legend on the bottom
+plot_vimps(shadow_vimp_out = vimp_def, legend.position = "bottom")
+
+# Plot without the legend
+plot_vimps(shadow_vimp_out = vimp_def, legend.position = "none")
+````
+
+The `p_val_labels` parameter of the `plot_vimps()` function controls whether p-value labels are displayed on the plot. By default, it is set to `TRUE`, which makes them visible. If you do not want to display p-values on the plot, set the `p_val_labels` parameter to `FALSE`:
+
+````{r p_val_labels, fig.width=13, fig.asp=0.8, out.width="115%"}
+# No p-values labels
+plot_vimps(shadow_vimp_out = vimp_def, p_val_labels = FALSE)
+```
+
+You can also remove the subplot that displays the relationship between FWER, FDR, and unadjusted p-values by setting the `helper.legend` parameter to `FALSE`:
+
+```{r no_helper_plot, fig.width=13, fig.asp=0.8, out.width="115%"}
+plot_vimps(shadow_vimp_out = out_pooled, helper.legend = FALSE)
+```
+
+Besides playing around with the parameters of the `plot_vimps()` function, there are plenty of possibilities to further customize the appearance of your plot. For example, you can set the title and subtitle of your plot and modify their format as follows:
+
+```{r other_options, fig.width=13, fig.asp=0.8, out.width="115%"}
+plot_vimps(shadow_vimp_out = out_pooled) + 
+  patchwork::plot_annotation(
+    title = "My Super Plot",
+    subtitle = "Even better subtitle"
+  ) &
+  theme(plot.title = element_text(size = 16, face = "bold"))
+```
+
+Below, we will again use the results based on per-variable p-values, keeping all other parameters at their default values:
 
 ````{r plot_per_var, eval=FALSE}
-vimp_per_variable <- vim_perm_sim_wrapper(nsims = c(20, 30, 50), entire_data = data_sub, outcome_var = "diagnosis", method = "per_variable")
+vimp_per_variable <- shadow_vimp(niters = c(20, 30, 50), data = data_sub, outcome_var = "diagnosis", method = "per_variable")
 ````
 
 To use the `plot_vimps()` function for results based on per-variable p-values, the `pooled` parameter must be set to `FALSE`:
 
 ````{r plot_per_var2, fig.width=13, fig.asp=0.8, out.width="115%"}
-plot_vimps(wrapper_object = vimp_per_variable, pooled = FALSE)
+plot_vimps(shadow_vimp_out = vimp_per_variable, pooled = FALSE)
 ````
 
