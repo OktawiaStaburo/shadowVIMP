@@ -13,6 +13,7 @@ plot_vimps(
   legend.position = c("right", "left", "top", "bottom", "none"),
   category_colors = c(`FWER conf.` = "#DD5129FF", `FDR conf.` = "#0F7BA2FF",
     `Unadjusted conf.` = "#43B284FF", `Not significant` = "#898E9FFF"),
+  helper.legend = TRUE,
   ...
 )
 }
@@ -22,8 +23,10 @@ function \code{shadow_vimp()}.}
 
 \item{pooled}{Boolean
 \itemize{
-\item \code{TRUE} - passed \code{shadow_vimp_out} contains pooled p-values.
-\item \code{FALSE} - passed \code{shadow_vimp_out} contains per variable p-values.
+\item \code{TRUE} - passed \code{shadow_vimp_out} contains p-values obtained using the "
+pooled" approach. Default.
+\item \code{FALSE} - passed \code{shadow_vimp_out} contains p-values obtained using the
+"per variable"  approach.
 }}
 
 \item{filter_vars}{Numeric, the number of variables to plot. The default is
@@ -41,8 +44,12 @@ p-values on the plot, default is 4.}
 
 \item{category_colors}{Character of length 4, contains color assignment for
 each of four possible outcomes: variable not significant, confirmed by
-unadjusted, FDR and FWER adjusted p-value. The default colors are color
+unadjusted, FDR and FWER adjusted p-values. The default colors are color
 blind friendly.}
+
+\item{helper.legend}{Boolean. Indicates whether the circle subplot displaying
+the relationship between the FWER, FDR, and unadjusted p-values should be
+shown alongside the legend. The default is \code{TRUE}.}
 
 \item{...}{Other options used to control the appearance of the output plot.}
 }
@@ -50,27 +57,31 @@ blind friendly.}
 ggplot object
 }
 \description{
-Box plot of variable importance measures obtained from the simulation, along
-with unadjusted, FDR, and FWER adjusted p-values indicating whether a given
-variable is informative.
+Box plot displaying variable importance measures along with unadjusted,
+FDR-adjusted, and FWER-adjusted p-values obtained from the \code{shadow_vimp()}
+function. Colors indicate whether each covariate is informative and specify
+under which multiple testing adjustment (FWER, FDR, or none) it is deemed
+informative.
 }
 \examples{
 data(mtcars)
 
-# When working with real data, increase the value of the `niters` and `num.trees`
-# parameters to obtain trustworthy results.
+# When working with real data, increase the value of the `niters` and
+# `num.trees` parameters to obtain trustworthy results.
 \donttest{
 # Pooled p-values
+set.seed(789)
 out_pooled <- shadow_vimp(
   data = mtcars, outcome_var = "vs",
   niters = c(10, 20, 30), num.trees = 30
 )
 
-# The following 2 lines of code produce identical plots
+# The following 3 lines of code produce identical plots
 plot_vimps(shadow_vimp_out = out_pooled, pooled = TRUE, text_size = 4)
 plot_vimps(shadow_vimp_out = out_pooled, text_size = 4)
+plot_vimps(shadow_vimp_out = out_pooled)
 
-# Plot only 3 covariates
+# Plot only top 3 covariates with the lowest p-values
 plot_vimps(shadow_vimp_out = out_pooled, filter_vars = 3)
 
 #' # Do not display p-values on the plot
@@ -79,7 +90,27 @@ plot_vimps(shadow_vimp_out = out_pooled, p_val_labels = FALSE)
 # Change the size of displayed p-values
 plot_vimps(shadow_vimp_out = out_pooled, text_size = 6)
 
-# Per variable p-values
+# Change the position of the legend, available options: "right", "left",
+# "top","bottom", "none"
+plot_vimps(shadow_vimp_out = out_pooled, legend.position = "bottom")
+plot_vimps(shadow_vimp_out = out_pooled, legend.position = "left")
+
+# Remove the legend
+plot_vimps(shadow_vimp_out = out_pooled, legend.position = "none")
+
+# Remove the subplot that displays the relationship between FWER, FDR, and
+# unadjusted p-values
+plot_vimps(shadow_vimp_out = out_pooled, helper.legend = FALSE)
+
+# Change colours of the boxes
+plot_vimps(shadow_vimp_out = out_pooled, category_colors = c(
+  "FWER conf." = "#EE2617FF",
+  "FDR conf." = "#F2A241FF",
+  "Unadjusted conf." = "#558934FF",
+  "Not significant" = "#0E54B6FF"
+))
+
+# Per variable p-values plot
 out_per_var <- shadow_vimp(
   data = mtcars, outcome_var = "vs",
   niters = c(10, 20, 30), num.trees = 30, method = "per_variable"

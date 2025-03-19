@@ -1,14 +1,18 @@
 #' Box plot of VIMPs and corresponding p-values
 #'
-#' Box plot of variable importance measures obtained from the simulation, along
-#' with unadjusted, FDR, and FWER adjusted p-values indicating whether a given
-#' variable is informative.
+#' Box plot displaying variable importance measures along with unadjusted,
+#' FDR-adjusted, and FWER-adjusted p-values obtained from the `shadow_vimp()`
+#' function. Colors indicate whether each covariate is informative and specify
+#' under which multiple testing adjustment (FWER, FDR, or none) it is deemed
+#' informative.
 #'
 #' @param shadow_vimp_out Object of the class "shadow_vimp", the output of the
 #'   function `shadow_vimp()`.
 #' @param pooled Boolean
-#'  * `TRUE` - passed `shadow_vimp_out` contains pooled p-values. Default.
-#'  * `FALSE` - passed `shadow_vimp_out` contains per variable p-values.
+#'  * `TRUE` - passed `shadow_vimp_out` contains p-values obtained using the "
+#'  pooled" approach. Default.
+#'  * `FALSE` - passed `shadow_vimp_out` contains p-values obtained using the
+#'  "per variable"  approach.
 #' @param filter_vars Numeric, the number of variables to plot. The default is
 #'   `NULL`, which means that all variables considered in the last step of the
 #'   procedure (and included in the ` shadow_vimp_out`) will be plotted.
@@ -20,7 +24,7 @@
 #'   "none". Argument specifying the position of the legend.
 #' @param category_colors Character of length 4, contains color assignment for
 #'   each of four possible outcomes: variable not significant, confirmed by
-#'   unadjusted, FDR and FWER adjusted p-value. The default colors are color
+#'   unadjusted, FDR and FWER adjusted p-values. The default colors are color
 #'   blind friendly.
 #' @param helper.legend Boolean. Indicates whether the circle subplot displaying
 #'   the relationship between the FWER, FDR, and unadjusted p-values should be
@@ -62,7 +66,7 @@
 #' plot_vimps(shadow_vimp_out = out_pooled, text_size = 6)
 #'
 #' # Change the position of the legend, available options: "right", "left",
-#' #"top","bottom", "none"
+#' # "top","bottom", "none"
 #' plot_vimps(shadow_vimp_out = out_pooled, legend.position = "bottom")
 #' plot_vimps(shadow_vimp_out = out_pooled, legend.position = "left")
 #'
@@ -78,7 +82,8 @@
 #'   "FWER conf." = "#EE2617FF",
 #'   "FDR conf." = "#F2A241FF",
 #'   "Unadjusted conf." = "#558934FF",
-#'   "Not significant" = "#0E54B6FF"))
+#'   "Not significant" = "#0E54B6FF"
+#' ))
 #'
 #' # Per variable p-values plot
 #' out_per_var <- shadow_vimp(
@@ -89,8 +94,11 @@
 #' # Set pooled to `FALSE`, otherwise the function will throw an error.
 #' plot_vimps(shadow_vimp_out = out_per_var, pooled = FALSE)
 #' }
-plot_vimps <- function(shadow_vimp_out, pooled = TRUE, filter_vars = NULL,
-                       p_val_labels = TRUE, text_size = 4,
+plot_vimps <- function(shadow_vimp_out,
+                       pooled = TRUE,
+                       filter_vars = NULL,
+                       p_val_labels = TRUE,
+                       text_size = 4,
                        legend.position = c("right", "left", "top", "bottom", "none"),
                        category_colors = c(
                          "FWER conf." = "#DD5129FF",
@@ -102,6 +110,13 @@ plot_vimps <- function(shadow_vimp_out, pooled = TRUE, filter_vars = NULL,
                        ...) {
   # Parameters check
   legend.position <- match.arg(legend.position)
+
+  # Checks of category_colors parameter done by the helper function
+  .check_colors(category_colors)
+
+  if (is.numeric(text_size) == FALSE) {
+    stop("Parameter `text_size` must be numeric.")
+  }
 
   if (is.logical(pooled) == FALSE || is.logical(p_val_labels) == FALSE || is.logical(helper.legend) == FALSE) {
     stop("Parameter `pooled`, `p_val_labels` and `helper.legend` must be logical.")
@@ -225,9 +240,9 @@ plot_vimps <- function(shadow_vimp_out, pooled = TRUE, filter_vars = NULL,
     scale_fill_manual(
       values = category_colors,
       guide = guide_legend(keywidth = unit(2, "cm")),
-      labels = function(x) stringr::str_wrap(x, width = 8) #wrap text of the legend labels
+      labels = function(x) stringr::str_wrap(x, width = 8) # wrap text of the legend labels
     ) +
-    # add extra space on the left and right side of the x‑axis (in percentage)
+    # add extra space on the left and right side of the x-axis (in percentage)
     scale_x_continuous(expand = expansion(mult = c(0.15, 0.05))) +
     coord_cartesian(clip = "off") +
     theme_bw() +
@@ -242,7 +257,6 @@ plot_vimps <- function(shadow_vimp_out, pooled = TRUE, filter_vars = NULL,
 
 
   if (p_val_labels == TRUE) {
-
     # Transform p-values data to long format
     p_values_long <- p_values_df %>%
       pivot_longer(
@@ -261,8 +275,8 @@ plot_vimps <- function(shadow_vimp_out, pooled = TRUE, filter_vars = NULL,
         x_pos = min_vimp - (x_range * offset_fraction),
         color_val = case_when(
           p_type == "p_val_unadj" ~ category_colors["Unadjusted conf."][[1]],
-          p_type == "p_val_FDR"   ~ category_colors["FDR conf."][[1]],
-          p_type == "p_val_FWER"  ~ category_colors["FWER conf."][[1]]
+          p_type == "p_val_FDR" ~ category_colors["FDR conf."][[1]],
+          p_type == "p_val_FWER" ~ category_colors["FWER conf."][[1]]
         ),
         # For all but the last label, add a comma between the p-values
         label_text = ifelse(p_type == "p_val_FWER", p_value, paste0(p_value, ","))
@@ -287,7 +301,7 @@ plot_vimps <- function(shadow_vimp_out, pooled = TRUE, filter_vars = NULL,
   }
 
   # If user selected plot without the legend:
-  if(legend.position == "none"){
+  if (legend.position == "none") {
     box_plot
   } else {
     # Customize the legend and place it in the correct place
@@ -299,17 +313,17 @@ plot_vimps <- function(shadow_vimp_out, pooled = TRUE, filter_vars = NULL,
     bp_no_legend <- box_plot + theme(legend.position = "none")
 
     # Should the plot showing the dependency between Type-1, FDR and FWER be displayed?
-    if(helper.legend == FALSE){
+    if (helper.legend == FALSE) {
       legend_helper <- legend
     } else {
       # Creating subplot displayed next to main legend - the dependency between Type-1, FDR and FWER
       fdr_fwer_type1_plot <- .helper_plot(category_colors = category_colors)
 
       # Merged legend and circle subplots
-      if(legend.position %in% c("left", "right")){
+      if (legend.position %in% c("left", "right")) {
         legend_helper <- (legend / fdr_fwer_type1_plot) +
           plot_layout(heights = c(2, 1))
-      } else if(legend.position %in% c("bottom", "top")){
+      } else if (legend.position %in% c("bottom", "top")) {
         legend_helper <- (legend + fdr_fwer_type1_plot) +
           plot_layout(widths = c(2, 1))
       }
@@ -328,17 +342,15 @@ plot_vimps <- function(shadow_vimp_out, pooled = TRUE, filter_vars = NULL,
     } else if (legend.position %in% c("top", "bottom")) {
       # Vertical layout
       if (legend.position == "top") {
-        final_plot <- (legend_helper/bp_no_legend) +
-          plot_layout(heights  = c(1, 7))
-
+        final_plot <- (legend_helper / bp_no_legend) +
+          plot_layout(heights = c(1, 7))
       } else {
-        final_plot <- (bp_no_legend/legend_helper) +
-          plot_layout(heights  = c(7,1))
+        final_plot <- (bp_no_legend / legend_helper) +
+          plot_layout(heights = c(7, 1))
       }
     }
 
     final_plot
-
   }
 }
 
@@ -394,4 +406,21 @@ plot_vimps <- function(shadow_vimp_out, pooled = TRUE, filter_vars = NULL,
     )
 
   helper_plot
+}
+
+.check_colors <- function(category_colors) {
+  if (is.character(category_colors) == FALSE) {
+    stop("Parameter `category_colors` must be a character vector.")
+  }
+
+  if (length(category_colors) != 4) {
+    stop("Parameter `category_colors` must have exactly 4 elements.")
+  }
+
+  expected_names <- c("FWER conf.", "FDR conf.", "Unadjusted conf.", "Not significant")
+  actual_names <- names(category_colors)
+
+  if (is.null(actual_names) || !all(expected_names %in% actual_names)) {
+    stop("Parameter `category_colors` must have names: ", paste(expected_names, collapse = ", "))
+  }
 }
