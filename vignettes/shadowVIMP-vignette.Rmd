@@ -48,7 +48,7 @@ data_alz <- cbind(diagnosis, predictors)
 # Set seed to make the results reproducible
 set.seed(786)
 data_sub <- slice_sample(data_alz, n = 100)
-vimp_def <- shadow_vimp(data = data_sub, outcome_var = "diagnosis")
+vimp_def <- shadow_vimp(data = data_sub, outcome_var = "diagnosis", niters = c(20, 30, 50))
 ```
 
 As shown below, in this case none of the variables are informative when applying the Holm p-value correction (column `FWER_confirmed`). Using the FDR p-value correction, the first 5 covariates appear to be informative.  
@@ -148,7 +148,7 @@ The `shadow_vimp()` function has a `save_vimp_history` argument, allowing users 
 ````{r inspect_history1}
 # Reminder - definition of vimp_def object:
 # set.seed(786)
-# vimp_def <- shadow_vimp(data = data_sub, outcome_var = "diagnosis")
+# vimp_def <- shadow_vimp(data = data_sub, outcome_var = "diagnosis", niters = c(20, 30, 50))
 
 # VIMP history from the 1st step for 5 covariates
 vimp_def$pre_selection$step_1$vimp_history %>%
@@ -181,11 +181,11 @@ By default, the `shadow_vimp()` function chooses the "FWER" option, displaying a
 
 ```{r fdr_unadjusted_dec}
 # Show FDR and unadjusted p-values
-vimp_fdr <- shadow_vimp(data = data_sub, outcome_var = "diagnosis", to_show = "FDR")
+vimp_fdr <- shadow_vimp(data = data_sub, outcome_var = "diagnosis", niters = c(20, 30, 50), to_show = "FDR")
 vimp_fdr
 
 # Show only unadjusted p-values
-vimp_unadjusted <- shadow_vimp(data = data_sub, outcome_var = "diagnosis", to_show = "unadjusted")
+vimp_unadjusted <- shadow_vimp(data = data_sub, outcome_var = "diagnosis", niters = c(20, 30, 50), to_show = "unadjusted")
 vimp_fdr
 ```
 
@@ -194,7 +194,7 @@ vimp_fdr
 By default, the decision on whether a covariate is informative is based on the pooled p-value. However, per-variable p-values can also be used to select informative covariates in the final step of the procedure. In the output below, the informativeness of covariates is determined based on per-variable p-values:
 
 ````{r per_variable}
-vimp_per_variable <- shadow_vimp(data = data_sub, outcome_var = "diagnosis", method = "per_variable")
+vimp_per_variable <- shadow_vimp(data = data_sub, outcome_var = "diagnosis", niters = c(20, 30, 50), method = "per_variable")
 
 vimp_per_variable$final_dec_per_variable %>%
   select(-quantile_per_variable) %>%
@@ -209,7 +209,7 @@ So far, we have explored the `vimp_history` and `final_dec_pooled` (or `final_de
 
 ````{r reminder}
 # Definition of vimp_def:
-# vimp_def <- shadow_vimp(data = data_sub, outcome_var = "diagnosis")
+# vimp_def <- shadow_vimp(data = data_sub, outcome_var = "diagnosis", niters = c(20, 30, 50))
 vimp_def
 ````
 
@@ -243,8 +243,8 @@ vimp_def$pre_selection$step_1$vimp_history %>%
   head()
 
 # Which covariates were considered as informative in the 1st step?
-vimp_def$pre_selection$step_1$decision_per_variable %>%
-  select(-quantile_per_variable) %>%
+vimp_def$pre_selection$step_1$decision_pooled %>%
+  select(-quantile_pooled) %>%
   head()
 
 # The significance level used in the 1st step
@@ -324,7 +324,7 @@ plot_vimps(shadow_vimp_out = vimp_def) +
 Below, we will again use the results based on per-variable p-values, keeping all other parameters at their default values:
 
 ````{r plot_per_var, eval=FALSE}
-vimp_per_variable <- shadow_vimp(data = data_sub, outcome_var = "diagnosis", method = "per_variable")
+vimp_per_variable <- shadow_vimp(data = data_sub, outcome_var = "diagnosis", niters = c(20, 30, 50), method = "per_variable")
 ````
 
 To use the `plot_vimps()` function for results based on per-variable p-values, the `pooled` parameter must be set to `FALSE`:
@@ -343,10 +343,10 @@ is_interactive <- interactive()
 if (is_interactive) {
   # When interactive - set num_cores to a selected value
   num_cores <- min(parallel::detectCores(), 4)
-  vimp_parallel1 <- shadow_vimp(data = data_sub, outcome_var = "diagnosis", num.threads = num_cores)
+  vimp_parallel1 <- shadow_vimp(data = data_sub, outcome_var = "diagnosis", niters = c(20, 30, 50), num.threads = num_cores)
 } else {
   # When non-interactive - run sequantial
-  vimp_parallel1 <- shadow_vimp(data = data_sub, outcome_var = "diagnosis")
+  vimp_parallel1 <- shadow_vimp(data = data_sub, outcome_var = "diagnosis", niters = c(20, 30, 50))
 }
 ````
 
@@ -362,11 +362,12 @@ if (is_interactive) {
   vimp_parallel2 <- shadow_vimp(
     data = data_sub,
     outcome_var = "diagnosis",
+    niters = c(20, 30, 50),
     num_cores_parallel = num_cores
   )
 } else {
   # When non-interactive - run sequantial
-  vimp_parallel2 <- shadow_vimp(data = data_sub, outcome_var = "diagnosis")
+  vimp_parallel2 <- shadow_vimp(data = data_sub, outcome_var = "diagnosis", niters = c(20, 30, 50))
 }
 ````
 
