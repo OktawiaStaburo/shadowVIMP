@@ -36,6 +36,7 @@
 #' @importFrom magrittr %>%
 #' @importFrom ggpubr get_legend as_ggplot
 #' @importFrom tidyr pivot_longer
+#' @importFrom stringr str_wrap
 #' @import patchwork
 #' @importFrom ggforce geom_circle
 #' @examples
@@ -240,7 +241,7 @@ plot_vimps <- function(shadow_vimp_out,
     scale_fill_manual(
       values = category_colors,
       guide = guide_legend(keywidth = unit(2, "cm")),
-      labels = function(x) stringr::str_wrap(x, width = 8) # wrap text of the legend labels
+      labels = function(x) str_wrap(x, width = 8) # wrap text of the legend labels
     ) +
     # add extra space on the left and right side of the x-axis (in percentage)
     scale_x_continuous(expand = expansion(mult = c(0.15, 0.05))) +
@@ -271,15 +272,15 @@ plot_vimps <- function(shadow_vimp_out,
     # Compute the actual x position for each label and set color based on p-value type
     p_values_long <- p_values_long %>%
       mutate(
-        offset_fraction = offsets[p_type],
-        x_pos = min_vimp - (x_range * offset_fraction),
+        offset_fraction = offsets[.data$p_type],
+        x_pos = min_vimp - (x_range * .data$offset_fraction),
         color_val = case_when(
-          p_type == "p_val_unadj" ~ category_colors["Unadjusted conf."][[1]],
-          p_type == "p_val_FDR" ~ category_colors["FDR conf."][[1]],
-          p_type == "p_val_FWER" ~ category_colors["FWER conf."][[1]]
+          .data$p_type == "p_val_unadj" ~ category_colors["Unadjusted conf."][[1]],
+          .data$p_type == "p_val_FDR" ~ category_colors["FDR conf."][[1]],
+          .data$p_type == "p_val_FWER" ~ category_colors["FWER conf."][[1]]
         ),
         # For all but the last label, add a comma between the p-values
-        label_text = ifelse(p_type == "p_val_FWER", p_value, paste0(p_value, ","))
+        label_text = ifelse(.data$p_type == "p_val_FWER", .data$p_value, paste0(.data$p_value, ","))
       )
 
     # Add a single geom_text layer with p-values
@@ -287,10 +288,10 @@ plot_vimps <- function(shadow_vimp_out,
       geom_text(
         data = p_values_long,
         aes(
-          x = x_pos,
+          x = .data$x_pos,
           y = .data[["ordered_varname"]],
-          label = label_text,
-          color = color_val
+          label = .data$label_text,
+          color = .data$color_val
         ),
         hjust = 1,
         size = text_size,

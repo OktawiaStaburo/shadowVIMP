@@ -3,7 +3,7 @@
 \name{shadow_vimp}
 \alias{shadow_vimp}
 \title{Identify the influential covariates in random forests using multiple testing
-correction}
+control}
 \usage{
 shadow_vimp(
   alphas = c(0.3, 0.1, 0.05),
@@ -67,11 +67,7 @@ step.
 \item \code{"FWER"} (the default) - the output includes unadjusted,
 Benjamini-Hochberg (FDR) and Holm (FWER) adjusted p-values together with
 the decision whether the variable is significant or not (1 - significant, 0
-}
-\itemize{
-\item not significant) according to the chosen criterium.
-}
-\itemize{
+means not significant) according to the chosen criterium.
 \item \code{"FDR"} - the output includes both unadjusted and FDR adjusted p-values along
 with the decision.
 \item \verb{"unadjusted:} - the output contains only raw, unadjusted p-values together

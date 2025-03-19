@@ -16,7 +16,7 @@
 #'  * `"FWER"` (the default) - the output includes unadjusted,
 #'   Benjamini-Hochberg (FDR) and Holm (FWER) adjusted p-values together with
 #'   the decision whether the variable is significant or not (1 - significant, 0
-#'   - not significant) according to the chosen criterium.
+#'   means not significant) according to the chosen criterium.
 #'  * `"FDR"` - the output includes both unadjusted and FDR adjusted p-values along
 #'   with the decision.
 #'  * `"unadjusted:` - the output contains only raw, unadjusted p-values together

@@ -1,5 +1,5 @@
 #' Identify the influential covariates in random forests using multiple testing
-#' correction
+#' control
 #'
 #' `shadow_vimp()` performs variable selection and determines whether each
 #' covariate is influential based on unadjusted, FDR-adjusted, and FWER-adjusted
