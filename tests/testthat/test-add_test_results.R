@@ -2,7 +2,7 @@
 
 test_that("add_test_results works as expected", {
   output <- add_test_results(vimpermsim = fake_data_vps, alpha = 0.1, init_num_vars = 5, to_show = "FWER")
-  expect_length(output, n = 3)
+  expect_length(output, n = 2)
   expect_s3_class(output$vim_simulated, "data.frame")
   expect_length(output$test_results, n = 2)
   expect_s3_class(output$test_results[[1]], "data.frame")
@@ -17,7 +17,7 @@ test_that("add_test_results throws a warning when `to_show` is set to `FDR` or `
 
 # Check if malformed input results in a specific kind of error
 test_that("add_test_results fails when inappropiate inputs are passed", {
-  empty_list <- list(vim_simulated = data.frame(), controls = list(nsim = c()))
+  empty_list <- list(vim_simulated = data.frame())
 
   fake_dat_2 <- fake_data_vps
   fake_dat_2$vim_simulated <- fake_dat_2$vim_simulated %>% select(-ends_with("_permuted"))

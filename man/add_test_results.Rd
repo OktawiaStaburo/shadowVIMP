@@ -2,7 +2,8 @@
 % Please edit documentation in R/add_test_results.R
 \name{add_test_results}
 \alias{add_test_results}
-\title{Identify significant covariates with FWER, FDR, or no p-value adjustment}
+\title{Identify significant covariates with FWER, FDR, or no multiple testing
+adjustment}
 \usage{
 add_test_results(
   vimpermsim,
@@ -12,7 +13,9 @@ add_test_results(
 )
 }
 \arguments{
-\item{vimpermsim}{List, an output from \code{vim_perm_sim()} function.}
+\item{vimpermsim}{List, an output of the \code{vim_perm_sim()} function that
+stores \code{niters} variable importance values for both the original and
+row-wise permuted predictors.}
 
 \item{alpha}{Numeric, the significance level, must be between 0 and 1.}
 
@@ -22,10 +25,14 @@ the data. Required to correctly apply the Benjamini-Hochberg (FDR) and Holm
 
 \item{to_show}{Character, one of \code{"FWER"}, \code{"FDR"} or \code{"unadjusted"}.
 \itemize{
-\item \code{"FWER"} (the default) - the output of \code{add_test_results()} includes
-unadjusted, Benjamini-Hochberg (FDR) and Holm (FWER) adjusted p-values
-together with the decision whether the variable is significant or not (1 -
-significant, 0 - not significant) according to the chosen criterium.
+\item \code{"FWER"} (the default) - the output includes unadjusted,
+Benjamini-Hochberg (FDR) and Holm (FWER) adjusted p-values together with
+the decision whether the variable is significant or not (1 - significant, 0
+}
+\itemize{
+\item not significant) according to the chosen criterium.
+}
+\itemize{
 \item \code{"FDR"} - the output includes both unadjusted and FDR adjusted p-values along
 with the decision.
 \item \verb{"unadjusted:} - the output contains only raw, unadjusted p-values together
@@ -38,9 +45,10 @@ A list of length 3 containing the following elements:
 \item \code{vim_simulated} -  a data frame with variable importances stored in a
 \code{vimpermsim} input object (obtained from the \code{vim_perm_sim()} function).
 \item \code{test_results} - a list consisting of 2 data frames called \code{pooled} and
-\code{per_variable}. The \code{pooled} data frame contains pooled p-values, while the
-\code{per_variable} data frame stores per variable p-values. Both data frames
-also contain decisions about variable importance based on the displayed
+\code{per_variable}. The \code{pooled} data frame contains p-values obtained using
+the "pooled" approach. The \code{per_variable} data frame stores p-values
+obtained by using the "per variable" approach. Both data frames also
+contain decisions about variable importance based on the displayed
 p-values. The type of decisions displayed (based on FWER/FDR/unadjusted
 p-values) depends on the selected value of the \code{to_show} parameter.
 }
@@ -49,9 +57,9 @@ In fact, the output of the \code{add_test_results()} function is the output of
 \code{vim_perm_sim()} with an additional layer - the \code{test_results} list.
 }
 \description{
-Calculate pooled or per variable p-values and identify significant variables
-when using FWER, FDR or no p-value adjustment for a given alpha level of
-significance.
+Calculate p-values using pooled or per variable approach and identify
+significant variables using FWER, FDR or no multiple testing adjustment of
+p-values for a given alpha level of significance.
 }
 \examples{
 data(mtcars)
@@ -59,7 +67,7 @@ data(mtcars)
 # When working with real data, increase num.trees value or leave default
 # Here this parameter is set to a small value in order to reduce the runtime
 cars_vps <- vim_perm_sim(
-  entire_data = mtcars, outcome_var = "vs", nsim = 30,
+  data = mtcars, outcome_var = "vs", niters = 30,
   num.trees = 50
 )
 init_num_vars <- ncol(x = mtcars) - 1
@@ -84,3 +92,4 @@ cars_add_unadj <- suppressWarnings(add_test_results(
   init_num_vars = init_num_vars, to_show = "unadjusted"
 ))
 }
+\keyword{internal}

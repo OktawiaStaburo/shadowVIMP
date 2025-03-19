@@ -1,19 +1,22 @@
-#' Identify significant covariates with FWER, FDR, or no p-value adjustment
+#' Identify significant covariates with FWER, FDR, or no multiple testing
+#' adjustment
 #'
-#' Calculate pooled or per variable p-values and identify significant variables
-#' when using FWER, FDR or no p-value adjustment for a given alpha level of
-#' significance.
+#' Calculate p-values using pooled or per variable approach and identify
+#' significant variables using FWER, FDR or no multiple testing adjustment of
+#' p-values for a given alpha level of significance.
 #'
-#' @param vimpermsim List, an output from `vim_perm_sim()` function.
+#' @param vimpermsim List, an output of the `vim_perm_sim()` function that
+#'   stores `niters` variable importance values for both the original and
+#'   row-wise permuted predictors.
 #' @param alpha Numeric, the significance level, must be between 0 and 1.
 #' @param init_num_vars Numeric, the number of covariates originally included in
 #'   the data. Required to correctly apply the Benjamini-Hochberg (FDR) and Holm
 #'   (FWER) p-value correction
 #' @param to_show Character, one of `"FWER"`, `"FDR"` or `"unadjusted"`.
-#'  * `"FWER"` (the default) - the output of `add_test_results()` includes
-#'   unadjusted, Benjamini-Hochberg (FDR) and Holm (FWER) adjusted p-values
-#'   together with the decision whether the variable is significant or not (1 -
-#'   significant, 0 - not significant) according to the chosen criterium.
+#'  * `"FWER"` (the default) - the output includes unadjusted,
+#'   Benjamini-Hochberg (FDR) and Holm (FWER) adjusted p-values together with
+#'   the decision whether the variable is significant or not (1 - significant, 0
+#'   - not significant) according to the chosen criterium.
 #'  * `"FDR"` - the output includes both unadjusted and FDR adjusted p-values along
 #'   with the decision.
 #'  * `"unadjusted:` - the output contains only raw, unadjusted p-values together
@@ -22,14 +25,16 @@
 #'  * `vim_simulated` -  a data frame with variable importances stored in a
 #'   `vimpermsim` input object (obtained from the `vim_perm_sim()` function).
 #'  * `test_results` - a list consisting of 2 data frames called `pooled` and
-#'   `per_variable`. The `pooled` data frame contains pooled p-values, while the
-#'   `per_variable` data frame stores per variable p-values. Both data frames
-#'   also contain decisions about variable importance based on the displayed
+#'   `per_variable`. The `pooled` data frame contains p-values obtained using
+#'   the "pooled" approach. The `per_variable` data frame stores p-values
+#'   obtained by using the "per variable" approach. Both data frames also
+#'   contain decisions about variable importance based on the displayed
 #'   p-values. The type of decisions displayed (based on FWER/FDR/unadjusted
 #'   p-values) depends on the selected value of the `to_show` parameter.
 #'
 #'   In fact, the output of the `add_test_results()` function is the output of
 #'   `vim_perm_sim()` with an additional layer - the `test_results` list.
+#' @keywords internal
 #' @export
 #' @import dplyr
 #' @importFrom magrittr %>%
@@ -40,7 +45,7 @@
 #' # When working with real data, increase num.trees value or leave default
 #' # Here this parameter is set to a small value in order to reduce the runtime
 #' cars_vps <- vim_perm_sim(
-#'   entire_data = mtcars, outcome_var = "vs", nsim = 30,
+#'   data = mtcars, outcome_var = "vs", niters = 30,
 #'   num.trees = 50
 #' )
 #' init_num_vars <- ncol(x = mtcars) - 1
