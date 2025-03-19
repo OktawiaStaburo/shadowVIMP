@@ -5,24 +5,24 @@
 \title{Compute the variable importance of the predictors and their row-wise shadows}
 \usage{
 vim_perm_sim(
-  entire_data,
+  data,
   outcome_var,
-  nsim = 100,
+  niters = 100,
   importance = "permutation",
   num.threads = NULL,
-  num.trees = max(2 * (ncol(entire_data) - 1), 10000),
+  num.trees = max(2 * (ncol(data) - 1), 10000),
   data_name = NULL,
   num_cores_parallel = NULL,
   ...
 )
 }
 \arguments{
-\item{entire_data}{Input data frame.}
+\item{data}{Input data frame.}
 
 \item{outcome_var}{Character, name of the column containing the outcome
 variable.}
 
-\item{nsim}{Numeric, number of permutations of the initial predictor values,
+\item{niters}{Numeric, number of permutations of the initial predictor values,
 default is 100.}
 
 \item{importance}{Character, the type of variable importance to be calculated
@@ -30,16 +30,17 @@ for each independent variable. Argument passed to \code{\link[ranger:ranger]{ran
 default is \code{permutation}.}
 
 \item{num.threads}{Numeric, number of threads. Argument passed to
-\code{\link[ranger:ranger]{ranger::ranger()}}, default is \code{NULL}.}
+\code{\link[ranger:ranger]{ranger::ranger()}}, default is 2 if not set by options/environment
+variables. For more details see the documentation of \code{\link[ranger:ranger]{ranger::ranger()}}.}
 
 \item{num.trees}{Numeric, number of trees. Passed to \code{\link[ranger:ranger]{ranger::ranger()}},
-default is \code{max(2 * (ncol(entire_data) - 1), 10000)}.}
+default is \code{max(2 * (ncol(data) - 1), 10000)}.}
 
-\item{data_name}{Character, name of the object passed as \code{entire_data}. In
-\code{vim_perm_sim_wrapper()} it is set automatically.}
+\item{data_name}{Character, name of the object passed as \code{data}. In
+\code{shadow_vimp()} it is set automatically.}
 
-\item{num_cores_parallel}{Numeric greater than 0 and and less than or equal
-to the number of cores available on your computer (check by running
+\item{num_cores_parallel}{Numeric greater than 0 and less than or equal to the
+number of cores available on your computer (check by running
 \code{\link[parallel:detectCores]{parallel::detectCores()}}). This parameter specifies the number of cores to
 use to create a cluster when calling
 \code{parallel::makeCluster(num_cores_parallel)}. For example, setting
@@ -49,24 +50,23 @@ is \code{NULL}, which means that sequential computation is used.}
 \item{...}{Additional parameters passed to \code{\link[ranger:ranger]{ranger::ranger()}}.}
 }
 \value{
-List consisting of \code{vim_simulated} - a data frame with \code{n_sim}
-variable importances calculated based on the original and row-wise permuted
-values of the predictors.
+List containing \code{niters} variable importance values for both the
+original and row-wise permuted predictors.
 }
 \description{
-\code{vim_perm_sim()} calculates repeatedly (\code{nsim} times) the variable importance
-of the original values of the predictors and their row-wise permuted shadows.
-Each shadow's variable importance is computed based on a new permutation of
-the initial predictor values.
+\code{vim_perm_sim()} calculates repeatedly (\code{niters} times) the variable
+importance of the original values of the predictors and their row-wise
+permuted shadows. Each shadow's variable importance is computed based on a new
+permutation of the initial predictor values.
 }
 \examples{
 data(mtcars)
-# When working with real data, increase num.trees value or leave default
+# When working with real data, increase num.trees value or keep the default
 # Here this parameter is set to a small value in order to reduce the runtime
 
 # Sequential computing mode:
 out_seq <- vim_perm_sim(
-  entire_data = mtcars, outcome_var = "vs", nsim = 30,
+  data = mtcars, outcome_var = "vs", niters = 30,
   num.trees = 50
 )
 
@@ -80,14 +80,15 @@ safe_num_threads <- function(n) {
 # Parallel computing - using a cluster:
 \donttest{
 out_par_cores <- vim_perm_sim(
-  entire_data = mtcars, outcome_var = "vs",
-  nsim = 30, num_cores_parallel = safe_num_threads(2), num.trees = 50
+  data = mtcars, outcome_var = "vs",
+  niters = 30, num_cores_parallel = safe_num_threads(2), num.trees = 50
 )
 }
 
 # Parallelism through num.threads parameter from ranger::ranger()
 out_par <- vim_perm_sim(
-  entire_data = mtcars, outcome_var = "vs", nsim = 30,
+  data = mtcars, outcome_var = "vs", niters = 30,
   num.threads = safe_num_threads(2), num.trees = 50
 )
 }
+\keyword{internal}

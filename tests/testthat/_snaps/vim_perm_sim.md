@@ -1,7 +1,7 @@
 # vim_perm_sim gives expected output in parallel mode
 
     Code
-      vim_perm_sim(entire_data = data, outcome_var = "diag", nsim = 10,
+      vim_perm_sim(data = data, outcome_var = "diag", niters = 10,
         num_cores_parallel = 2) %>% print()
     Output
       $vim_simulated

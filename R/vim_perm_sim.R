@@ -1,35 +1,36 @@
 #' Compute the variable importance of the predictors and their row-wise shadows
 #'
-#' `vim_perm_sim()` calculates repeatedly (`nsim` times) the variable importance
-#' of the original values of the predictors and their row-wise permuted shadows.
-#' Each shadow's variable importance is computed based on a new permutation of
-#' the initial predictor values.
+#' `vim_perm_sim()` calculates repeatedly (`niters` times) the variable
+#' importance of the original values of the predictors and their row-wise
+#' permuted shadows. Each shadow's variable importance is computed based on a new
+#' permutation of the initial predictor values.
 #'
-#' @param entire_data Input data frame.
+#' @param data Input data frame.
 #' @param outcome_var Character, name of the column containing the outcome
-#'   variable.
-#' @param nsim Numeric, number of permutations of the initial predictor values,
-#'   default is 100.
+#'  variable.
+#' @param niters Numeric, number of permutations of the initial predictor values,
+#'  default is 100.
 #' @param importance Character, the type of variable importance to be calculated
-#'   for each independent variable. Argument passed to [ranger::ranger()],
-#'   default is `permutation`.
+#'  for each independent variable. Argument passed to [ranger::ranger()],
+#'  default is `permutation`.
 #' @param num.threads Numeric, number of threads. Argument passed to
-#'   [ranger::ranger()], default is `NULL`.
+#'  [ranger::ranger()], default is 2 if not set by options/environment
+#'  variables. For more details see the documentation of [ranger::ranger()].
 #' @param num.trees Numeric, number of trees. Passed to [ranger::ranger()],
-#'   default is `max(2 * (ncol(entire_data) - 1), 10000)`.
-#' @param data_name Character, name of the object passed as `entire_data`. In
-#'   `vim_perm_sim_wrapper()` it is set automatically.
-#' @param num_cores_parallel Numeric greater than 0 and and less than or equal
-#'   to the number of cores available on your computer (check by running
-#'   [parallel::detectCores()]). This parameter specifies the number of cores to
-#'   use to create a cluster when calling
-#'   `parallel::makeCluster(num_cores_parallel)`. For example, setting
-#'   `num_cores_parallel` to 4 will use 4 cores to create a cluster. The default
-#'   is `NULL`, which means that sequential computation is used.
+#'  default is `max(2 * (ncol(data) - 1), 10000)`.
+#' @param data_name Character, name of the object passed as `data`. In
+#'  `shadow_vimp()` it is set automatically.
+#' @param num_cores_parallel Numeric greater than 0 and less than or equal to the
+#'  number of cores available on your computer (check by running
+#'  [parallel::detectCores()]). This parameter specifies the number of cores to
+#'  use to create a cluster when calling
+#'  `parallel::makeCluster(num_cores_parallel)`. For example, setting
+#'  `num_cores_parallel` to 4 will use 4 cores to create a cluster. The default
+#'  is `NULL`, which means that sequential computation is used.
 #' @param ... Additional parameters passed to [ranger::ranger()].
-#' @return List consisting of `vim_simulated` - a data frame with `n_sim`
-#'   variable importances calculated based on the original and row-wise permuted
-#'   values of the predictors.
+#' @return List containing `niters` variable importance values for both the
+#'  original and row-wise permuted predictors.
+#' @keywords internal
 #' @export
 #' @import foreach doRNG rlang dplyr
 #' @importFrom magrittr %>%
@@ -37,17 +38,17 @@
 #' @importFrom doParallel registerDoParallel
 #' @examples
 #' data(mtcars)
-#' # When working with real data, increase num.trees value or leave default
+#' # When working with real data, increase num.trees value or keep the default
 #' # Here this parameter is set to a small value in order to reduce the runtime
 #'
 #' # Sequential computing mode:
 #' out_seq <- vim_perm_sim(
-#'   entire_data = mtcars, outcome_var = "vs", nsim = 30,
+#'   data = mtcars, outcome_var = "vs", niters = 30,
 #'   num.trees = 50
 #' )
 #'
-#'# Function to make sure proper number of cores is specified in parallel
-#'# computing
+#' # Function to make sure proper number of cores is specified in parallel
+#' # computing
 #' safe_num_threads <- function(n) {
 #'   available <- parallel::detectCores()
 #'   if (n > available) available else n
@@ -56,22 +57,22 @@
 #' # Parallel computing - using a cluster:
 #' \donttest{
 #' out_par_cores <- vim_perm_sim(
-#'   entire_data = mtcars, outcome_var = "vs",
-#'   nsim = 30, num_cores_parallel = safe_num_threads(2), num.trees = 50
+#'   data = mtcars, outcome_var = "vs",
+#'   niters = 30, num_cores_parallel = safe_num_threads(2), num.trees = 50
 #' )
 #' }
 #'
 #' # Parallelism through num.threads parameter from ranger::ranger()
 #' out_par <- vim_perm_sim(
-#'   entire_data = mtcars, outcome_var = "vs", nsim = 30,
+#'   data = mtcars, outcome_var = "vs", niters = 30,
 #'   num.threads = safe_num_threads(2), num.trees = 50
 #' )
-vim_perm_sim <- function(entire_data,
+vim_perm_sim <- function(data,
                          outcome_var, # y
-                         nsim = 100,
+                         niters = 100,
                          importance = "permutation",
                          num.threads = NULL,
-                         num.trees = max(2 * (ncol(entire_data) - 1), 10000),
+                         num.trees = max(2 * (ncol(data) - 1), 10000),
                          data_name = NULL,
                          num_cores_parallel = NULL,
                          ...) {
@@ -93,14 +94,14 @@ vim_perm_sim <- function(entire_data,
     stop("Specified value of `num.threads` is too big or it is not numeric. Use parallel::detectCores() to check the maximal possible value of `num.threads` parameter.")
   }
 
-  # Check if nsim parameter has a correct format
-  if (is.numeric(nsim) == F) {
-    stop("`nsim` parameter must be numeric.")
+  # Check if niters parameter has a correct format
+  if (is.numeric(niters) == F) {
+    stop("`niters` parameter must be numeric.")
   }
 
-  # Capture the name of the object passed as entire_data - needed for progress tracking
+  # Capture the name of the object passed as data - needed for progress tracking
   if (is.null(data_name)) {
-    data_name <- deparse(substitute(entire_data))
+    data_name <- deparse(substitute(data))
   }
 
   # Check if passed data_name argument has a correct format
@@ -109,7 +110,7 @@ vim_perm_sim <- function(entire_data,
   }
 
   # Check whether the input data has already a column called "y"
-  is_y <- "y" %in% colnames(entire_data)
+  is_y <- "y" %in% colnames(data)
 
   # If there is already a column "y" and it's not outcome_var, force user to rename it
   if (is_y == TRUE && outcome_var != "y") {
@@ -117,15 +118,15 @@ vim_perm_sim <- function(entire_data,
   }
 
   # Renaming outcome variable to y
-  entire_data <- entire_data %>%
+  data <- data %>%
     rename(y = all_of(outcome_var))
 
-  p <- ncol(entire_data) - 1
-  n <- nrow(entire_data)
+  p <- ncol(data) - 1
+  n <- nrow(data)
 
 
   # Splitting predictors
-  predictors <- entire_data %>% select(-"y")
+  predictors <- data %>% select(-"y")
 
   if (sum(grepl("_permuted$", names(predictors))) > 0) {
     stop("One or more variables ending with _permuted. Please rename them.")
@@ -140,7 +141,7 @@ vim_perm_sim <- function(entire_data,
   dt <- cbind.data.frame(
     predictors,
     predictors_p,
-    entire_data %>% select("y")
+    data %>% select("y")
   )
 
   # Simulation
@@ -148,9 +149,9 @@ vim_perm_sim <- function(entire_data,
     # Sequential implementation
     vimp_sim <- NULL
 
-    for (i in 1:nsim) {
+    for (i in 1:niters) {
       if ((i %% 50 == 0) | (i == 1)) {
-        cat(paste0(format(Sys.time()), ": dataframe = ", data_name, " nsim = ", nsim, " num.trees = ", num.trees, ". Running step ", i, "\n"))
+        cat(paste0(format(Sys.time()), ": dataframe = ", data_name, " niters = ", niters, " num.trees = ", num.trees, ". Running step ", i, "\n"))
       }
 
       # reshuffle row wise
@@ -177,26 +178,15 @@ vim_perm_sim <- function(entire_data,
     cluster <- parallel::makeCluster(num_cores_parallel)
     doParallel::registerDoParallel(cluster)
 
-    # Ensure the cluster is stopped when the function exits
-    #on.exit(parallel::stopCluster(cluster))
-
-    # # Progress track
-    # progressr::handlers("txtprogressbar")  # Choose the text progress bar handler
-    # p <- progressr::progressor(along = 1:nsim)
-
     # Control seed
     set.seed(1807)
-    seed_list <- floor(runif(nsim, min = 1, max = 999999))
+    seed_list <- floor(runif(niters, min = 1, max = 999999))
 
-    # vimp_sim <-  progressr::with_progress({
-    vimp_sim <-  foreach(
-        i = 1:nsim,
-        .packages = c("ranger", "dplyr")#,
-        # .export = c("p", "seed_list")
+    vimp_sim <- foreach(
+      i = 1:niters,
+      .packages = c("ranger", "dplyr")
     ) %dorng% {
-
       set.seed(seed_list[i])
-      #p()
 
       # Reshuffle row-wise
       dt[, (ncol(predictors_p) + 1):(2 * ncol(predictors_p))] <- dt[sample(1:n), (ncol(predictors_p) + 1):(2 * ncol(predictors_p))]
@@ -217,18 +207,16 @@ vim_perm_sim <- function(entire_data,
         as.data.frame()
 
       vimp # Return the result of each iteration
-    }#})
+    } # })
 
     parallel::stopCluster(cluster)
     # Come back to sequential computing
     foreach::registerDoSEQ()
-
   }
 
   # putting all results in a df
   df_sim <- as.data.frame(do.call(rbind, vimp_sim))
 
-  # Storing result to be returned
   res <- list(
     vim_simulated = df_sim
   )
