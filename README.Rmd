@@ -23,7 +23,7 @@ knitr::opts_chunk$set(
 
 ## Overview
 
-`shadowVIMP` is designed to perform variable selection by reducing the number of covariates in your analysis in a statistically rigorous and informed manner, thereby helping you identify the most informative predictors. This package implements a method that performs statistical tests on the Variable Importance Measures (VIMP) obtained from the Random Forest (RF) algorithm to determine whether each covariate is statistically significant and truly informative. In contrast to widely used methods, such as selecting the top *n* covariates with the highest VIMP or choosing covariates with a VIMP above a certain threshold, the method implemented in `shadowVIMP` allows for a statistical justification of whether a given VIMP is sufficiently large to be unlikely due to chance. The main function of the package, `vim_perm_sim_wrapper()`, outputs a table indicating whether each covariate is informative, along with its associated (adjusted) p-values. In addition, the `plot_vimps()` function provides a convenient way to visualise the VIMPs obtained from our algorithm, including unadjusted, FDR- and FWER-adjusted p-values. Details on the method, a realistic example of its usage, and guidance on interpreting the results can be found in the vignette: `vignette("shadowVIMP-vignette")`.
+`shadowVIMP` is designed to perform variable selection by reducing the number of covariates in your analysis in a statistically rigorous and informed manner, thereby helping you identify the most informative predictors. This package implements a method that performs statistical tests on the Variable Importance Measures (VIMP) obtained from the Random Forest (RF) algorithm to determine whether each covariate is statistically significant and truly informative. In contrast to widely used methods, such as selecting the top *n* covariates with the highest VIMP or choosing covariates with a VIMP above a certain threshold, the method implemented in `shadowVIMP` allows for a statistical justification of whether a given VIMP is sufficiently large to be unlikely due to chance. The main function of the package, `shadow_vimp()`, outputs a table indicating whether each covariate is informative, along with its associated (adjusted) p-values. In addition, the `plot_vimps()` function provides a convenient way to visualise the VIMPs obtained from our algorithm, including unadjusted, FDR- and FWER-adjusted p-values. Details on the method, a realistic example of its usage, and guidance on interpreting the results can be found in the vignette: `vignette("shadowVIMP-vignette")`.
 
 
 ## Installation
@@ -50,7 +50,7 @@ set.seed(789)
 
 # Standard usage - sequential computing
 # When working with real data, increase the value of the niters parameter or leave it at the default value
-vimp_seq <- vim_perm_sim_wrapper(entire_data = mtcars, outcome_var = "vs", niters = c(30, 100, 150))
+vimp_seq <- shadow_vimp(data = mtcars, outcome_var = "vs", niters = c(30, 100, 150))
 
 # Print informative covariates according to the pooled criterion (with and without p-value correction)
 vimp_seq$final_dec_pooled
@@ -77,7 +77,7 @@ vimp_seq$vimp_history %>% head()
 You can visualize your results in the following way:
 
 ```{r example_cont, echo = FALSE, fig.width=28, fig.height=19}
-plot_vimps(wrapper_object = vimp_seq)
+plot_vimps(shadow_vimp_out = vimp_seq)
 ```
 
 For a more realistic and detailed example of how to use this package, and the theory behind the method, see `vignette("shadowVIMP-vignette")`.

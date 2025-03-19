@@ -1,5 +1,5 @@
 # Define objects used repetitively in multiple tests
-# Data used in test-vim_perm_sim.R and test-vim_perm_sim_wrapper.R
+# Data used in test-vim_perm_sim.R and test-shadow_vimp.R
 df <- data.frame(diagnosis = c(rep(1, 50), rep(0, 50)))
 n_rows <- nrow(df)
 for (i in 1:10) {
@@ -26,8 +26,7 @@ fake_vimp_df <- matrix(fake_vimp, nrow = 5, ncol = 10) %>%
 colnames(fake_vimp_df) <- c(var_names, var_permuted)
 
 fake_data_vps <- list(
-  vim_simulated = fake_vimp_df,
-  controls = list(nsim = 5)
+  vim_simulated = fake_vimp_df
 )
 
 # Data used in test-plot_vimps.R

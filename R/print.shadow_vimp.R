@@ -7,7 +7,7 @@
 #' @param ... Further arguments passed to or from other methods.
 #' @seealso \code{\link{shadow_vimp}}
 #' @export
-print.shadow_vimp <- function(x, ...){
+print.shadow_vimp <- function(x, ...) {
   cat("shadowVIMP Result\n\n")
 
   # removing extra white spaces from the call

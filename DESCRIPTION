@@ -3,7 +3,7 @@ Title: Covariate Selection Based on VIMP Permutation-Like Testing
 Version: 0.1.0
 Authors@R: c(
     person(given = "Tim", family = "Mueller", email = "mueller@staburo.de", role = "aut"),
-    person(given = "Oktawia", family = "Miluch", email = "oktawia.miluch@staburo.de", role = "cre"),
+    person(given = "Oktawia", family = "Miluch", email = "oktawia.miluch@staburo.de", role = c("aut","cre")),
     person("Staburo GmbH", role = c("fnd")))
 Description: A statistical tool for reducing the number of covariates in an 
   analysis by evaluating Variable Importance Measures (VIMPs) derived from
@@ -11,7 +11,6 @@ Description: A statistical tool for reducing the number of covariates in an
   and outputs whether the covariate is significant along with the p-values.
 License: Apache License (>= 2)
 Imports: 
-    cowplot,
     doRNG,
     doParallel,
     dplyr,
@@ -21,6 +20,7 @@ Imports:
     ggpubr,
     magrittr,
     parallel,
+    patchwork,
     ranger,
     rlang,
     stats,
