@@ -2,15 +2,15 @@
 % Please edit documentation in R/shadow_vimp.R
 \name{shadow_vimp}
 \alias{shadow_vimp}
-\title{Preselect the most promising covariates and discover the significant ones in
-the final step}
+\title{Identify the influential covariates in random forests using multiple testing
+correction}
 \usage{
 shadow_vimp(
   alphas = c(0.3, 0.1, 0.05),
   niters = c(30, 120, 1500),
-  entire_data,
+  data,
   outcome_var,
-  num.trees = max(2 * (ncol(entire_data) - 1), 10000),
+  num.trees = max(2 * (ncol(data) - 1), 10000),
   num.threads = NULL,
   num_cores_parallel = NULL,
   importance = "permutation",
@@ -27,19 +27,20 @@ procedure, default \code{c(0.3, 0.10, 0.05)}.}
 \item{niters}{Numeric vector, number of permutations to be performed in each
 step of the procedure, default \code{c(30, 120, 1500)}.}
 
-\item{entire_data}{Input data frame.}
+\item{data}{Input data frame.}
 
 \item{outcome_var}{Character, name of the column containing the outcome
 variable.}
 
 \item{num.trees}{Numeric, number of trees. Passed to \code{\link[ranger:ranger]{ranger::ranger()}},
-default is \code{max(2 * (ncol(entire_data) - 1), 10000)}.}
+default is \code{max(2 * (ncol(data) - 1), 10000)}.}
 
 \item{num.threads}{Numeric, number of threads. Argument passed to
-\code{\link[ranger:ranger]{ranger::ranger()}}, default is \code{NULL}.}
+\code{\link[ranger:ranger]{ranger::ranger()}}, default is 2 if not set by options/environment
+variables. For more details see the documentation of \code{\link[ranger:ranger]{ranger::ranger()}}.}
 
-\item{num_cores_parallel}{Numeric greater than 0 and and less than or equal
-to the number of cores available on your computer (check by running
+\item{num_cores_parallel}{Numeric greater than 0 and less than or equal to the
+number of cores available on your computer (check by running
 \code{\link[parallel:detectCores]{parallel::detectCores()}}). This parameter specifies the number of cores to
 use to create a cluster when calling
 \code{parallel::makeCluster(num_cores_parallel)}. For example, setting
@@ -50,21 +51,27 @@ is \code{NULL}, which means that sequential computation is used.}
 for each independent variable. Argument passed to \code{\link[ranger:ranger]{ranger::ranger()}},
 default is \code{permutation}.}
 
-\item{save_vimp_history}{Character, one of \code{"all"}, \code{"last"} or \code{"none"}.
+\item{save_vimp_history}{specifies which variable importance measures to save.
+Possible values are:
 \itemize{
-\item \code{"all"} (the default) - variable importances from the simulation of all
-steps are saved.
-\item \code{"last"} - only the variable importances from the simulation of the last
-step will be saved.
-\item \code{"none"} - no variable importances are saved from the simulation results.
+\item \code{"all"} (the default) - saves variable importance measures from all steps
+of the procedure (both the pre-selection phase and the final selection
+step).
+\item \code{"last"} - saves only the variable importance measures from the final
+step.
+\item \code{"none"} - does not save any variable importance measures.
 }}
 
 \item{to_show}{Character, one of \code{"FWER"}, \code{"FDR"} or \code{"unadjusted"}.
 \itemize{
-\item \code{"FWER"} (the default) - the output of \code{add_test_results()} includes
-unadjusted, Benjamini-Hochberg (FDR) and Holm (FWER) adjusted p-values
-together with the decision whether the variable is significant or not (1 -
-significant, 0 - not significant) according to the chosen criterium.
+\item \code{"FWER"} (the default) - the output includes unadjusted,
+Benjamini-Hochberg (FDR) and Holm (FWER) adjusted p-values together with
+the decision whether the variable is significant or not (1 - significant, 0
+}
+\itemize{
+\item not significant) according to the chosen criterium.
+}
+\itemize{
 \item \code{"FDR"} - the output includes both unadjusted and FDR adjusted p-values along
 with the decision.
 \item \verb{"unadjusted:} - the output contains only raw, unadjusted p-values together
@@ -73,44 +80,54 @@ with the decision.
 
 \item{method}{Character, one of \code{"pooled"} or \code{"per_variable"}.
 \itemize{
-\item \code{"pooled"} (the default) - the output shows pooled p-values and decisions
-based on them.
-\item \code{"per_variable"} - the output shows per variable p-values and decisions
-based on them.
+\item \code{"pooled"} (the default) - the output shows the p-values obtained using
+the "pooled" approach and the decisions based on them.
+\item \code{"per_variable"} - the output shows the p-values obtained by using the
+"per variable" approach and the decisions based on them.
 }}
 
 \item{...}{Additional parameters passed to \code{\link[ranger:ranger]{ranger::ranger()}}.}
 }
 \value{
-List with the following entries:
+Object of the class "shadow_vimp". The following entries are displayed
+by default:
 \itemize{
-\item \code{vimp_history}- if \code{save_vimp_history} is set to \code{"all"} or \code{"last"} then
-it is a data frame with simulated VIMPs of covariates and their shadows from
-the last step of the procedure. If \code{save_vimp_history} is set to \code{"none"},
-then it is \code{NULL}.
+\item \code{call} - the call formula used to generate the output.
+\item \code{alpha} - numeric, significance level used in last step.
+\item \code{result_taken_from_previous_step} - a boolean indicating whether the
+reported results are actually the results obtained in the last step. If
+\code{TRUE}, then no variables survived the preselection process, so the reported
+results are taken from one of the previous steps.
 \item \code{final_dec_pooled} (the default) or \code{final_dec_per_variable} - a data
 frame containing, depending on the specified value of the \code{to_show}
 parameter, p-values and corresponding decisions regarding variable
 informativeness from the last step of the procedure.
-\item \code{alpha} - numeric, significance level used in last step.
-\item \code{result_taken_from_previous_step} - a boolean indicating whether the
-reported results are actually the results obtained in the last step. If
-\code{TRUE}, then no variables survived the preselection process, so the
-reported results are taken from one of the previous steps.
+In addition, the user can inspect the following result entries:
+\item \code{vimp_history}- if \code{save_vimp_history} is set to \code{"all"} or \code{"last"} then
+it is a data frame with VIMPs of covariates and their shadows from the last
+step of the procedure. If \code{save_vimp_history} is set to \code{"none"}, then it is
+\code{NULL}.
 \item \code{time_elapsed} - list containing the runtime of each step and the total
 time taken to execute the code.
 \item \code{pre_selection} -  list in which the results of the pre-selection are
 stored. The exact form of this element depends on the chosen value of the
 \code{save_vimp_history} parameter.
-\item \code{call} - the call formula used to generate the output.
 }
 }
 \description{
-\code{shadow_vimp()} does the preselection of variables first. This
-allows non-informative covariates to be excluded from subsequent steps, thus
-reducing runtime. Then, in the final step with the lowest alpha level, the
-significant variables are confirmed in the same way as in the pre-selection
-phase.
+\code{shadow_vimp()} performs variable selection and determines whether each
+covariate is influential based on unadjusted, FDR-adjusted, and FWER-adjusted
+p-values.
+}
+\details{
+The \code{shadow_vimp()} function by default performs variable selection in
+multiple steps. Initially, it prunes the set of predictors using a relaxed
+(higher) alpha threshold in a pre-selection stage. Variables that pass this
+stage then undergo a final evaluation using the target (lower) alpha threshold
+and more iterations. This stepwise approach distinguishes informative from
+uninformative covariates based on their VIMPs and enhances computational
+efficiency. The user can also perform variable selection in a single step,
+without a pre-selection phase.
 }
 \examples{
 data(mtcars)
@@ -121,7 +138,7 @@ data(mtcars)
 
 # Standard use - sequential computing
 out1 <- shadow_vimp(
-  entire_data = mtcars, outcome_var = "vs",
+  data = mtcars, outcome_var = "vs",
   niters = c(10, 20, 30), num.trees = 30
 )
 
@@ -136,34 +153,42 @@ safe_num_threads <- function(n) {
 # value of the num.threads parameter to speed up the computation
 \donttest{
 out2 <- shadow_vimp(
-  entire_data = mtcars, outcome_var = "vs",
+  data = mtcars, outcome_var = "vs",
   niters = c(10, 20, 30), num.threads = safe_num_threads(2), num.trees = 30
 )
 
 # Parallel computing using a cluster
 out3 <- shadow_vimp(
-  entire_data = mtcars, outcome_var = "vs",
+  data = mtcars, outcome_var = "vs",
   niters = c(10, 20, 30), num_cores_parallel = safe_num_threads(2),
-  num.trees = 30)
+  num.trees = 30
+)
 
-# Save the simulated variable importance values for the last step only
+# Save variable importance measures only from the final step of the
+# procedure
 out4 <- shadow_vimp(
-  entire_data = mtcars, outcome_var = "vs",
+  data = mtcars, outcome_var = "vs",
   niters = c(10, 20, 30), save_vimp_history = "last", num.trees = 30
 )
 
 # Print unadjusted and FDR-adjusted p-values together with the corresponding
 # decisions
 out5 <- shadow_vimp(
-  entire_data = mtcars, outcome_var = "vs",
+  data = mtcars, outcome_var = "vs",
   niters = c(10, 20, 30), to_show = "FDR", num.trees = 30
 )
 
 # Use per variable p-values to decide in the final step whether a covariate
 # is informative or not
 out6 <- shadow_vimp(
-  entire_data = mtcars, outcome_var = "vs",
+  data = mtcars, outcome_var = "vs",
   niters = c(10, 20, 30), method = "per_variable", num.trees = 30
+)
+
+# Perform variable selection in a single step, without a pre-selection phase
+out7 <- shadow_vimp(
+  data = mtcars, outcome_var = "vs", alphas = c(0.05),
+  niters = c(30), num.trees = 30
 )
 }
 }

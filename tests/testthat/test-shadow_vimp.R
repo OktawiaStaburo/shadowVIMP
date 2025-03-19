@@ -2,7 +2,7 @@
 test_that("shadow_vimp works as expected with default settings.", {
   out <- shadow_vimp(
     alphas = c(0.3, 0.10, 0.05), niters = c(10, 15, 20),
-    entire_data = df, outcome_var = "diagnosis"
+    data = df, outcome_var = "diagnosis"
   )
 
   expect_length(out, 7)
@@ -18,13 +18,13 @@ test_that("shadow_vimp works as expected with default settings.", {
 test_that("Different variants of save_vimp_history parameter work as expected.", {
   out_history_none <- shadow_vimp(
     alphas = c(0.3, 0.10, 0.05), niters = c(10, 15, 20),
-    entire_data = df, outcome_var = "diagnosis",
+    data = df, outcome_var = "diagnosis",
     save_vimp_history = "none"
   )
 
   out_history_last <- shadow_vimp(
     alphas = c(0.3, 0.10, 0.05), niters = c(10, 15, 20),
-    entire_data = df, outcome_var = "diagnosis",
+    data = df, outcome_var = "diagnosis",
     save_vimp_history = "last"
   )
 
@@ -39,13 +39,13 @@ test_that("Different variants of save_vimp_history parameter work as expected.",
 test_that("Different values of method parameter work as expected.", {
   out_pooled <- shadow_vimp(
     alphas = c(0.3, 0.10, 0.05), niters = c(10, 15, 20),
-    entire_data = df, outcome_var = "diagnosis",
+    data = df, outcome_var = "diagnosis",
     method = "pooled"
   )
 
   out_per_var <- shadow_vimp(
     alphas = c(0.3, 0.10, 0.05), niters = c(10, 15, 20),
-    entire_data = df, outcome_var = "diagnosis",
+    data = df, outcome_var = "diagnosis",
     method = "per_variable"
   )
 
@@ -61,38 +61,38 @@ test_that("Different values of method parameter work as expected.", {
 test_that("shadow_vimp() fails when inappropiate inputs are passed", {
   expect_error(shadow_vimp(
     alphas = c(0.3, 0.10, 0.05), niters = c(10, 20),
-    entire_data = df, outcome_var = "diagnosis"
+    data = df, outcome_var = "diagnosis"
   ), class = "simpleError")
   expect_error(shadow_vimp(
     alphas = c(0.3, 0.05, 0.15), niters = c(10, 20, 30),
-    entire_data = df, outcome_var = "diagnosis"
+    data = df, outcome_var = "diagnosis"
   ), class = "simpleError")
   expect_error(shadow_vimp(
     alphas = c(-0.3, 0.05, 0.15), niters = c(10, 20, 30),
-    entire_data = df, outcome_var = "diagnosis"
+    data = df, outcome_var = "diagnosis"
   ), class = "simpleError")
   expect_error(shadow_vimp(
     alphas = c(0.3, 0.15, 1.15), niters = c(10, 20, 30),
-    entire_data = df, outcome_var = "diagnosis"
+    data = df, outcome_var = "diagnosis"
   ), class = "simpleError")
   expect_error(
     shadow_vimp(
       alphas = c(0.3, 0.10, 0.05), niters = c(10, 20, 30),
-      entire_data = df, outcome_var = "diagnosis", save_vimp_history = "cat"
+      data = df, outcome_var = "diagnosis", save_vimp_history = "cat"
     ),
     class = "simpleError"
   )
   expect_error(
     shadow_vimp(
       alphas = c(0.3, 0.10, 0.05), niters = c(10, 20, 30),
-      entire_data = df, outcome_var = "diagnosis", to_show = "cat"
+      data = df, outcome_var = "diagnosis", to_show = "cat"
     ),
     class = "simpleError"
   )
   expect_error(
     shadow_vimp(
       alphas = c(0.3, 0.10, 0.05), niters = c(10, 20, 30),
-      entire_data = df, outcome_var = "diagnosis", method = "cat"
+      data = df, outcome_var = "diagnosis", method = "cat"
     ),
     class = "simpleError"
   )
@@ -109,7 +109,7 @@ test_that("shadow_vimp() throws a warning when no wariables survive pre-selectio
   warnings <- capture_warnings(
     shadow_vimp(
       alphas = c(0.3, 0.10, 0.05), niters = c(10, 20, 30),
-      entire_data = nonsense_df, outcome_var = "diagnosis"
+      data = nonsense_df, outcome_var = "diagnosis"
     )
   )
 

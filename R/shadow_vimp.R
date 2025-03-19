@@ -1,43 +1,46 @@
-#'Identify the influential covariates in random forests using multiple testing
-#'correction
+#' Identify the influential covariates in random forests using multiple testing
+#' correction
 #'
-#'`shadow_vimp()` performs variable selection and determines whether each
-#'covariate is influential based on unadjusted, FDR-adjusted, and FWER-adjusted
-#'p-values.
+#' `shadow_vimp()` performs variable selection and determines whether each
+#' covariate is influential based on unadjusted, FDR-adjusted, and FWER-adjusted
+#' p-values.
 #'
 #'
-#'The `shadow_vimp()` function performs variable selection in multiple steps.
-#'Initially, it prunes the set of predictors using a relaxed (higher) alpha
-#'threshold in a pre-selection stage. Variables that pass this stage then
-#'undergo a final evaluation using the target (lower) alpha threshold and more
-#'iterations. This stepwise approach distinguishes informative from
-#'uninformative covariates based on their VIMPs and enhances computational
-#'efficiency.
+#' The `shadow_vimp()` function by default performs variable selection in
+#' multiple steps. Initially, it prunes the set of predictors using a relaxed
+#' (higher) alpha threshold in a pre-selection stage. Variables that pass this
+#' stage then undergo a final evaluation using the target (lower) alpha threshold
+#' and more iterations. This stepwise approach distinguishes informative from
+#' uninformative covariates based on their VIMPs and enhances computational
+#' efficiency. The user can also perform variable selection in a single step,
+#' without a pre-selection phase.
 #'
-#'@param alphas Numeric vector, significance level values for each step of the
+#' @param alphas Numeric vector, significance level values for each step of the
 #'  procedure, default `c(0.3, 0.10, 0.05)`.
-#'@param niters  Numeric vector, number of permutations to be performed in each
+#' @param niters  Numeric vector, number of permutations to be performed in each
 #'  step of the procedure, default `c(30, 120, 1500)`.
-#'@inheritParams vim_perm_sim
-#'@inheritParams add_test_results
-#'@param num.trees Numeric, number of trees. Passed to [ranger::ranger()],
+#' @inheritParams vim_perm_sim
+#' @inheritParams add_test_results
+#' @param num.trees Numeric, number of trees. Passed to [ranger::ranger()],
 #'  default is `max(2 * (ncol(data) - 1), 10000)`.
-#'@param importance Character, the type of variable importance to be calculated
+#' @param importance Character, the type of variable importance to be calculated
 #'  for each independent variable. Argument passed to [ranger::ranger()],
 #'  default is `permutation`.
-#'@param save_vimp_history Character, one of `"all"`, `"last"` or `"none"`.
-#'  * `"all"` (the default) - variable importances from the simulation of all
-#'  steps are saved.
-#'  * `"last"` - only the variable importances from the simulation of the last
-#'  step will be saved.
-#'  * `"none"` - no variable importances are saved from the simulation results.
-#'@param method Character, one of `"pooled"` or `"per_variable"`.
+#' @param save_vimp_history specifies which variable importance measures to save.
+#'  Possible values are:
+#'  * `"all"` (the default) - saves variable importance measures from all steps
+#'   of the procedure (both the pre-selection phase and the final selection
+#'   step).
+#'  * `"last"` - saves only the variable importance measures from the final
+#'   step.
+#'  * `"none"` - does not save any variable importance measures.
+#' @param method Character, one of `"pooled"` or `"per_variable"`.
 #'  * `"pooled"` (the default) - the output shows the p-values obtained using
 #'  the "pooled" approach and the decisions based on them.
 #'  * `"per_variable"` - the output shows the p-values obtained by using the
 #'  "per variable" approach and the decisions based on them.
-#' @return Object of the class "shadow_vimp". The following entries are
-#'  displayed by default:
+#' @return Object of the class "shadow_vimp". The following entries are displayed
+#'  by default:
 #'  * `call` - the call formula used to generate the output.
 #'  * `alpha` - numeric, significance level used in last step.
 #'  * `result_taken_from_previous_step` - a boolean indicating whether the
@@ -50,17 +53,17 @@
 #'  informativeness from the last step of the procedure.
 #'  In addition, the user can inspect the following result entries:
 #'  * `vimp_history`- if `save_vimp_history` is set to `"all"` or `"last"` then
-#'  it is a data frame with VIMPs of covariates and their shadows from
-#'  the last step of the procedure. If `save_vimp_history` is set to `"none"`,
-#'  then it is `NULL`.
+#'  it is a data frame with VIMPs of covariates and their shadows from the last
+#'  step of the procedure. If `save_vimp_history` is set to `"none"`, then it is
+#'  `NULL`.
 #'  * `time_elapsed` - list containing the runtime of each step and the total
 #'  time taken to execute the code.
 #'  * `pre_selection` -  list in which the results of the pre-selection are
 #'  stored. The exact form of this element depends on the chosen value of the
 #'  `save_vimp_history` parameter.
-#'@export
-#'@import dplyr
-#'@importFrom magrittr %>%
+#' @export
+#' @import dplyr
+#' @importFrom magrittr %>%
 #' @examples
 #' data(mtcars)
 #'
@@ -74,8 +77,8 @@
 #'   niters = c(10, 20, 30), num.trees = 30
 #' )
 #'
-#'# Function to make sure proper number of cores is specified in parallel
-#'# computing
+#' # Function to make sure proper number of cores is specified in parallel
+#' # computing
 #' safe_num_threads <- function(n) {
 #'   available <- parallel::detectCores()
 #'   if (n > available) available else n
@@ -93,9 +96,11 @@
 #' out3 <- shadow_vimp(
 #'   data = mtcars, outcome_var = "vs",
 #'   niters = c(10, 20, 30), num_cores_parallel = safe_num_threads(2),
-#'   num.trees = 30)
+#'   num.trees = 30
+#' )
 #'
-#' # Save the simulated variable importance values for the last step only
+#' # Save variable importance measures only from the final step of the
+#' # procedure
 #' out4 <- shadow_vimp(
 #'   data = mtcars, outcome_var = "vs",
 #'   niters = c(10, 20, 30), save_vimp_history = "last", num.trees = 30
@@ -114,19 +119,25 @@
 #'   data = mtcars, outcome_var = "vs",
 #'   niters = c(10, 20, 30), method = "per_variable", num.trees = 30
 #' )
+#'
+#' # Perform variable selection in a single step, without a pre-selection phase
+#' out7 <- shadow_vimp(
+#'   data = mtcars, outcome_var = "vs", alphas = c(0.05),
+#'   niters = c(30), num.trees = 30
+#' )
 #' }
 shadow_vimp <- function(alphas = c(0.3, 0.10, 0.05),
-                                 niters = c(30, 120, 1500),
-                                 data,
-                                 outcome_var, # y,
-                                 num.trees = max(2 * (ncol(data) - 1), 10000),
-                                 num.threads = NULL,
-                                 num_cores_parallel = NULL,
-                                 importance = "permutation",
-                                 save_vimp_history = c("all", "last", "none"),
-                                 to_show = c("FWER", "FDR", "unadjusted"),
-                                 method = c("pooled", "per_variable"),
-                                 ...) {
+                        niters = c(30, 120, 1500),
+                        data,
+                        outcome_var, # y,
+                        num.trees = max(2 * (ncol(data) - 1), 10000),
+                        num.threads = NULL,
+                        num_cores_parallel = NULL,
+                        importance = "permutation",
+                        save_vimp_history = c("all", "last", "none"),
+                        to_show = c("FWER", "FDR", "unadjusted"),
+                        method = c("pooled", "per_variable"),
+                        ...) {
   cl <- match.call()
   cl[[1]] <- as.name("shadow_vimp")
 
