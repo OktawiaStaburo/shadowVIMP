@@ -34,7 +34,7 @@ knitr::opts_chunk$set(
 Although the `shadowVIMP` package is not (yet) available on CRAN, you can install the development version like this:
 
 ``` {r, eval = FALSE}
-devtools::install_github("OktawiaStaburo/shadowVIMP")
+devtools::install_github("OktawiaStaburo/shadowVIMP", build_vignettes = TRUE)
 ```
 
 
@@ -81,14 +81,15 @@ vimp_seq$vimp_history %>% head()
 You can visualize your results in the following way:
 
 ```{r example_cont, cache=FALSE}
-plot_vimps(shadow_vimp_out = vimp_seq, text_size = 10) +
+plot_vimps(shadow_vimp_out = vimp_seq, 
+           text_size = 10, 
+           legend.text = element_text(size = 40),
+           axis.text = element_text(size = 30)
+           ) +
   patchwork::plot_annotation(
     title = "shadowVIMP Results",
   ) &
-  theme(plot.title = element_text(size = 40, face = "bold"),
-        axis.text = element_text(size = 25), legend.text = element_text(size = 35)
-        
-  )
+  theme(plot.title = element_text(size = 45, face = "bold"))
 ```
 
 For a more realistic and detailed example of how to use this package, and the theory behind the method, see `vignette("shadowVIMP-vignette")`.
