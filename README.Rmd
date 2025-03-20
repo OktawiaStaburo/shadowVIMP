@@ -9,7 +9,10 @@ knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
   fig.path = "man/figures/README-",
-  out.width = "100%"
+  out.width = "100%",
+  fig.width = 30,
+  fig.height = 20,
+  fig.align = 'center'
 )
 ```
 
@@ -42,6 +45,7 @@ Imagine you are working with a dataset with many variables and you want to selec
 ```{r example, message = FALSE, warning = FALSE}
 library(shadowVIMP)
 library(magrittr)
+library(ggplot2)
 
 data(mtcars)
 
@@ -76,8 +80,15 @@ vimp_seq$vimp_history %>% head()
 
 You can visualize your results in the following way:
 
-```{r example_cont, echo = FALSE, fig.width=28, fig.height=19}
-plot_vimps(shadow_vimp_out = vimp_seq)
+```{r example_cont, cache=FALSE}
+plot_vimps(shadow_vimp_out = vimp_seq, text_size = 10) +
+  patchwork::plot_annotation(
+    title = "shadowVIMP Results",
+  ) &
+  theme(plot.title = element_text(size = 40, face = "bold"),
+        axis.text = element_text(size = 25), legend.text = element_text(size = 35)
+        
+  )
 ```
 
 For a more realistic and detailed example of how to use this package, and the theory behind the method, see `vignette("shadowVIMP-vignette")`.

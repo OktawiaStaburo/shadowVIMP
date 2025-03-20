@@ -54,6 +54,7 @@ the basic use case.
 ``` r
 library(shadowVIMP)
 library(magrittr)
+library(ggplot2)
 
 data(mtcars)
 
@@ -64,18 +65,18 @@ set.seed(789)
 # When working with real data, increase the value of the niters parameter or leave it at the default value
 vimp_seq <- shadow_vimp(data = mtcars, outcome_var = "vs", niters = c(30, 100, 150))
 #> alpha  0.3  
-#> 2025-03-19 14:11:39: dataframe = mtcars niters = 30 num.trees = 10000. Running step 1
+#> 2025-03-20 12:50:58: dataframe = mtcars niters = 30 num.trees = 10000. Running step 1
 #> Variables remaining:  10 
 #> alpha  0.1  
-#> 2025-03-19 14:11:45: dataframe = mtcars niters = 100 num.trees = 10000. Running step 1
-#> 2025-03-19 14:11:51: dataframe = mtcars niters = 100 num.trees = 10000. Running step 50
-#> 2025-03-19 14:11:58: dataframe = mtcars niters = 100 num.trees = 10000. Running step 100
+#> 2025-03-20 12:51:04: dataframe = mtcars niters = 100 num.trees = 10000. Running step 1
+#> 2025-03-20 12:51:10: dataframe = mtcars niters = 100 num.trees = 10000. Running step 50
+#> 2025-03-20 12:51:17: dataframe = mtcars niters = 100 num.trees = 10000. Running step 100
 #> Variables remaining:  9 
 #> alpha  0.05  
-#> 2025-03-19 14:11:58: dataframe = mtcars niters = 150 num.trees = 10000. Running step 1
-#> 2025-03-19 14:12:04: dataframe = mtcars niters = 150 num.trees = 10000. Running step 50
-#> 2025-03-19 14:12:10: dataframe = mtcars niters = 150 num.trees = 10000. Running step 100
-#> 2025-03-19 14:12:17: dataframe = mtcars niters = 150 num.trees = 10000. Running step 150
+#> 2025-03-20 12:51:17: dataframe = mtcars niters = 150 num.trees = 10000. Running step 1
+#> 2025-03-20 12:51:24: dataframe = mtcars niters = 150 num.trees = 10000. Running step 50
+#> 2025-03-20 12:51:31: dataframe = mtcars niters = 150 num.trees = 10000. Running step 100
+#> 2025-03-20 12:51:38: dataframe = mtcars niters = 150 num.trees = 10000. Running step 150
 #> Variables remaining:  7
 
 # Print informative covariates according to the pooled criterion (with and without p-value correction)
@@ -112,16 +113,16 @@ vimp_seq$result_taken_from_previous_step
 # Check the time needed to execute each step of the algorithm and the entire procedure
 vimp_seq$time_elapsed
 #> $step_1
-#> [1] 0.08808955
+#> [1] 0.0972524
 #> 
 #> $step_2
-#> [1] 0.2202961
+#> [1] 0.2236072
 #> 
 #> $step_3
-#> [1] 0.3172965
+#> [1] 0.3539478
 #> 
 #> $total_time_mins
-#> [1] 0.6256822
+#> [1] 0.6748073
 
 # Check the call code that was used to create the inspected object
 vimp_seq$call
@@ -157,7 +158,18 @@ vimp_seq$vimp_history %>% head()
 
 You can visualize your results in the following way:
 
-<img src="man/figures/README-example_cont-1.png" width="100%" />
+``` r
+plot_vimps(shadow_vimp_out = vimp_seq, text_size = 10) +
+  patchwork::plot_annotation(
+    title = "shadowVIMP Results",
+  ) &
+  theme(plot.title = element_text(size = 40, face = "bold"),
+        axis.text = element_text(size = 25), legend.text = element_text(size = 35)
+        
+  )
+```
+
+<img src="man/figures/README-example_cont-1.png" width="100%" style="display: block; margin: auto;" />
 
 For a more realistic and detailed example of how to use this package,
 and the theory behind the method, see `vignette("shadowVIMP-vignette")`.

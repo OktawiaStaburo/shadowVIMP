@@ -228,6 +228,22 @@ plot_vimps <- function(shadow_vimp_out,
   x_range <- diff(range(vimps_subset$VIMP))
   min_vimp <- min(vimps_subset$VIMP)
 
+  # Default theme specification
+  default_theme <- theme(
+    legend.position = legend.position,
+    axis.title = element_blank(),
+    legend.title = element_blank(),
+    legend.text = element_text(size = 12),
+    legend.box.margin = margin(5, 5, 5, 5)
+    )
+
+  # User theme - to allow the modification of the plot without multiple argument matching error
+  user_theme <- theme(...)
+
+  # Merge the lists so that user-supplied settings override the default theme
+  # merged_theme <- modifyList(default_theme, user_theme)
+  # final_theme <- do.call(theme, merged_theme)
+
   # Box plot
   box_plot <- ggplot(
     vimps_subset,
@@ -247,15 +263,8 @@ plot_vimps <- function(shadow_vimp_out,
     scale_x_continuous(expand = expansion(mult = c(0.15, 0.05))) +
     coord_cartesian(clip = "off") +
     theme_bw() +
-    theme(
-      legend.position = legend.position,
-      axis.title = element_blank(),
-      legend.title = element_blank(),
-      legend.text = element_text(margin = margin(r = 2, unit = "pt")),
-      legend.box.margin = margin(5, 5, 5, 5),
-      ...
-    )
-
+    default_theme +
+    user_theme
 
   if (p_val_labels == TRUE) {
     # Transform p-values data to long format
@@ -323,10 +332,10 @@ plot_vimps <- function(shadow_vimp_out,
       # Merged legend and circle subplots
       if (legend.position %in% c("left", "right")) {
         legend_helper <- (legend / fdr_fwer_type1_plot) +
-          plot_layout(heights = c(2, 1))
+          plot_layout(heights = c(4, 1)) # previously: 2, 1
       } else if (legend.position %in% c("bottom", "top")) {
         legend_helper <- (legend + fdr_fwer_type1_plot) +
-          plot_layout(widths = c(2, 1))
+          plot_layout(widths = c(4, 1)) # previously: 2, 1
       }
     }
 
@@ -383,6 +392,8 @@ plot_vimps <- function(shadow_vimp_out,
     ) +
     coord_fixed() +
     theme_void() +
+    scale_x_continuous(breaks = NULL) +
+    scale_y_continuous(breaks = NULL) +
     scale_fill_manual(values = c(
       "Type-1" = category_colors["Unadjusted conf."][[1]],
       "FWER" = category_colors["FWER conf."][[1]],
@@ -402,8 +413,8 @@ plot_vimps <- function(shadow_vimp_out,
         t = 0, # Top margin
         r = 0, # Right margin
         b = 0, # Bottom margin
-        l = 0
-      ) # Left margin
+        l = 0 # Left margin
+      )
     )
 
   helper_plot
