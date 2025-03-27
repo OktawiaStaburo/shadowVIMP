@@ -174,6 +174,50 @@ shadow_vimp <- function(alphas = c(0.3, 0.10, 0.05),
 
       warning("None of the variables have passed the pre-selection process to the final step.\n The results presented do not correspond to the smallest alpha specified.")
     } else {
+      # Warnings concerning the number of iterations if the user specified too small number
+      if(j < length(alphas)){
+        # We are in the pre-selection phase, where always pooled method is used
+        if(j > 1){
+          # Number of available covariates = number of covariates that survived pre-selection in the previous step
+          p <- data %>%
+            select(all_of(c(replicate[[j - 1]]$variables_remaining_for_replicate_pooled))) %>%
+            ncol()
+        } else{
+          # We are in the first step of the procedure so number of available variables = total number of variables
+          p <- init_num_vars
+        }
+
+        # Theoretically the smallest p-value we can get:
+        p_val_min <- 1/(niters[j]*p)
+
+        if(p_val_min > alphas[j]/init_num_vars){
+          warning("Not enough iterations for any positives after FDR/FWER adjustment.\n Increase the number of iterations in the pre-selection phase to get reliable results.")
+        }
+
+      } else {
+        # We are in the final step of the procedure - decision can be made using pooled or per_variable approach
+        # Number of available variables in the last step:
+        p <- data %>%
+          select(all_of(c(replicate[[j - 1]]$variables_remaining_for_replicate_pooled))) %>%
+          ncol()
+
+        if(method == "pooled"){
+          # Theoretically the smallest p-value we can get when using pooled approach:
+          p_val_min <- 1/(niters[j]*p)
+
+          if(p_val_min > alphas[j]/init_num_vars){
+            warning("Not enough iterations for any positives after FDR/FWER adjustment.\n Increase the number of iterations in the final step to get reliable results.")
+          }
+        } else{
+          # Theoretically the smallest p-value we can get when using per_variable approach:
+          p_val_min <- 1/(niters[j])
+
+          if(p_val_min > alphas[j]/init_num_vars){
+            warning("Not enough iterations for any positives after FDR/FWER adjustment.\n Increase the number of iterations in the final step to get reliable results.")
+          }
+        }
+      }
+
       # run algorithm
       vimpermsim <- vim_perm_sim(
         data = if (j > 1) {
