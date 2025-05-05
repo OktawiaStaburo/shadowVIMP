@@ -34,8 +34,7 @@
 #'
 #'   In fact, the output of the `add_test_results()` function is the output of
 #'   `vim_perm_sim()` with an additional layer - the `test_results` list.
-#' @keywords internal
-#' @export
+#' @noRd
 #' @import dplyr
 #' @importFrom magrittr %>%
 #' @importFrom stats p.adjust median ecdf sd
@@ -44,9 +43,14 @@
 #' # Create vimpermsim object first
 #' # When working with real data, increase num.trees value or leave default
 #' # Here this parameter is set to a small value in order to reduce the runtime
+#'# Function to make sure proper number of cores is specified for multithreading
+#' safe_num_threads <- function(n) {
+#'   available <- parallel::detectCores()
+#'   if (n > available) available else n
+#' }
 #' cars_vps <- vim_perm_sim(
 #'   data = mtcars, outcome_var = "vs", niters = 30,
-#'   num.trees = 50
+#'   num.trees = 50, num.threads = safe_num_threads(1)
 #' )
 #' init_num_vars <- ncol(x = mtcars) - 1
 #'

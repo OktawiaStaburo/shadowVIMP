@@ -26,7 +26,7 @@
 #'   each of four possible outcomes: variable not significant, confirmed by
 #'   unadjusted, FDR and FWER adjusted p-values. The default colors are color
 #'   blind friendly.
-#' @param helper.legend Boolean. Indicates whether the circle subplot displaying
+#' @param helper_legend Boolean. Indicates whether the circle subplot displaying
 #'   the relationship between the FWER, FDR, and unadjusted p-values should be
 #'   shown alongside the legend. The default is `TRUE`.
 #' @param ... Other options used to control the appearance of the output plot.
@@ -45,11 +45,18 @@
 #' # When working with real data, increase the value of the `niters` and
 #' # `num.trees` parameters to obtain trustworthy results.
 #' \donttest{
+#'# Function to make sure proper number of cores is specified for multithreading
+#' safe_num_threads <- function(n) {
+#'   available <- parallel::detectCores()
+#'   if (n > available) available else n
+#' }
+#'
 #' # Pooled p-values
 #' set.seed(789)
 #' out_pooled <- shadow_vimp(
 #'   data = mtcars, outcome_var = "vs",
-#'   niters = c(10, 20, 30), num.trees = 30
+#'   niters = c(10, 20, 30), num.trees = 30,
+#'   num.threads = safe_num_threads(1)
 #' )
 #'
 #' # The following 3 lines of code produce identical plots
@@ -76,7 +83,7 @@
 #'
 #' # Remove the subplot that displays the relationship between FWER, FDR, and
 #' # unadjusted p-values
-#' plot_vimps(shadow_vimp_out = out_pooled, helper.legend = FALSE)
+#' plot_vimps(shadow_vimp_out = out_pooled, helper_legend = FALSE)
 #'
 #' # Change colours of the boxes
 #' plot_vimps(shadow_vimp_out = out_pooled, category_colors = c(
@@ -89,7 +96,8 @@
 #' # Per variable p-values plot
 #' out_per_var <- shadow_vimp(
 #'   data = mtcars, outcome_var = "vs",
-#'   niters = c(10, 20, 30), num.trees = 30, method = "per_variable"
+#'   niters = c(10, 20, 30), num.trees = 30,
+#'   method = "per_variable", num.threads = safe_num_threads(1)
 #' )
 #'
 #' # Set pooled to `FALSE`, otherwise the function will throw an error.
@@ -98,6 +106,7 @@
 plot_vimps <- function(shadow_vimp_out,
                        pooled = TRUE,
                        filter_vars = NULL,
+                       helper_legend = TRUE,
                        p_val_labels = TRUE,
                        text_size = 4,
                        legend.position = c("right", "left", "top", "bottom", "none"),
@@ -107,7 +116,6 @@ plot_vimps <- function(shadow_vimp_out,
                          "Unadjusted conf." = "#43B284FF",
                          "Not significant" = "#898E9FFF"
                        ),
-                       helper.legend = TRUE,
                        ...) {
   # Parameters check
   legend.position <- match.arg(legend.position)
@@ -119,8 +127,8 @@ plot_vimps <- function(shadow_vimp_out,
     stop("Parameter `text_size` must be numeric.")
   }
 
-  if (is.logical(pooled) == FALSE || is.logical(p_val_labels) == FALSE || is.logical(helper.legend) == FALSE) {
-    stop("Parameter `pooled`, `p_val_labels` and `helper.legend` must be logical.")
+  if (is.logical(pooled) == FALSE || is.logical(p_val_labels) == FALSE || is.logical(helper_legend) == FALSE) {
+    stop("Parameter `pooled`, `p_val_labels` and `helper_legend` must be logical.")
   }
 
   if (is.null(filter_vars) == FALSE && (is.numeric(filter_vars) == FALSE || filter_vars <= 0)) {
@@ -323,7 +331,7 @@ plot_vimps <- function(shadow_vimp_out,
     bp_no_legend <- box_plot + theme(legend.position = "none")
 
     # Should the plot showing the dependency between Type-1, FDR and FWER be displayed?
-    if (helper.legend == FALSE) {
+    if (helper_legend == FALSE) {
       legend_helper <- legend
     } else {
       # Creating subplot displayed next to main legend - the dependency between Type-1, FDR and FWER
