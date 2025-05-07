@@ -12,25 +12,24 @@
 
 ## Overview
 
-`shadowVIMP` is designed to perform variable selection by reducing the
-number of covariates in your analysis in a statistically rigorous and
-informed manner, thereby helping you identify the most informative
-predictors. This package implements a method that performs statistical
-tests on the Variable Importance Measures (VIMP) obtained from the
-Random Forest (RF) algorithm to determine whether each covariate is
-statistically significant and truly informative. In contrast to widely
-used methods, such as selecting the top *n* covariates with the highest
-VIMP or choosing covariates with a VIMP above a certain threshold, the
-method implemented in `shadowVIMP` allows for a statistical
-justification of whether a given VIMP is sufficiently large to be
-unlikely due to chance. The main function of the package,
-`shadow_vimp()`, outputs a table indicating whether each covariate is
-informative, along with its associated (adjusted) p-values. In addition,
-the `plot_vimps()` function provides a convenient way to visualise the
-VIMPs obtained from our algorithm, including unadjusted, FDR- and
-FWER-adjusted p-values. Details on the method, a realistic example of
-its usage, and guidance on interpreting the results can be found in the
-vignette: `vignette("shadowVIMP-vignette")`.
+`shadowVIMP` is an R package for variable selection that reduces the
+number of covariates in a statistically rigorous and informed way,
+identifying the most informative predictors. This package implements a
+method that performs statistical tests on the Variable Importance
+Measures (VIMP) obtained from the Random Forest (RF) algorithm to
+determine whether each covariate is statistically significant and truly
+informative. In contrast to widely used methods, such as selecting the
+top *n* covariates with the highest VIMP or choosing covariates with a
+VIMP above a certain threshold, the method implemented in `shadowVIMP`
+allows for a statistical justification of whether a given VIMP is
+sufficiently large to be unlikely due to chance. The main function of
+the package, `shadow_vimp()`, outputs a table indicating whether each
+covariate is informative, along with its associated (adjusted) p-values.
+In addition, the `plot_vimps()` function provides a convenient way to
+visualise the VIMPs obtained from the algorithm, including unadjusted,
+FDR- and FWER-adjusted p-values. Details on the method, a realistic
+example of its usage, and guidance on interpreting the results can be
+found in the vignette: `vignette("shadowVIMP-vignette")`.
 
 ## Installation
 
@@ -60,73 +59,94 @@ data(mtcars)
 
 # For reproducibility
 set.seed(789)
+#Value of num.threads parameter
+global_num_threads <- 1
 
-# Standard usage - sequential computing
-# When working with real data, increase the value of the niters parameter or leave it at the default value
-vimp_seq <- shadow_vimp(data = mtcars, outcome_var = "vs", niters = c(30, 100, 150))
+# Standard usage 
+# WARNING 1: When working with real data, increase the value of the niters parameter or leave it at the default value.
+# WARNING 2: To avoid potential issues with using multiple threads on CRAN, we set num.threads to 1, by default it is set to half of the available threads, which speeds up computation.
+vimp_seq <- shadow_vimp(data = mtcars, outcome_var = "vs", niters = c(30, 100, 150), num.threads = global_num_threads)
 #> alpha  0.3  
-#> 2025-03-20 13:48:11: dataframe = mtcars niters = 30 num.trees = 10000. Running step 1
+#> 2025-05-07 11:53:50: dataframe = mtcars niters = 30 num.trees = 10000. Running step 1
 #> Variables remaining:  10 
 #> alpha  0.1  
-#> 2025-03-20 13:48:17: dataframe = mtcars niters = 100 num.trees = 10000. Running step 1
-#> 2025-03-20 13:48:23: dataframe = mtcars niters = 100 num.trees = 10000. Running step 50
-#> 2025-03-20 13:48:29: dataframe = mtcars niters = 100 num.trees = 10000. Running step 100
+#> 2025-05-07 11:54:00: dataframe = mtcars niters = 100 num.trees = 10000. Running step 1
+#> 2025-05-07 11:54:15: dataframe = mtcars niters = 100 num.trees = 10000. Running step 50
+#> 2025-05-07 11:54:28: dataframe = mtcars niters = 100 num.trees = 10000. Running step 100
 #> Variables remaining:  9 
 #> alpha  0.05  
-#> 2025-03-20 13:48:30: dataframe = mtcars niters = 150 num.trees = 10000. Running step 1
-#> 2025-03-20 13:48:36: dataframe = mtcars niters = 150 num.trees = 10000. Running step 50
-#> 2025-03-20 13:48:42: dataframe = mtcars niters = 150 num.trees = 10000. Running step 100
-#> 2025-03-20 13:48:49: dataframe = mtcars niters = 150 num.trees = 10000. Running step 150
+#> 2025-05-07 11:54:28: dataframe = mtcars niters = 150 num.trees = 10000. Running step 1
+#> 2025-05-07 11:54:40: dataframe = mtcars niters = 150 num.trees = 10000. Running step 50
+#> 2025-05-07 11:54:53: dataframe = mtcars niters = 150 num.trees = 10000. Running step 100
+#> 2025-05-07 11:55:06: dataframe = mtcars niters = 150 num.trees = 10000. Running step 150
 #> Variables remaining:  7
+
+# Summary of the results
+vimp_seq
+#> shadowVIMP Result
+#> 
+#> Call:
+#>  shadow_vimp(niters = c(30, 100, 150), data = mtcars, outcome_var = "vs", num.threads = global_num_threads) 
+#> 
+#>    Step Alpha Retained Covariates
+#>  Step 1  0.30                  10
+#>  Step 2  0.10                   9
+#>  Step 3  0.05                   7
+#> 
+#> Count of significant covariates from step 3 per p-value correction method using the pooled approach
+#>  Type-1 Confirmed FDR Confirmed FWER Confirmed
+#>                 7             7              6
 
 # Print informative covariates according to the pooled criterion (with and without p-value correction)
 vimp_seq$final_dec_pooled
-#>   varname quantile_pooled      p_unadj   p_adj_FDR  p_adj_FWER Type1_confirmed
-#> 1     cyl       0.9992598 0.0007401925 0.002467308 0.007401925               1
-#> 2    qsec       0.9992598 0.0007401925 0.002467308 0.007401925               1
-#> 3     mpg       0.9985196 0.0014803849 0.002467308 0.011843079               1
-#> 4    disp       0.9985196 0.0014803849 0.002467308 0.011843079               1
-#> 5      hp       0.9985196 0.0014803849 0.002467308 0.011843079               1
-#> 6    carb       0.9985196 0.0014803849 0.002467308 0.011843079               1
-#> 7      wt       0.9822354 0.0177646188 0.025378027 0.071058475               1
-#> 8    drat       0.9252406 0.0747594375 0.093449297 0.224278312               0
-#> 9    gear       0.9030348 0.0969652110 0.107739123 0.224278312               0
-#>   FDR_confirmed FWER_confirmed
-#> 1             1              1
-#> 2             1              1
-#> 3             1              1
-#> 4             1              1
-#> 5             1              1
-#> 6             1              1
-#> 7             1              0
-#> 8             0              0
-#> 9             0              0
+#>   varname      p_unadj   p_adj_FDR  p_adj_FWER Type1_confirmed FDR_confirmed
+#> 1     cyl 0.0007401925 0.002467308 0.007401925               1             1
+#> 2    qsec 0.0007401925 0.002467308 0.007401925               1             1
+#> 3     mpg 0.0014803849 0.002467308 0.011843079               1             1
+#> 4    disp 0.0014803849 0.002467308 0.011843079               1             1
+#> 5      hp 0.0014803849 0.002467308 0.011843079               1             1
+#> 6    carb 0.0014803849 0.002467308 0.011843079               1             1
+#> 7      wt 0.0177646188 0.025378027 0.071058475               1             1
+#> 8    drat 0.0747594375 0.093449297 0.224278312               0             0
+#> 9    gear 0.0969652110 0.107739123 0.224278312               0             0
+#>   FWER_confirmed
+#> 1              1
+#> 2              1
+#> 3              1
+#> 4              1
+#> 5              1
+#> 6              1
+#> 7              0
+#> 8              0
+#> 9              0
 
-# The significance level used for the test in the last step
+# The significance level used in each step of the procedure:
 vimp_seq$alpha
-#> [1] 0.05
+#> [1] 0.30 0.10 0.05
 
-# Are the displayed results from the last or the previous step  of the procedure?
-vimp_seq$result_taken_from_previous_step
-#> [1] FALSE
+# Were all covariates deemed insignificant at any step of the pre-selection? If so, which step?
+# If `step_all_covariates_removed == 0`, then at least one covariate survived the pre-selection
+vimp_seq$step_all_covariates_removed
+#> [1] 0
 
 # Check the time needed to execute each step of the algorithm and the entire procedure
 vimp_seq$time_elapsed
 #> $step_1
-#> [1] 0.09695747
+#> [1] 0.1722519
 #> 
 #> $step_2
-#> [1] 0.214304
+#> [1] 0.4698496
 #> 
 #> $step_3
-#> [1] 0.3190292
+#> [1] 0.6415881
 #> 
 #> $total_time_mins
-#> [1] 0.6302907
+#> [1] 1.28369
 
 # Check the call code that was used to create the inspected object
 vimp_seq$call
-#> shadow_vimp(niters = c(30, 100, 150), data = mtcars, outcome_var = "vs")
+#> shadow_vimp(niters = c(30, 100, 150), data = mtcars, outcome_var = "vs", 
+#>     num.threads = global_num_threads)
 
 # Check the VIMPs of the covariates and their shadows from the last step of the procedure
 vimp_seq$vimp_history %>% head()
@@ -153,7 +173,8 @@ vimp_seq$vimp_history %>% head()
 #> 6     0.1989782   -6.730972     -6.458763    -2.7823118
 
 # Inspect in detail two steps of pre-selection
-#  vimp_seq$pre_selection
+#  vimp_seq$pre_selection$step_1
+#  vimp_seq$pre_selection$step_2
 ```
 
 You can visualize your results in the following way:
