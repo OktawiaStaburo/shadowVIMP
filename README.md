@@ -59,26 +59,26 @@ data(mtcars)
 
 # For reproducibility
 set.seed(789)
-#Value of num.threads parameter
+# Value of num.threads parameter
 global_num_threads <- 1
 
-# Standard usage 
+# Standard usage
 # WARNING 1: When working with real data, increase the value of the niters parameter or leave it at the default value.
 # WARNING 2: To avoid potential issues with using multiple threads on CRAN, we set num.threads to 1, by default it is set to half of the available threads, which speeds up computation.
 vimp_seq <- shadow_vimp(data = mtcars, outcome_var = "vs", niters = c(30, 100, 150), num.threads = global_num_threads)
 #> alpha  0.3  
-#> 2025-05-07 11:53:50: dataframe = mtcars niters = 30 num.trees = 10000. Running step 1
+#> 2025-05-07 13:56:33: dataframe = mtcars niters = 30 num.trees = 10000. Running step 1
 #> Variables remaining:  10 
 #> alpha  0.1  
-#> 2025-05-07 11:54:00: dataframe = mtcars niters = 100 num.trees = 10000. Running step 1
-#> 2025-05-07 11:54:15: dataframe = mtcars niters = 100 num.trees = 10000. Running step 50
-#> 2025-05-07 11:54:28: dataframe = mtcars niters = 100 num.trees = 10000. Running step 100
+#> 2025-05-07 13:56:45: dataframe = mtcars niters = 100 num.trees = 10000. Running step 1
+#> 2025-05-07 13:57:00: dataframe = mtcars niters = 100 num.trees = 10000. Running step 50
+#> 2025-05-07 13:57:16: dataframe = mtcars niters = 100 num.trees = 10000. Running step 100
 #> Variables remaining:  9 
 #> alpha  0.05  
-#> 2025-05-07 11:54:28: dataframe = mtcars niters = 150 num.trees = 10000. Running step 1
-#> 2025-05-07 11:54:40: dataframe = mtcars niters = 150 num.trees = 10000. Running step 50
-#> 2025-05-07 11:54:53: dataframe = mtcars niters = 150 num.trees = 10000. Running step 100
-#> 2025-05-07 11:55:06: dataframe = mtcars niters = 150 num.trees = 10000. Running step 150
+#> 2025-05-07 13:57:17: dataframe = mtcars niters = 150 num.trees = 10000. Running step 1
+#> 2025-05-07 13:57:33: dataframe = mtcars niters = 150 num.trees = 10000. Running step 50
+#> 2025-05-07 13:57:49: dataframe = mtcars niters = 150 num.trees = 10000. Running step 100
+#> 2025-05-07 13:58:05: dataframe = mtcars niters = 150 num.trees = 10000. Running step 150
 #> Variables remaining:  7
 
 # Summary of the results
@@ -132,16 +132,16 @@ vimp_seq$step_all_covariates_removed
 # Check the time needed to execute each step of the algorithm and the entire procedure
 vimp_seq$time_elapsed
 #> $step_1
-#> [1] 0.1722519
+#> [1] 0.1928281
 #> 
 #> $step_2
-#> [1] 0.4698496
+#> [1] 0.53005
 #> 
 #> $step_3
-#> [1] 0.6415881
+#> [1] 0.8161249
 #> 
 #> $total_time_mins
-#> [1] 1.28369
+#> [1] 1.539003
 
 # Check the call code that was used to create the inspected object
 vimp_seq$call
@@ -180,11 +180,12 @@ vimp_seq$vimp_history %>% head()
 You can visualize your results in the following way:
 
 ``` r
-plot_vimps(shadow_vimp_out = vimp_seq, 
-           text_size = 10, 
-           legend.text = element_text(size = 40),
-           axis.text = element_text(size = 30)
-           ) +
+plot_vimps(
+  shadow_vimp_out = vimp_seq,
+  text_size = 10,
+  legend.text = element_text(size = 40),
+  axis.text = element_text(size = 30)
+) +
   patchwork::plot_annotation(
     title = "shadowVIMP Results",
   ) &
