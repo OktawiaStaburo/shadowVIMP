@@ -8,12 +8,12 @@ plot_vimps(
   shadow_vimp_out,
   pooled = TRUE,
   filter_vars = NULL,
+  helper_legend = TRUE,
   p_val_labels = TRUE,
   text_size = 4,
   legend.position = c("right", "left", "top", "bottom", "none"),
   category_colors = c(`FWER conf.` = "#DD5129FF", `FDR conf.` = "#0F7BA2FF",
     `Unadjusted conf.` = "#43B284FF", `Not significant` = "#898E9FFF"),
-  helper.legend = TRUE,
   ...
 )
 }
@@ -33,6 +33,10 @@ pooled" approach. Default.
 \code{NULL}, which means that all variables considered in the last step of the
 procedure (and included in the \code{ shadow_vimp_out}) will be plotted.}
 
+\item{helper_legend}{Boolean. Indicates whether the circle subplot displaying
+the relationship between the FWER, FDR, and unadjusted p-values should be
+shown alongside the legend. The default is \code{TRUE}.}
+
 \item{p_val_labels}{Boolean, controls whether the p-value labels should be
 printed on the plot, default \code{TRUE}.}
 
@@ -42,14 +46,10 @@ p-values on the plot, default is 4.}
 \item{legend.position}{Character, one of "right", "left", "top", "bottom" or
 "none". Argument specifying the position of the legend.}
 
-\item{category_colors}{Character of length 4, contains color assignment for
+\item{category_colors}{Character of length 4, containing color assignment for
 each of four possible outcomes: variable not significant, confirmed by
 unadjusted, FDR and FWER adjusted p-values. The default colors are color
 blind friendly.}
-
-\item{helper.legend}{Boolean. Indicates whether the circle subplot displaying
-the relationship between the FWER, FDR, and unadjusted p-values should be
-shown alongside the legend. The default is \code{TRUE}.}
 
 \item{...}{Other options used to control the appearance of the output plot.}
 }
@@ -69,11 +69,18 @@ data(mtcars)
 # When working with real data, increase the value of the `niters` and
 # `num.trees` parameters to obtain trustworthy results.
 \donttest{
+# Function to make sure proper number of cores is specified for multithreading
+safe_num_threads <- function(n) {
+  available <- parallel::detectCores()
+  if (n > available) available else n
+}
+
 # Pooled p-values
 set.seed(789)
 out_pooled <- shadow_vimp(
   data = mtcars, outcome_var = "vs",
-  niters = c(10, 20, 30), num.trees = 30
+  niters = c(10, 20, 30), num.trees = 30,
+  num.threads = safe_num_threads(1)
 )
 
 # The following 3 lines of code produce identical plots
@@ -100,7 +107,7 @@ plot_vimps(shadow_vimp_out = out_pooled, legend.position = "none")
 
 # Remove the subplot that displays the relationship between FWER, FDR, and
 # unadjusted p-values
-plot_vimps(shadow_vimp_out = out_pooled, helper.legend = FALSE)
+plot_vimps(shadow_vimp_out = out_pooled, helper_legend = FALSE)
 
 # Change colours of the boxes
 plot_vimps(shadow_vimp_out = out_pooled, category_colors = c(
@@ -113,7 +120,8 @@ plot_vimps(shadow_vimp_out = out_pooled, category_colors = c(
 # Per variable p-values plot
 out_per_var <- shadow_vimp(
   data = mtcars, outcome_var = "vs",
-  niters = c(10, 20, 30), num.trees = 30, method = "per_variable"
+  niters = c(10, 20, 30), num.trees = 30,
+  method = "per_variable", num.threads = safe_num_threads(1)
 )
 
 # Set pooled to `FALSE`, otherwise the function will throw an error.
