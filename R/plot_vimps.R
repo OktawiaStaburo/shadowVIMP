@@ -22,7 +22,7 @@
 #'   p-values on the plot, default is 4.
 #' @param legend.position Character, one of "right", "left", "top", "bottom" or
 #'   "none". Argument specifying the position of the legend.
-#' @param category_colors Character of length 4, contains color assignment for
+#' @param category_colors Character of length 4, containing color assignment for
 #'   each of four possible outcomes: variable not significant, confirmed by
 #'   unadjusted, FDR and FWER adjusted p-values. The default colors are color
 #'   blind friendly.
@@ -45,7 +45,7 @@
 #' # When working with real data, increase the value of the `niters` and
 #' # `num.trees` parameters to obtain trustworthy results.
 #' \donttest{
-#'# Function to make sure proper number of cores is specified for multithreading
+#' # Function to make sure proper number of cores is specified for multithreading
 #' safe_num_threads <- function(n) {
 #'   available <- parallel::detectCores()
 #'   if (n > available) available else n
@@ -243,7 +243,7 @@ plot_vimps <- function(shadow_vimp_out,
     legend.title = element_blank(),
     legend.text = element_text(size = 12),
     legend.box.margin = margin(5, 5, 5, 5)
-    )
+  )
 
   # User theme - to allow the modification of the plot without multiple argument matching error
   user_theme <- theme(...)

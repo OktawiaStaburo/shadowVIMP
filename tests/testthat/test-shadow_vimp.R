@@ -125,7 +125,8 @@ test_that("shadow_vimp() returns a warning when no wariables survive pre-selecti
 test_that("shadow_vimp() returns a warning when one or more shadow variables have VIMP always equal to 0.", {
   out <- capture_warnings(shadow_vimp(
     alphas = c(0.3, 0.10, 0.05), niters = c(10, 15, 20),
-    data = df_const, outcome_var = "diagnosis", num.threads = 1))
+    data = df_const, outcome_var = "diagnosis", num.threads = 1
+  ))
 
   expect_true(any(grepl("One or more shadow variables always have VIMP equal to zero.", out)))
 })
@@ -134,9 +135,10 @@ test_that("shadow_vimp() issues a warning when niters is set to a value that is 
   # Too small niters for all steps
   warnings <- capture_warnings(
     out <- shadow_vimp(
-    alphas = c(0.3, 0.10, 0.05), niters = c(3, 9, 10),
-    data = df, outcome_var = "diagnosis", num.threads = 1, num.trees = 10
-  ))
+      alphas = c(0.3, 0.10, 0.05), niters = c(3, 9, 10),
+      data = df, outcome_var = "diagnosis", num.threads = 1, num.trees = 10
+    )
+  )
   expect_true(any(grepl("Not enough iterations for any positives after FDR/FWER adjustment.\n Increase the number of iterations in the pre-selection phase to get reliable results.", warnings)))
 
   # Too small niters for the 2nd and the last step
@@ -144,7 +146,8 @@ test_that("shadow_vimp() issues a warning when niters is set to a value that is 
     out <- shadow_vimp(
       alphas = c(0.3, 0.10, 0.05), niters = c(5, 9, 12),
       data = df, outcome_var = "diagnosis", num.threads = 1, num.trees = 10
-    ))
+    )
+  )
   expect_true(any(grepl("Not enough iterations for any positives after FDR/FWER adjustment.\n Increase the number of iterations in the pre-selection phase to get reliable results.", warnings2)))
 
   # Too small niters for the last step
@@ -152,9 +155,9 @@ test_that("shadow_vimp() issues a warning when niters is set to a value that is 
     out <- shadow_vimp(
       alphas = c(0.3, 0.10, 0.05), niters = c(5, 40, 12),
       data = df, outcome_var = "diagnosis", num.threads = 1, num.trees = 10
-    ))
+    )
+  )
   expect_true(any(grepl("Not enough iterations for any positives after FDR/FWER adjustment.\n Increase the number of iterations in the final step to get reliable results.", warnings3)))
-
 })
 
 test_that("shadow_vimp() issues a warning when niters is set to a value that is too low for the per_variable method.", {
@@ -165,7 +168,8 @@ test_that("shadow_vimp() issues a warning when niters is set to a value that is 
       data = df, outcome_var = "diagnosis",
       num.threads = 1,
       method = "per_variable"
-    ))
+    )
+  )
   expect_true(any(grepl("Not enough iterations for any positives after FDR/FWER adjustment.\n Increase the number of iterations in the pre-selection phase to get reliable results.", warnings)))
 
   # Too small niters for the 2nd and the last step
@@ -174,7 +178,8 @@ test_that("shadow_vimp() issues a warning when niters is set to a value that is 
       alphas = c(0.3, 0.10, 0.05), niters = c(70, 10, 15),
       data = df, outcome_var = "diagnosis", num.threads = 1,
       method = "per_variable"
-    ))
+    )
+  )
   expect_true(any(grepl("Not enough iterations for any positives after FDR/FWER adjustment.\n Increase the number of iterations in the pre-selection phase to get reliable results.", warnings2)))
 
   # Too small niters for the last step
@@ -182,6 +187,7 @@ test_that("shadow_vimp() issues a warning when niters is set to a value that is 
     out <- shadow_vimp(
       alphas = c(0.3, 0.10, 0.05), niters = c(70, 205, 12),
       data = df, outcome_var = "diagnosis", num.threads = 1
-    ))
+    )
+  )
   expect_true(any(grepl("Not enough iterations for any positives after FDR/FWER adjustment.\n Increase the number of iterations in the final step to get reliable results.", warnings3)))
 })

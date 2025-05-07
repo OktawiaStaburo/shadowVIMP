@@ -43,7 +43,7 @@
 #' # Create vimpermsim object first
 #' # When working with real data, increase num.trees value or leave default
 #' # Here this parameter is set to a small value in order to reduce the runtime
-#'# Function to make sure proper number of cores is specified for multithreading
+#' # Function to make sure proper number of cores is specified for multithreading
 #' safe_num_threads <- function(n) {
 #'   available <- parallel::detectCores()
 #'   if (n > available) available else n

@@ -118,8 +118,10 @@ test_that("plot_vimps throws an error when `save_vimp_history` is set to `none`"
 
 # Warnings
 test_that("plot_vimps gives a warning if user tries to filter another than integer number of covariates", {
-  out <- suppressWarnings(shadow_vimp(niters = c(10, 15, 20),
-                                      data = df_large, outcome_var = "diagnosis", num.threads = 1))
+  out <- suppressWarnings(shadow_vimp(
+    niters = c(10, 15, 20),
+    data = df_large, outcome_var = "diagnosis", num.threads = 1
+  ))
   expect_warning(plot_vimps(shadow_vimp_out = out, filter_vars = 9.5), class = "simpleWarning")
 })
 

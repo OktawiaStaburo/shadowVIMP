@@ -1,4 +1,4 @@
-#' Identify the influential covariates in random forests using multiple testing
+#' Select influential covariates in random forests using multiple testing
 #' control
 #'
 #' `shadow_vimp()` performs variable selection and determines whether each
@@ -9,58 +9,78 @@
 #' The `shadow_vimp()` function by default performs variable selection in
 #' multiple steps. Initially, it prunes the set of predictors using a relaxed
 #' (higher) alpha threshold in a pre-selection stage. Variables that pass this
-#' stage then undergo a final evaluation using the target (lower) alpha threshold
-#' and more iterations. This stepwise approach distinguishes informative from
-#' uninformative covariates based on their VIMPs and enhances computational
-#' efficiency. The user can also perform variable selection in a single step,
-#' without a pre-selection phase.
+#' stage then undergo a final evaluation using the target (lower) alpha
+#' threshold and more iterations. This stepwise approach distinguishes
+#' informative from uninformative covariates based on their VIMPs and enhances
+#' computational efficiency. The user can also perform variable selection in a
+#' single step, without a pre-selection phase.
 #'
 #' @param alphas Numeric vector, significance level values for each step of the
-#'  procedure, default `c(0.3, 0.10, 0.05)`.
+#'   procedure, default `c(0.3, 0.10, 0.05)`.
 #' @param niters  Numeric vector, number of permutations to be performed in each
-#'  step of the procedure, default `c(30, 120, 1500)`.
-#' @inheritParams vim_perm_sim
-#' @inheritParams add_test_results
+#'   step of the procedure, default `c(30, 120, 1500)`.
+#' @param data Input data frame.
+#' @param outcome_var Character, name of the column containing the outcome
+#'   variable.
+#' @param num.threads Numeric. The number of threads used by [ranger::ranger()]
+#'   for parallel tree building. If `NULL` (the default), half of the available
+#'   CPU threads are used (this is the default behavior in `shadow_vimp()`,
+#'   which is different from the default in [ranger::ranger()]). See the
+#'   [ranger::ranger()] documentation for more details.
+#' @param to_show Character, one of `"FWER"`, `"FDR"` or `"unadjusted"`.
+#'  * `"FWER"` (the default) - the output includes unadjusted,
+#'   Benjamini-Hochberg (FDR) and Holm (FWER) adjusted p-values together with
+#'   the decision whether the variable is significant or not (1 - significant, 0
+#'   means not significant) according to the chosen criterium.
+#'  * `"FDR"` - the output includes both unadjusted and FDR adjusted p-values
+#'  along with the decision.
+#'  * `"unadjusted:` - the output contains only raw, unadjusted p-values
+#'   together with the decision.
 #' @param num.trees Numeric, number of trees. Passed to [ranger::ranger()],
-#'  default is `max(2 * (ncol(data) - 1), 10000)`.
+#'   default is `max(2 * (ncol(data) - 1), 10000)`.
 #' @param importance Character, the type of variable importance to be calculated
-#'  for each independent variable. Argument passed to [ranger::ranger()],
-#'  default is `permutation`.
-#' @param save_vimp_history specifies which variable importance measures to save.
-#'  Possible values are:
-#'  * `"all"` (the default) - saves variable importance measures from all steps
+#'   for each variable. Argument passed to [ranger::ranger()], default is
+#'   `permutation`.
+#' @param save_vimp_history Character, specifies which variable importance
+#'   measures to save. Possible values are:
+#'  * `"all"` (the default) - save variable importance measures from all steps
 #'   of the procedure (both the pre-selection phase and the final selection
 #'   step).
-#'  * `"last"` - saves only the variable importance measures from the final
+#'  * `"last"` - save only the variable importance measures from the final
 #'   step.
-#'  * `"none"` - does not save any variable importance measures.
+#'  * `"none"` - do not save any variable importance measures.
 #' @param method Character, one of `"pooled"` or `"per_variable"`.
-#'  * `"pooled"` (the default) - the output shows the p-values obtained using
-#'  the "pooled" approach and the decisions based on them.
-#'  * `"per_variable"` - the output shows the p-values obtained by using the
-#'  "per variable" approach and the decisions based on them.
-#' @return Object of the class "shadow_vimp". The following entries are displayed
-#'  by default:
+#'  * `"pooled"` (the default) - the results of the final step of the procedure
+#'  show the p-values obtained using the "pooled" approach and the corresponding
+#'  decisions.
+#'  * `"per_variable"` - the results of the final step of the procedure
+#'  show the p-values obtained using the "per variable" approach and the
+#'  corresponding decisions.
+#' @param ... Additional parameters passed to [ranger::ranger()].
+#' @return Object of the class "shadow_vimp" with the following entries:
 #'  * `call` - the call formula used to generate the output.
-#'  * `alpha` - numeric, significance level used in last step.
-#'  * `result_taken_from_previous_step` - a boolean indicating whether the
-#'  reported results are actually the results obtained in the last step. If
-#'  `TRUE`, then no variables survived the preselection process, so the reported
-#'  results are taken from one of the previous steps.
-#'  * `final_dec_pooled` (the default) or `final_dec_per_variable` - a data
-#'  frame containing, depending on the specified value of the `to_show`
-#'  parameter, p-values and corresponding decisions regarding variable
-#'  informativeness from the last step of the procedure.
-#'  In addition, the user can inspect the following result entries:
+#'  * `alpha` - numeric, significance level used in the algorithm.
+#'  * `step_all_covariates_removed` - integer. If > 0, the step number at which
+#'   all candidate covariates were deemed insignificant and removed. If 0, at
+#'   least one covariate survived the pre-selection until the last step of the
+#'   procedure.
+#'  * `final_dec_pooled` (the default) or `final_dec_per_variable` -  a data
+#'   frame that contains, depending on the specified value of the `to_show`
+#'   parameter, p-values and corresponding decisions (in columns with names
+#'   ending in `confirmed`) if the variable is deemed informative at the final
+#'   step of the procedure: 1 = covariate considered informative in the last
+#'   step; 0 = not informative. If all covariates were dropped in the
+#'   pre-selection, i.e. none reached the final step, then all p-values are NA
+#'   and all decisions are set to 0.
 #'  * `vimp_history`- if `save_vimp_history` is set to `"all"` or `"last"` then
-#'  it is a data frame with VIMPs of covariates and their shadows from the last
-#'  step of the procedure. If `save_vimp_history` is set to `"none"`, then it is
-#'  `NULL`.
+#'   it is a data frame with VIMPs of covariates and their shadows from the last
+#'   step of the procedure. If `save_vimp_history` is set to `"none"`, then it
+#'   is `NULL`.
 #'  * `time_elapsed` - list containing the runtime of each step and the total
-#'  time taken to execute the code.
+#'   time taken to execute the code.
 #'  * `pre_selection` -  list in which the results of the pre-selection are
-#'  stored. The exact form of this element depends on the chosen value of the
-#'  `save_vimp_history` parameter.
+#'   stored. The exact form of this element depends on the chosen value of the
+#'   `save_vimp_history` parameter.
 #' @export
 #' @import dplyr
 #' @importFrom magrittr %>%
@@ -71,31 +91,25 @@
 #' # parameters --> here these parameters are set to small values to reduce the
 #' # runtime.
 #'
-#' # Standard use - sequential computing
-#' out1 <- shadow_vimp(
-#'   data = mtcars, outcome_var = "vs",
-#'   niters = c(10, 20, 30), num.trees = 30
-#' )
-#'
-#' # Function to make sure proper number of cores is specified in parallel
-#' # computing
+#' # Function to make sure proper number of cores is specified
 #' safe_num_threads <- function(n) {
 #'   available <- parallel::detectCores()
 #'   if (n > available) available else n
 #' }
 #'
-#' # Parallelisation provided by ranger::ranger() function --> increase the
-#' # value of the num.threads parameter to speed up the computation
-#' \donttest{
-#' out2 <- shadow_vimp(
+#' # Standard use
+#' out1 <- shadow_vimp(
 #'   data = mtcars, outcome_var = "vs",
-#'   niters = c(10, 20, 30), num.threads = safe_num_threads(2), num.trees = 30
+#'   niters = c(10, 20, 30), num.trees = 30, num.threads = safe_num_threads(1)
 #' )
 #'
-#' # Parallel computing using a cluster
-#' out3 <- shadow_vimp(
+#' \donttest{
+#' # `num.threads` sets the number of threads for multithreading in
+#' # `ranger::ranger`. By default, the `shadow_vimp` function uses half the
+#' # available CPU threads.
+#' out2 <- shadow_vimp(
 #'   data = mtcars, outcome_var = "vs",
-#'   niters = c(10, 20, 30), num_cores_parallel = safe_num_threads(2),
+#'   niters = c(10, 20, 30), num.threads = safe_num_threads(2),
 #'   num.trees = 30
 #' )
 #'
@@ -103,27 +117,32 @@
 #' # procedure
 #' out4 <- shadow_vimp(
 #'   data = mtcars, outcome_var = "vs",
-#'   niters = c(10, 20, 30), save_vimp_history = "last", num.trees = 30
+#'   niters = c(10, 20, 30), save_vimp_history = "last", num.trees = 30,
+#'   num.threads = safe_num_threads(1)
 #' )
 #'
 #' # Print unadjusted and FDR-adjusted p-values together with the corresponding
 #' # decisions
 #' out5 <- shadow_vimp(
 #'   data = mtcars, outcome_var = "vs",
-#'   niters = c(10, 20, 30), to_show = "FDR", num.trees = 30
+#'   niters = c(10, 20, 30), to_show = "FDR", num.trees = 30,
+#'   num.threads = safe_num_threads(1)
 #' )
 #'
-#' # Use per variable p-values to decide in the final step whether a covariate
-#' # is informative or not
+#' # Use per-variable p-values to decide in the final step whether a covariate
+#' # is informative or not. Note that pooled p-values are always used in the
+#' # pre-selection (first two steps).
 #' out6 <- shadow_vimp(
 #'   data = mtcars, outcome_var = "vs",
-#'   niters = c(10, 20, 30), method = "per_variable", num.trees = 30
+#'   niters = c(10, 20, 30), method = "per_variable", num.trees = 30,
+#'   num.threads = safe_num_threads(1)
 #' )
 #'
 #' # Perform variable selection in a single step, without a pre-selection phase
 #' out7 <- shadow_vimp(
 #'   data = mtcars, outcome_var = "vs", alphas = c(0.05),
-#'   niters = c(30), num.trees = 30
+#'   niters = c(30), num.trees = 30,
+#'   num.threads = safe_num_threads(1)
 #' )
 #' }
 shadow_vimp <- function(alphas = c(0.3, 0.10, 0.05),
@@ -132,7 +151,6 @@ shadow_vimp <- function(alphas = c(0.3, 0.10, 0.05),
                         outcome_var, # y,
                         num.trees = max(2 * (ncol(data) - 1), 10000),
                         num.threads = NULL,
-                        num_cores_parallel = NULL,
                         importance = "permutation",
                         save_vimp_history = c("all", "last", "none"),
                         to_show = c("FWER", "FDR", "unadjusted"),
@@ -171,29 +189,27 @@ shadow_vimp <- function(alphas = c(0.3, 0.10, 0.05),
 
     if (j > 1 && length(replicate[[j - 1]]$variables_remaining_for_replicate_pooled) == 0) {
       result_from_previous_step_bool <- TRUE
-
-      warning("None of the variables have passed the pre-selection process to the final step.\n The results presented do not correspond to the smallest alpha specified.")
+      warning("None of the variables have passed the pre-selection process to the final step.")
     } else {
       # Warnings concerning the number of iterations if the user specified too small number
-      if(j < length(alphas)){
+      if (j < length(alphas)) {
         # We are in the pre-selection phase, where always pooled method is used
-        if(j > 1){
+        if (j > 1) {
           # Number of available covariates = number of covariates that survived pre-selection in the previous step
           p <- data %>%
             select(all_of(c(replicate[[j - 1]]$variables_remaining_for_replicate_pooled))) %>%
             ncol()
-        } else{
+        } else {
           # We are in the first step of the procedure so number of available variables = total number of variables
           p <- init_num_vars
         }
 
         # Theoretically the smallest p-value we can get:
-        p_val_min <- 1/(niters[j]*p)
+        p_val_min <- 1 / (niters[j] * p)
 
-        if(p_val_min > alphas[j]/init_num_vars){
+        if (p_val_min > alphas[j] / init_num_vars) {
           warning("Not enough iterations for any positives after FDR/FWER adjustment.\n Increase the number of iterations in the pre-selection phase to get reliable results.")
         }
-
       } else {
         # We are in the final step of the procedure - decision can be made using pooled or per_variable approach
         # Number of available variables in the last step:
@@ -201,18 +217,18 @@ shadow_vimp <- function(alphas = c(0.3, 0.10, 0.05),
           select(all_of(c(replicate[[j - 1]]$variables_remaining_for_replicate_pooled))) %>%
           ncol()
 
-        if(method == "pooled"){
+        if (method == "pooled") {
           # Theoretically the smallest p-value we can get when using pooled approach:
-          p_val_min <- 1/(niters[j]*p)
+          p_val_min <- 1 / (niters[j] * p)
 
-          if(p_val_min > alphas[j]/init_num_vars){
+          if (p_val_min > alphas[j] / init_num_vars) {
             warning("Not enough iterations for any positives after FDR/FWER adjustment.\n Increase the number of iterations in the final step to get reliable results.")
           }
-        } else{
+        } else {
           # Theoretically the smallest p-value we can get when using per_variable approach:
-          p_val_min <- 1/(niters[j])
+          p_val_min <- 1 / (niters[j])
 
-          if(p_val_min > alphas[j]/init_num_vars){
+          if (p_val_min > alphas[j] / init_num_vars) {
             warning("Not enough iterations for any positives after FDR/FWER adjustment.\n Increase the number of iterations in the final step to get reliable results.")
           }
         }
@@ -232,7 +248,6 @@ shadow_vimp <- function(alphas = c(0.3, 0.10, 0.05),
         num.threads = num.threads,
         num.trees = num.trees,
         data_name = data_name,
-        num_cores_parallel = num_cores_parallel,
         ...
       )
 
@@ -299,6 +314,10 @@ shadow_vimp <- function(alphas = c(0.3, 0.10, 0.05),
     }
   }
 
+  # If the results were taken from the previous step, indicate which one
+  idx_from_prev_step <- which(sapply(replicate, function(x) x$result_taken_from_previous_step))[1]
+  flag_from_prev_step <- if_else(is.na(idx_from_prev_step), 0, idx_from_prev_step - 1)
+
   # If pre-selection has been done - save its results
   if (length(alphas) > 1) {
     # Create pre_selection list storing results of the pre-selection steps
@@ -308,14 +327,22 @@ shadow_vimp <- function(alphas = c(0.3, 0.10, 0.05),
       step_name <- paste0("step_", i)
       pre_selection[[step_name]][["vimp_history"]] <- replicate[[i]]$vimpermsim$vim_simulated
 
-      if (method == "pooled") {
+      # in this if else is something wrong
+      if (flag_from_prev_step == 0) {
+        # Results were not taken from any previous step - some covariates survived until the end of the procedure
         pre_selection[[step_name]][["decision_pooled"]] <- replicate[[i]]$vimpermsim$test_results$pooled
       } else {
-        pre_selection[[step_name]][["decision_per_variable"]] <- replicate[[i]]$vimpermsim$test_results$per_variable
+        pre_selection[[step_name]][["decision_pooled"]] <- replicate[[i]]$vimpermsim$test_results$pooled %>%
+          mutate(
+            across(starts_with("p_"), ~NA),
+            across(starts_with("quantile_"), ~NA),
+            across(ends_with("_confirmed"), ~0)
+          )
       }
 
-      pre_selection[[step_name]][["alpha"]] <- replicate[[i]]$alpha
-      pre_selection[[step_name]][["result_taken_from_previous_step"]] <- replicate[[i]]$vimpermsim$result_taken_from_previous_step
+      pre_selection[[step_name]][["alpha"]] <- alphas[i]
+      # pre_selection[[step_name]][["alpha"]] <- replicate[[i]]$alpha
+      # pre_selection[[step_name]][["result_taken_from_previous_step"]] <- replicate[[i]]$vimpermsim$result_taken_from_previous_step
     }
   }
 
@@ -324,18 +351,34 @@ shadow_vimp <- function(alphas = c(0.3, 0.10, 0.05),
 
   output <- list(
     "vimp_history" = replicate[[last_idx]]$vimpermsim$vim_simulated,
-    "alpha" = replicate[[last_idx]]$alpha,
-    "result_taken_from_previous_step" = replicate[[last_idx]]$result_taken_from_previous_step,
+    "alpha" = alphas,
+    "step_all_covariates_removed" = flag_from_prev_step,
     "time_elapsed" = time,
     "pre_selection" = if (length(alphas) > 1) pre_selection else NULL,
     "call" = cl
   )
 
-  if (method == "pooled") {
-    final_dec <- replicate[[last_idx]]$vimpermsim$test_results$pooled
+  if (flag_from_prev_step == 0) {
+    # If non-zero number of covariates survived until the last step of the procedure, report results from the last step
+    if (method == "pooled") {
+      final_dec <- replicate[[last_idx]]$vimpermsim$test_results$pooled %>% select(-.data[["quantile_pooled"]])
+    } else {
+      # if(flag_from_prev_step == 0){
+      final_dec <- replicate[[last_idx]]$vimpermsim$test_results$per_variable %>% select(-.data[["quantile_per_variable"]])
+      # }
+    }
   } else {
-    final_dec <- replicate[[last_idx]]$vimpermsim$test_results$per_variable
+    # None of the covariates survived until the last step of the procedure
+    # In the final_dec output the user gets the list of all covariats, as p-values - NA,
+    # In Type1_confirmed, etc. columns - only zeros
+    final_dec <- replicate[[1]]$vimpermsim$test_results$pooled %>%
+      select(-.data[["quantile_pooled"]]) %>%
+      mutate(
+        across(starts_with("p_"), ~NA),
+        across(ends_with("_confirmed"), ~0)
+      )
   }
+
 
   sublist_name <- paste0("final_dec_", method)
   output[[sublist_name]] <- final_dec

@@ -18,7 +18,7 @@ test_that("print.shadow_vimp prints correct output using pooled approach", {
   expect_true(any(grepl(" Step Alpha Retained Covariates", output)))
 
 
-  step_lines <- output[ grep("^ Step [0-9]+", output) ]
+  step_lines <- output[grep("^ Step [0-9]+", output)]
   # Convert selected lines into df:
   df_raw <- read.table(
     text = step_lines,
@@ -35,10 +35,12 @@ test_that("print.shadow_vimp prints correct output using pooled approach", {
   # Results for three steps are reported:
   expect_equal(df$Step, c("Step 1", "Step 2", "Step 3"))
   # Alpha values printed are exactly the same as those specified in the shadow_vimp() function:
-  expect_equal(df$Alpha,  c(0.30, 0.10, 0.05))
+  expect_equal(df$Alpha, c(0.30, 0.10, 0.05))
 
-  expect_true(any(grepl("Count of significant covariates from step 3 per p-value correction method using the pooled approach",
-                        output)))
+  expect_true(any(grepl(
+    "Count of significant covariates from step 3 per p-value correction method using the pooled approach",
+    output
+  )))
   expect_true(any(grepl(" Type-1 Confirmed FDR Confirmed FWER Confirmed", output)))
 })
 
@@ -58,7 +60,7 @@ test_that("print.shadow_vimp prints correct output using per-variable approach",
   expect_true(any(grepl(" Step Alpha Retained Covariates", output)))
 
 
-  step_lines <- output[ grep("^ Step [0-9]+", output) ]
+  step_lines <- output[grep("^ Step [0-9]+", output)]
   # Convert selected lines into df:
   df_raw <- read.table(
     text = step_lines,
@@ -75,10 +77,12 @@ test_that("print.shadow_vimp prints correct output using per-variable approach",
   # Results for three steps are reported:
   expect_equal(df$Step, c("Step 1", "Step 2", "Step 3"))
   # Alpha values printed are exactly the same as those specified in the shadow_vimp() function:
-  expect_equal(df$Alpha,  c(0.30, 0.10, 0.05))
+  expect_equal(df$Alpha, c(0.30, 0.10, 0.05))
 
-  expect_true(any(grepl("Count of significant covariates from step 3 per p-value correction method using the per variable approach",
-                        output)))
+  expect_true(any(grepl(
+    "Count of significant covariates from step 3 per p-value correction method using the per variable approach",
+    output
+  )))
   expect_true(any(grepl(" Type-1 Confirmed FDR Confirmed FWER Confirmed", output)))
 })
 
@@ -105,9 +109,9 @@ test_that("print.shadow_vimp prints correct output when using arbitrary number o
   step_lines1 <- output1[grep("^ Step [0-9]+", output1)]
   # Convert selected lines into df:
   df_raw1 <- read.table(
-    text         = step_lines1,
+    text = step_lines1,
     stringsAsFactors = FALSE,
-    header       = FALSE
+    header = FALSE
   )
   # Merge together first 2 columns (so that df corresponds to the output of print function):
   df1 <- data.frame(
@@ -118,15 +122,15 @@ test_that("print.shadow_vimp prints correct output when using arbitrary number o
   )
 
   expect_equal(df1$Step, c("Step 1"))
-  expect_equal(df1$Alpha,  c(0.30))
+  expect_equal(df1$Alpha, c(0.30))
 
   # 2 steps:
   step_lines2 <- output2[grep("^ Step [0-9]+", output2)]
   # Convert selected lines into df:
   df_raw2 <- read.table(
-    text         = step_lines2,
+    text = step_lines2,
     stringsAsFactors = FALSE,
-    header       = FALSE
+    header = FALSE
   )
   # Merge together first 2 columns (so that df corresponds to the output of print function):
   df2 <- data.frame(
@@ -137,9 +141,7 @@ test_that("print.shadow_vimp prints correct output when using arbitrary number o
   )
 
   expect_equal(df2$Step, c("Step 1", "Step 2"))
-  expect_equal(df2$Alpha,  c(0.30, 0.10))
-
-
+  expect_equal(df2$Alpha, c(0.30, 0.10))
 })
 
 
@@ -165,9 +167,4 @@ test_that("print.shadow_vimp gives correct output when `to_show` is set to `FDR`
 
   expect_true(any(grepl(" Type-1 Confirmed FDR Confirmed", output1)))
   expect_true(any(grepl(" Type-1 Confirmed", output2)))
-
 })
-
-
-
-
