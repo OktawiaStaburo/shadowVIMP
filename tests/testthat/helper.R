@@ -15,6 +15,7 @@ for (i in 1:10) {
 
 df_mod <- df %>% dplyr::rename(y = v1)
 df_mod2 <- df %>% dplyr::rename(v1_permuted = v1)
+df_const <- df %>% mutate(dummy = rep(33, 100))
 
 # Data used in test-add_test_results.R
 var_names <- paste0("var", c(1:5))
