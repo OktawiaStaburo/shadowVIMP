@@ -88,7 +88,7 @@ vimp_def$final_dec_pooled %>%
 
 You can visualise your results by running the following code:
 
-````{r plot_base_starts}
+````{r plot_base_starts,  eval=TRUE, echo=FALSE}
 plot_vimps(shadow_vimp_out = vimp_def)
 ````
 
@@ -287,19 +287,19 @@ vimp_def$pre_selection$step_1$alpha
 
 In this part of the tutorial, we will continue working with the results obtained previously. Specifically, we will use the `vimp_def` object created earlier. Instead of just looking at the table that stores the decisions from the last step of our procedure, we would like to have an appealing visual representation of our results. The `shadowVIMP` package provides an easy way to achieve this with the `plot_vimps()` function. To plot results based on pooled p-values, simply pass the output of the `shadow_vimp()` function as demonstrated below:
 
-````{r plot_base}
+````{r plot_base,  eval=TRUE, echo=FALSE}
 plot_vimps(shadow_vimp_out = vimp_def)
 ````
 
 The boxes in the figure above display the VIMP measures for each covariate based on the `niters` iterations from the final step of the procedure. The numbers on the left of the plot are unadjusted, FDR-adjusted and FWER-adjusted p-values respectively. To adjust the size of displayed p-values, increase the `text_size` parameter in the `plot_vimps()` function (default is 4) in the following way:
 
-````{r plot_txt_size}
+````{r plot_txt_size,  eval=TRUE, echo=FALSE}
 plot_vimps(shadow_vimp_out = vimp_def, text_size = 5)
 ````
 
 To display a specific number of covariates, such as $10$, use the `filter_vars` parameter as shown below:
 
-````{r filter_vars}
+````{r filter_vars,  eval=TRUE, echo=FALSE}
 plot_vimps(shadow_vimp_out = vimp_def, filter_vars = 10)
 ````
 
@@ -307,7 +307,7 @@ All covariates are displayed by default. If you are working with a large dataset
 
 If you want to remove the legend or change its position, set the appropriate value for the `legend.position` parameter:
 
-````{r legend_position}
+````{r legend_position,  eval=TRUE, echo=FALSE}
 # Legend on the bottom
 plot_vimps(shadow_vimp_out = vimp_def, legend.position = "bottom", text_size = 3)
 
@@ -317,20 +317,20 @@ plot_vimps(shadow_vimp_out = vimp_def, legend.position = "none", text_size = 3)
 
 The `p_val_labels` parameter of the `plot_vimps()` function controls whether p-value labels are displayed on the plot. By default, it is set to `TRUE`, which makes them visible. If you do not want to display p-values on the plot, set the `p_val_labels` parameter to `FALSE`:
 
-```{r p_val_labels}
+```{r p_val_labels,  eval=TRUE, echo=FALSE}
 # No p-values labels
 plot_vimps(shadow_vimp_out = vimp_def, p_val_labels = FALSE)
 ```
 
 You can also remove the subplot that displays the relationship between FWER, FDR, and unadjusted p-values by setting the `helper.legend` parameter to `FALSE`:
 
-```{r no_helper_plot}
+```{r no_helper_plot,  eval=TRUE, echo=FALSE}
 plot_vimps(shadow_vimp_out = vimp_def, helper_legend = FALSE, , text_size = 3)
 ```
 
 By default, the colors used in the output of the `plot_vimps()` function are color-blind friendly. However, if you wish to assign different colors to the four types of boxes on the plot, you can do so by passing a named list of colors to the `category_colors` parameter as follows:
 
-```{r change_colors}
+```{r change_colors,  eval=TRUE, echo=FALSE}
 plot_vimps(
   shadow_vimp_out = vimp_def,
   category_colors = c(
@@ -345,7 +345,7 @@ plot_vimps(
 
 Besides playing around with the parameters of the `plot_vimps()` function, there are plenty of possibilities to further customize the appearance of your plot. For example, you can set the title and subtitle of your plot and modify their format as follows:
 
-```{r other_options}
+```{r other_options,  eval=TRUE, echo=FALSE}
 plot_vimps(shadow_vimp_out = vimp_def, text_size = 3) +
   patchwork::plot_annotation(
     title = "My Cool Plot",
@@ -364,7 +364,7 @@ vimp_per_variable <- shadow_vimp(data = data_alz, outcome_var = "diagnosis",
 
 To use the `plot_vimps()` function for results based on per-variable p-values, the `pooled` parameter must be set to `FALSE`:
 
-````{r plot_per_var2}
+````{r plot_per_var2,  eval=TRUE, echo=FALSE}
 plot_vimps(shadow_vimp_out = vimp_per_variable, pooled = FALSE, text_size = 3)
 ````
 
