@@ -63,13 +63,13 @@ vim_perm_sim <- function(data,
   # Check whether num.threads is correctly specified
   max_cores <- parallel::detectCores()
 
-  if (num.threads > max_cores || is.numeric(num.threads) == F) {
-    stop("Specified value of `num.threads` is too big or it is not numeric. Use parallel::detectCores() to check the maximal possible value of `num.threads` parameter.")
-  }
-
   # By default set num.threads to half of the available cores
   if (is.null(num.threads)) {
     num.threads <- ifelse(max_cores == 1, 1, floor(max_cores / 2))
+  }
+
+  if (num.threads > max_cores || is.numeric(num.threads) == F) {
+    stop("Specified value of `num.threads` is too big or it is not numeric. Use parallel::detectCores() to check the maximal possible value of `num.threads` parameter.")
   }
 
   # Check if niters parameter has a correct format
