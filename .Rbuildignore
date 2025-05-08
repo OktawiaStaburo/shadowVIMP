@@ -9,6 +9,7 @@
 # ^tests/testthat/temp_
 
 ^\.Rproj\.user$
+^.*\.Rproj$
 ^\.Rhistory$
 ^README\.Rmd$
 ^README\.html$

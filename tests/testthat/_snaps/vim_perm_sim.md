@@ -4,7 +4,7 @@
       vim_perm_sim(data = data, outcome_var = "diag", niters = 10, num.threads = 4) %>%
         print()
     Output
-      2025-05-07 11:58:44: dataframe = data niters = 10 num.trees = 10000. Running step 1
+      2025-05-08 10:39:19: dataframe = data niters = 10 num.trees = 10000. Running step 1
     Condition
       Warning in `vim_perm_sim()`:
       One or more shadow variables always have VIMP equal to zero.

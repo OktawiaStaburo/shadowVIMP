@@ -24,7 +24,7 @@
 #'   variable.
 #' @param num.threads Numeric. The number of threads used by [ranger::ranger()]
 #'   for parallel tree building. If `NULL` (the default), half of the available
-#'   CPU threads are used (this is the default behavior in `shadow_vimp()`,
+#'   CPU threads are used (this is the default behaviour in `shadow_vimp()`,
 #'   which is different from the default in [ranger::ranger()]). See the
 #'   [ranger::ranger()] documentation for more details.
 #' @param to_show Character, one of `"FWER"`, `"FDR"` or `"unadjusted"`.

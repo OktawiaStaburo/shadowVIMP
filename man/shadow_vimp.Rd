@@ -36,7 +36,7 @@ default is \code{max(2 * (ncol(data) - 1), 10000)}.}
 
 \item{num.threads}{Numeric. The number of threads used by \code{\link[ranger:ranger]{ranger::ranger()}}
 for parallel tree building. If \code{NULL} (the default), half of the available
-CPU threads are used (this is the default behavior in \code{shadow_vimp()},
+CPU threads are used (this is the default behaviour in \code{shadow_vimp()},
 which is different from the default in \code{\link[ranger:ranger]{ranger::ranger()}}). See the
 \code{\link[ranger:ranger]{ranger::ranger()}} documentation for more details.}
 
