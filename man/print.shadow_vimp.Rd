@@ -11,6 +11,9 @@
 
 \item{...}{Further arguments passed to or from other methods.}
 }
+\value{
+The object \code{x}, invisibly.
+}
 \description{
 Custom print function to display the key elements of the \code{shadow_vimp()}
 results.

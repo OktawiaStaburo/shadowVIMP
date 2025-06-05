@@ -6,7 +6,15 @@
 \alias{shadowVIMP-package}
 \title{shadowVIMP: Covariate Selection Based on VIMP Permutation-Like Testing}
 \description{
-A statistical tool for reducing the number of covariates in an analysis by evaluating Variable Importance Measures (VIMPs) derived from the Random Forest algorithm. It performs statistical tests on the VIMPs and outputs whether the covariate is significant along with the p-values.
+A statistical method for reducing the number of covariates in an analysis by evaluating Variable Importance Measures (VIMPs) derived from the Random Forest algorithm. It performs statistical tests on the VIMPs and outputs whether the covariate is significant along with the p-values.
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/OktawiaStaburo/shadowVIMP}
+  \item Report bugs at \url{https://github.com/OktawiaStaburo/shadowVIMP/issues}
+}
+
 }
 \author{
 \strong{Maintainer}: Oktawia Miluch \email{oktawia.miluch@staburo.de}
@@ -18,7 +26,7 @@ Authors:
 
 Other contributors:
 \itemize{
-  \item Staburo GmbH [funder]
+  \item Staburo GmbH [copyright holder, funder]
 }
 
 }

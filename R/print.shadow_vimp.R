@@ -6,6 +6,8 @@
 #' @param x Object of class 'shadow_vimp'
 #' @param ... Further arguments passed to or from other methods.
 #' @seealso \code{\link{shadow_vimp}}
+#' @return The object `x`, invisibly.
+#' @method print shadow_vimp
 #' @import stringr
 #' @importFrom magrittr %>%
 #' @import dplyr

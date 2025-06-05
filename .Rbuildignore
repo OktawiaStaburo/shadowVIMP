@@ -37,3 +37,4 @@
 ^LICENSE\.md$
 ^shadowVIMP\.Rproj$
 ^\.github$
+^cran-comments\.md$
