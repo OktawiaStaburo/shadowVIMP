@@ -33,11 +33,10 @@ found in the vignette: `vignette("shadowVIMP-vignette")`.
 
 ## Installation
 
-Although the `shadowVIMP` package is not (yet) available on CRAN, you
-can install the development version like this:
+The `shadowVIMP` package can be installed in the following way::
 
 ``` r
-devtools::install_github("OktawiaStaburo/shadowVIMP", build_vignettes = TRUE)
+install.packages("shadowVIMP")
 ```
 
 ## Usage
@@ -67,18 +66,18 @@ global_num_threads <- 1
 # WARNING 2: To avoid potential issues with using multiple threads on CRAN, we set num.threads to 1, by default it is set to half of the available threads, which speeds up computation.
 vimp_seq <- shadow_vimp(data = mtcars, outcome_var = "vs", niters = c(30, 100, 150), num.threads = global_num_threads)
 #> alpha  0.3  
-#> 2025-05-08 14:35:19: dataframe = mtcars niters = 30 num.trees = 10000. Running step 1
+#> 2025-06-05 10:25:11: dataframe = mtcars niters = 30 num.trees = 10000. Running step 1
 #> Variables remaining:  10 
 #> alpha  0.1  
-#> 2025-05-08 14:35:31: dataframe = mtcars niters = 100 num.trees = 10000. Running step 1
-#> 2025-05-08 14:35:47: dataframe = mtcars niters = 100 num.trees = 10000. Running step 50
-#> 2025-05-08 14:36:03: dataframe = mtcars niters = 100 num.trees = 10000. Running step 100
+#> 2025-06-05 10:25:22: dataframe = mtcars niters = 100 num.trees = 10000. Running step 1
+#> 2025-06-05 10:25:37: dataframe = mtcars niters = 100 num.trees = 10000. Running step 50
+#> 2025-06-05 10:25:53: dataframe = mtcars niters = 100 num.trees = 10000. Running step 100
 #> Variables remaining:  9 
 #> alpha  0.05  
-#> 2025-05-08 14:36:03: dataframe = mtcars niters = 150 num.trees = 10000. Running step 1
-#> 2025-05-08 14:36:19: dataframe = mtcars niters = 150 num.trees = 10000. Running step 50
-#> 2025-05-08 14:36:35: dataframe = mtcars niters = 150 num.trees = 10000. Running step 100
-#> 2025-05-08 14:36:52: dataframe = mtcars niters = 150 num.trees = 10000. Running step 150
+#> 2025-06-05 10:25:54: dataframe = mtcars niters = 150 num.trees = 10000. Running step 1
+#> 2025-06-05 10:26:07: dataframe = mtcars niters = 150 num.trees = 10000. Running step 50
+#> 2025-06-05 10:26:22: dataframe = mtcars niters = 150 num.trees = 10000. Running step 100
+#> 2025-06-05 10:26:37: dataframe = mtcars niters = 150 num.trees = 10000. Running step 150
 #> Variables remaining:  7
 
 # Summary of the results
@@ -132,16 +131,16 @@ vimp_seq$step_all_covariates_removed
 # Check the time needed to execute each step of the algorithm and the entire procedure
 vimp_seq$time_elapsed
 #> $step_1
-#> [1] 0.2012527
+#> [1] 0.181146
 #> 
 #> $step_2
-#> [1] 0.547406
+#> [1] 0.5276175
 #> 
 #> $step_3
-#> [1] 0.8102064
+#> [1] 0.7348017
 #> 
 #> $total_time_mins
-#> [1] 1.558865
+#> [1] 1.443565
 
 # Check the call code that was used to create the inspected object
 vimp_seq$call

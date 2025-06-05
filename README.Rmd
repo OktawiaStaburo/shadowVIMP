@@ -31,10 +31,10 @@ knitr::opts_chunk$set(
 
 ## Installation
 
-Although the `shadowVIMP` package is not (yet) available on CRAN, you can install the development version like this:
+The `shadowVIMP` package can be installed in the following way::
 
 ``` {r, eval = FALSE}
-devtools::install_github("OktawiaStaburo/shadowVIMP", build_vignettes = TRUE)
+install.packages("shadowVIMP")
 ```
 
 
