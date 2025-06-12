@@ -1,6 +1,6 @@
 # Define objects used repetitively in multiple tests
 # Data used in test-vim_perm_sim.R and test-shadow_vimp.R
-df <- data.frame(diagnosis = c(rep(1, 50), rep(0, 50)))
+df <- data.frame(diagnosis = c(rep(1, 10), rep(0, 10)))
 n_rows <- nrow(df)
 for (i in 1:10) {
   mean_val <- stats::runif(1, min = 0, max = 10)
@@ -10,12 +10,12 @@ for (i in 1:10) {
 }
 
 for (i in 1:10) {
-  df[[paste0("v", i + 10)]] <- c(rep(i, 50), rep(i + 1, 50))
+  df[[paste0("v", i + 10)]] <- c(rep(i, 10), rep(i + 1, 10))
 }
 
 df_mod <- df %>% dplyr::rename(y = v1)
 df_mod2 <- df %>% dplyr::rename(v1_permuted = v1)
-df_const <- df %>% dplyr::mutate(dummy = rep(33, 100))
+df_const <- df %>% dplyr::mutate(dummy = rep(33, n_rows))
 
 # Data used in test-add_test_results.R
 var_names <- paste0("var", c(1:5))

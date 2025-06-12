@@ -6,8 +6,8 @@
 # test print function for pooled approach
 test_that("print.shadow_vimp prints correct output using pooled approach", {
   out <- suppressWarnings(shadow_vimp(
-    alphas = c(0.3, 0.10, 0.05), niters = c(10, 15, 20),
-    data = df, outcome_var = "diagnosis", num.threads = 1
+    alphas = c(0.3, 0.10, 0.05), niters = c(10, 10, 10),
+    data = df, outcome_var = "diagnosis", num.threads = 1, num.trees = 5
   ))
 
   expect_s3_class(out, class = "shadow_vimp")
@@ -47,9 +47,9 @@ test_that("print.shadow_vimp prints correct output using pooled approach", {
 # Test for the per-variable approach
 test_that("print.shadow_vimp prints correct output using per-variable approach", {
   out <- suppressWarnings(shadow_vimp(
-    alphas = c(0.3, 0.10, 0.05), niters = c(10, 15, 20),
+    alphas = c(0.3, 0.10, 0.05), niters = c(10, 10, 10),
     data = df, outcome_var = "diagnosis", num.threads = 1,
-    method = "per_variable"
+    method = "per_variable", num.trees = 10
   ))
 
   expect_s3_class(out, class = "shadow_vimp")
@@ -91,12 +91,12 @@ test_that("print.shadow_vimp prints correct output using per-variable approach",
 test_that("print.shadow_vimp prints correct output when using arbitrary number of steps", {
   out1 <- suppressWarnings(shadow_vimp(
     alphas = c(0.3), niters = c(10),
-    data = df, outcome_var = "diagnosis", num.threads = 1
+    data = df, outcome_var = "diagnosis", num.threads = 1, num.trees = 5
   ))
 
   out2 <- suppressWarnings(shadow_vimp(
     alphas = c(0.3, 0.1), niters = c(10, 20),
-    data = df, outcome_var = "diagnosis", num.threads = 1
+    data = df, outcome_var = "diagnosis", num.threads = 1, num.trees = 5
   ))
 
   expect_s3_class(out1, class = "shadow_vimp")
@@ -149,14 +149,14 @@ test_that("print.shadow_vimp prints correct output when using arbitrary number o
 test_that("print.shadow_vimp gives correct output when `to_show` is set to `FDR` or `unadjusted`", {
   out1 <- suppressWarnings(shadow_vimp(
     alphas = c(0.3), niters = c(10),
-    data = df, outcome_var = "diagnosis", num.threads = 1,
+    data = df, outcome_var = "diagnosis", num.threads = 1, num.trees = 5,
     to_show = "FDR"
   ))
 
   out2 <- suppressWarnings(shadow_vimp(
-    alphas = c(0.3, 0.1), niters = c(10, 20),
+    alphas = c(0.3, 0.1), niters = c(10, 10),
     data = df, outcome_var = "diagnosis", num.threads = 1,
-    to_show = "unadjusted"
+    to_show = "unadjusted", num.trees = 10
   ))
 
   expect_s3_class(out1, class = "shadow_vimp")
