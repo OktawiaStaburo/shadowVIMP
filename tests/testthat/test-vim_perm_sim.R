@@ -38,10 +38,3 @@ test_that("vim_perm_sim throws a warning when inappropiate inputs are passed", {
   expect_warning(vim_perm_sim(data = df, outcome_var = "diagnosis", niters = c(1:3), num.trees = trees, num.threads = 1), class = "simpleWarning")
 })
 
-
-# test_that("vim_perm_sim gives expected output in parallel mode with specified number of threads", {
-#   skip_on_cran()
-#   skip_on_ci()
-#   data <- data.frame(diag = rep(1, 50), v1 = rep(2, 50), v2 = rep(3, 50))
-#   expect_snapshot(vim_perm_sim(data = data, outcome_var = "diag", niters = 10, num.threads = 4) %>% print())
-# })
