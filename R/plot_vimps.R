@@ -313,7 +313,8 @@ plot_vimps <- function(shadow_vimp_out,
         hjust = 1,
         size = text_size,
         inherit.aes = FALSE,
-        show.legend = FALSE
+        show.legend = FALSE,
+        na.rm = TRUE
       ) +
       scale_color_identity()
   }
