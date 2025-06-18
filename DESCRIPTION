@@ -1,6 +1,6 @@
 Package: shadowVIMP
 Title: Covariate Selection Based on VIMP Permutation-Like Testing
-Version: 1.0.1
+Version: 1.0.2
 Authors@R: c(
     person("Tim", "Mueller", , "mueller@staburo.de", role = "aut"),
     person("Oktawia", "Miluch", , "oktawia.miluch@staburo.de", role = c("aut", "cre")),

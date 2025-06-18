@@ -1,3 +1,5 @@
+# shadowVIMP 1.0.2
+
 # shadowVIMP 1.0.1
 
 * Vignette renders faster.
