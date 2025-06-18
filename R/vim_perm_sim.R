@@ -127,7 +127,9 @@ vim_perm_sim <- function(data,
 
   for (i in 1:niters) {
     if ((i %% 50 == 0) | (i == 1)) {
-      cat(paste0(format(Sys.time()), ": dataframe = ", data_name, " niters = ", niters, " num.trees = ", num.trees, ". Running step ", i, "\n"))
+
+      message(paste0(format(Sys.time()), ": dataframe = ", data_name, " niters = ",
+                 niters, " num.trees = ", num.trees, ". Running step ", i, "\n"))
     }
 
     # reshuffle row wise

@@ -185,7 +185,7 @@ shadow_vimp <- function(alphas = c(0.3, 0.10, 0.05),
     # runtime start
     start_time <- Sys.time()
 
-    cat("alpha ", alphas[j], " \n")
+    message("alpha ", alphas[j], " \n")
 
     if (j > 1 && length(replicate[[j - 1]]$variables_remaining_for_replicate_pooled) == 0) {
       result_from_previous_step_bool <- TRUE
@@ -268,7 +268,7 @@ shadow_vimp <- function(alphas = c(0.3, 0.10, 0.05),
         unlist() %>%
         unname()
 
-      cat("Variables remaining: ", length(variables_remaining_for_replicate_pooled), "\n")
+      message("Variables remaining: ", length(variables_remaining_for_replicate_pooled), "\n")
 
       # runtime end
       end_time <- Sys.time()
