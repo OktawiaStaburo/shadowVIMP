@@ -151,8 +151,8 @@ vim_perm_sim_survival <- function(data,
       # y = dt$y,
       # x = dt %>% select(-"y"),
       data = dt,
-      dependent.variable.name = "time",
-      status.variable.name = "status",
+      dependent.variable.name = time_column, #"time",
+      status.variable.name = censoring_column, #"status",
       importance = importance,
       replace = TRUE,
       num.trees = num.trees,
@@ -183,3 +183,4 @@ vim_perm_sim_survival <- function(data,
     vim_simulated = df_sim
   )
 }
+
