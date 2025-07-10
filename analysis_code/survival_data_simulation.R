@@ -20,7 +20,14 @@ covariates <- data.frame(id = 1:100,
 noise <- matrix(rnorm(n = 100*20), nrow = 100) %>%
   as.data.frame()
 
+<<<<<<< HEAD
 colnames(noise) <- paste0("noise", c(1:20))
+=======
+noise_na <- sample(c(sample(x = c(1:10), size = 80, replace = TRUE), rep(NA, 20)))
+noise <- noise %>% bind_cols(noise21 = noise_na)
+
+colnames(noise) <- paste0("noise", c(1:21))
+>>>>>>> abf248b2bde202c8ee85a1c472a4ae4ea3bd677c
 data <- covariates %>% bind_cols(noise)
 
 beta_coefs <- c(trt = -0.5, noise = rep(0, 20))
