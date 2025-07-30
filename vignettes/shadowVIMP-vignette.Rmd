@@ -250,7 +250,7 @@ vimp_def$step_all_covariates_removed
 The final component of the `shadow_vimp()`  function's output is the `pre_selection` list, which includes two sublists (`step_1` and `step_2` in the case of `vimp_def` object). Each sublist contains:
 
 * `vimp_history` - data frame storing `niters` VIMPs of original covariates and their r-shadows,
-*  decision_pooled` - data frame containing p-values and decisions on whether each covariate is informative at a given step,
+* `decision_pooled` - data frame containing p-values and decisions on whether each covariate is informative at a given step,
 * `alpha` - the significance level applied during the respective pre-selection step.
 
 The structure of the `pre_selection` list changes only if `save_vimp_history` is set to `last` or `none`. If one of these two options is chosen, `vimp_history` data frame will not be included for any pre-selection steps. The other two elements remain unchanged.
