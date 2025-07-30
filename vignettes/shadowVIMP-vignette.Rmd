@@ -136,7 +136,7 @@ The main advantage of pooled p-values is the reduced run time. Using the same ex
 
 #### Pre-selection 
 
-The method described above is works well for low-dimensional data, but high-dimensional settings require modifications.  The first improvement we need for a high-dimensional setting is the **pre-selection** of covariates to eliminate uninformative variables early on. This involves reducing the set of predictors in one or more preliminary steps using a less strict significance level ($\alpha$) than the final target (e.g., $\alpha = 0.3$ for pre-selection when the final $\alpha = 0.05$). The figure below illustrates the pre-selection procedure implemented in the `shadowVIMP` package.
+The method described above works well for low-dimensional data, but high-dimensional settings require modifications. The first improvement we need for a high-dimensional setting is the **pre-selection** of covariates to eliminate uninformative variables early on. This involves reducing the set of predictors in one or more preliminary steps using a less strict significance level ($\alpha$) than the final target (e.g., $\alpha = 0.3$ for pre-selection when the final $\alpha = 0.05$). The figure below illustrates the pre-selection procedure implemented in the `shadowVIMP` package.
 
 ```{r, echo=FALSE, out.width="85%", fig.cap="Illustration of pre-selection procedure"}
 knitr::include_graphics("preselection.png")
