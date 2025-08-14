@@ -11,18 +11,13 @@
 #' new permutation of the initial predictor values.
 #'
 #' @param data Input data frame.
-#' @param outcome_var Character, name of the column containing the outcome
-#'   variable.
+
 #' @param niters Numeric, number of permutations of the initial predictor
 #'   values, default is 100.
 #' @param importance Character, the type of variable importance to be calculated
 #'   for each independent variable. Argument passed to [ranger::ranger()],
 #'   default is `permutation`.
-#' @param num.threads Numeric. The number of threads used by [ranger::ranger()]
-#'   for parallel tree building. If `NULL` (the default), half of the available
-#'   CPU threads are used (this is the default behavior in `shadow_vimp()`,
-#'   which is different from the default in [ranger::ranger()]). See the
-#'   [ranger::ranger()] documentation for more details.
+#'
 #' @param num.trees Numeric, number of trees. Passed to [ranger::ranger()],
 #'   default is `max(2 * (ncol(data) - 1), 10000)`.
 #' @param data_name Character, name of the object passed as `data`. In
@@ -51,33 +46,18 @@
 #'   num.trees = 50, num.threads = safe_num_threads(1)
 #' )
 #'
-#' # `num.threads` sets the number of threads for multithreading in
-#' # `ranger::ranger`
-#' out_par <- vim_perm_sim(
-#'   data = mtcars, outcome_var = "vs", niters = 30,
-#'   num.threads = safe_num_threads(2), num.trees = 50
-#' )
+
+
+# TODO: update documentation and examples according to the changes you implemented
+# TODO 2: in the nearest future adjust this function to handle missing values in any covariate
 vim_perm_sim_survival <- function(data,
-                         #outcome_var,
                          time_column,
-                         censoring_column,
+                         status_column,
                          niters = 100,
-                         importance = "permutation",
-                         num.threads = NULL,
+                         importance = "permute",
                          num.trees = max(2 * (ncol(data) - 1), 10000),
                          data_name = NULL,
                          ...) {
-  # Check whether num.threads is correctly specified
-  max_cores <- parallel::detectCores()
-
-  # By default set num.threads to half of the available cores
-  if (is.null(num.threads)) {
-    num.threads <- ifelse(max_cores == 1, 1, floor(max_cores / 2))
-  }
-
-  if (num.threads > max_cores || is.numeric(num.threads) == F) {
-    stop("Specified value of `num.threads` is too big or it is not numeric. Use parallel::detectCores() to check the maximal possible value of `num.threads` parameter.")
-  }
 
   # Check if niters parameter has a correct format
   if (is.numeric(niters) == F) {
@@ -94,28 +74,15 @@ vim_perm_sim_survival <- function(data,
     stop("`data_name` must be a character of length 1.")
   }
 
-  if(!is.character(time_column) || !is.character(censoring_column) || length(time_column) != 1 || length(censoring_column) != 1){
-    stop("`time_column` and  `censoring_column` must be characters of length 1.")
+  if(!is.character(time_column) || !is.character(status_column) || length(time_column) != 1 || length(status_column) != 1){
+    stop("`time_column` and  `status_column` must be characters of length 1.")
   }
-
-  # Check whether the input data has already a column called "y"
-  # is_y <- "y" %in% colnames(data)
-  #
-  # # If there is already a column "y" and it's not outcome_var, force user to rename it
-  # if (is_y == TRUE && outcome_var != "y") {
-  #   stop("Before running the function, rename the column 'y' in the input data.")
-  # }
-
-  # Renaming outcome variable to y
-  # data <- data %>%
-  #   rename(y = all_of(outcome_var))
 
   p <- ncol(data) - 2
   n <- nrow(data)
 
-
   # Splitting predictors
-  predictors <- data %>% select(-all_of(c(censoring_column, time_column)))
+  predictors <- data %>% select(-all_of(c(status_column, time_column)))
 
   if (sum(grepl("_permuted$", names(predictors))) > 0) {
     stop("One or more variables ending with _permuted. Please rename them.")
@@ -130,9 +97,42 @@ vim_perm_sim_survival <- function(data,
   dt <- cbind.data.frame(
     predictors,
     predictors_p,
-    data %>% select(all_of(c(censoring_column, time_column)))
+    data %>% select(all_of(c(status_column, time_column)))
     )
 
+  # Prepare formula for RF
+  # turn characters into a symbols
+  time_sym <- ensym(time_column)
+  status_sym <- ensym(status_column)
+
+  formula_rf <- as.formula(
+    expr( Surv(!!time_sym, !!status_sym) ~ . )
+  )
+
+  # rfsrc() has no analogue of respect.unordered.factors = "order" from ranger
+  # Therefore I do the ordering of factors by hand in the same way as in ranger
+  # --> for survival data factors are ordered by the median survival time
+  to_convert <- dt %>%
+    select(-any_of(c(status_column, time_column))) %>%
+    select(where(is.factor)) %>%
+    names()
+
+  for (var in to_convert) {
+    var_sym <- sym(var)
+
+    order <- dt %>%
+      group_by(!!var_sym) %>%
+      summarise(median_time = median(!!time_sym, na.rm = TRUE),
+                .groups = "drop") %>%
+      arrange(median_time) %>%
+      pull(!!var_sym)
+
+    dt <- dt %>%
+      mutate(!!var_sym := factor(
+        !!var_sym,
+        levels  = order,
+        ordered = TRUE))
+  }
 
   # Simulation
   vimp_sim <- NULL
@@ -147,40 +147,47 @@ vim_perm_sim_survival <- function(data,
     # reshuffle row wise
     dt[, (ncol(predictors_p) + 1):(2 * ncol(predictors_p))] <- dt[sample(1:n), (ncol(predictors_p) + 1):(2 * ncol(predictors_p))]
 
-    vimp_sim[[i]] <- (ranger::ranger(
-      # y = dt$y,
-      # x = dt %>% select(-"y"),
+    vimp_sim[[i]] <- rfsrc(
+      formula = formula_rf,
       data = dt,
-      dependent.variable.name = time_column, #"time",
-      status.variable.name = censoring_column, #"status",
+      ntree = num.trees,
+      splitrule = "logrankCR",
       importance = importance,
-      replace = TRUE,
-      num.trees = num.trees,
-      scale.permutation.importance = TRUE,
-      num.threads = num.threads,
-      write.forest = FALSE,
-      respect.unordered.factors = "order",
-      ...
-    ))$variable.importance %>%
-      t() %>%
+      samptype = "swr", # Sample with replacement
+      save.memory= TRUE # Set to save memory and speed up computation
+    )$importance %>%
       as.data.frame()
   }
 
-  # putting all results in a df
-  df_sim <- as.data.frame(do.call(rbind, vimp_sim))
+  # Get the competing events names
+  event_names <- colnames(vimp_sim[[1]])
 
-  sd_shadow <- df_sim %>%
-    select(ends_with("_permuted")) %>%
-    summarise(across(everything(), ~ sd(.x))) %>%
-    pivot_longer(cols = everything(), names_to = "variable", values_to = "sd") %>%
-    filter(sd == 0)
-
-  if (nrow(sd_shadow) > 0) {
-    warning("One or more shadow variables always have VIMP equal to zero.")
+  # Collect VIMPs separately for each of competing events
+  results_sim <- list()
+  for(event in event_names){
+    sim_event <-  map(vimp_sim, ~.x %>%
+                        select(all_of(event)) %>%
+                        t() %>%
+                        data.frame(row.names = NULL)
+                      ) %>%
+      bind_rows()
+    results_sim[[event]] <- sim_event
   }
 
-  res <- list(
-    vim_simulated = df_sim
-  )
+  # Check if for any event any covariate has always VIMP = 0
+  for(event in event_names){
+    sd_shadow <- results_sim[[event]] %>%
+      select(ends_with("_permuted")) %>%
+      summarise(across(everything(), ~ sd(.x))) %>%
+      pivot_longer(cols = everything(), names_to = "variable", values_to = "sd") %>%
+      filter(sd == 0)
+
+    if (nrow(sd_shadow) > 0) {
+      warning("One or more shadow variables always have VIMP equal to zero.")
+    }
+  }
+
+  return(results_sim)
+
 }
 

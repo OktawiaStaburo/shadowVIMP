@@ -147,21 +147,22 @@
 #'   num.threads = safe_num_threads(1)
 #' )
 #' }
+
+
+# TODO: chnage examples and documentation
 shadow_vimp_survival <- function(alphas = c(0.3, 0.10, 0.05),
                         niters = c(30, 120, 1500),
                         data,
-                        #outcome_var, # y,
-                        censoring_column,
                         time_column,
+                        status_column,
                         num.trees = max(2 * (ncol(data) - 1), 10000),
-                        num.threads = NULL,
-                        importance = "permutation",
+                        importance = "permute",
                         save_vimp_history = c("all", "last", "none"),
                         to_show = c("FWER", "FDR", "unadjusted"),
                         method = c("pooled", "per_variable"),
                         ...) {
   cl <- match.call()
-  cl[[1]] <- as.name("shadow_vimp")
+  cl[[1]] <- as.name("shadow_vimp_survival")
 
   # Check if there is the same number of alpha and niters parameters
   if (length(alphas) != length(niters)) {
@@ -180,122 +181,136 @@ shadow_vimp_survival <- function(alphas = c(0.3, 0.10, 0.05),
   data_name <- deparse(substitute(data))
 
   # Capture the number of covariates (needed for correction of p-values)
-  # ncol(data)-2 because we have time and censoring inidcator
+  # ncol(data)-2 because we have time and status inidcator
   init_num_vars <- ncol(data) - 2
 
-  # for loop over alphas
   replicate <- NULL
+  vimp_sim_presel <- list()
+  result_from_previous_step_bool <- list()
 
   for (j in 1:length(alphas)) {
-    # runtime start
     start_time <- Sys.time()
-
     message("alpha ", alphas[j], " \n")
 
-    if (j > 1 && length(replicate[[j - 1]]$variables_remaining_for_replicate_pooled) == 0) {
-      result_from_previous_step_bool <- TRUE
-      warning("None of the variables have passed the pre-selection process to the final step.")
+    #Simulate VIMPs
+    if (j == 1) {
+      # run on full data
+      vimpermsim <- vim_perm_sim_survival(
+        data = data,
+        time_column = time_column,
+        status_column = status_column,
+        niters = niters[j],
+        importance = importance,
+        num.trees = num.trees,
+        data_name = data_name
+      )
+      # Save event names
+      event_names <- names(vimpermsim)
+      # For the first iteration of algorithm, none of the results are taken from the previous step
+      result_from_previous_step_bool <- setNames(as.list(rep(FALSE, length(event_names))), event_names)
     } else {
-      # Warnings concerning the number of iterations if the user specified too small number
-      if (j < length(alphas)) {
-        # We are in the pre-selection phase, where always pooled method is used
-        if (j > 1) {
-          # Number of available covariates = number of covariates that survived pre-selection in the previous step
-          p <- data %>%
-            select(all_of(c(replicate[[j - 1]]$variables_remaining_for_replicate_pooled))) %>%
-            ncol()
-        } else {
-          # We are in the first step of the procedure so number of available variables = total number of variables
-          p <- init_num_vars
+      # We are in at least 2nd step of pre-selection:
+      for (event in event_names) {
+        # For a given event, get the number of variables that survived previous pre-selection step
+        no_vars_prev <- length(replicate[[j - 1]]$variables_remaining_for_replicate_pooled[[event]]) == 0
+        result_from_previous_step_bool[[event]] <- no_vars_prev
+
+        if (no_vars_prev) {
+          next
         }
 
-        # Theoretically the smallest p-value we can get:
-        p_val_min <- 1 / (niters[j] * p)
+        # run only for events that still have some variables left after previous steps of pre-selection
+        vimp_sim_presel[[event]] <- vim_perm_sim_survival(
+          data = data %>%
+            dplyr::select(dplyr::all_of(c(
+              replicate[[j - 1]]$variables_remaining_for_replicate_pooled[[event]],
+              status_column,
+              time_column
+            ))),
+          time_column = time_column,
+          status_column = status_column,
+          niters = niters[j],
+          importance = importance,
+          num.trees = num.trees,
+          data_name = data_name
+        )[[event]]
+      }
+    }
 
-        if (p_val_min > alphas[j] / init_num_vars) {
-          warning("Not enough iterations for any positives after FDR/FWER adjustment.\n Increase the number of iterations in the pre-selection phase to get reliable results.")
-        }
+    # add test results only for events for which we simulated VIMPs in this step
+    events_to_update <- names(result_from_previous_step_bool)[!unlist(result_from_previous_step_bool)]
+    any_updates <- length(events_to_update) > 0
+
+    if (any_updates) {
+      if (j == 1) {
+        # add_test_results to all events:
+        vimpermsim_updated <- add_test_results_survival(
+          vimpermsim,
+          alpha = alphas[j],
+          init_num_vars = init_num_vars,
+          to_show = to_show
+        )
       } else {
-        # We are in the final step of the procedure - decision can be made using pooled or per_variable approach
-        # Number of available variables in the last step:
-        p <- data %>%
-          select(all_of(c(replicate[[j - 1]]$variables_remaining_for_replicate_pooled))) %>%
-          ncol()
+        # Apply add_test_results_survival only to the events for which we simulated VIMPs in the current step
+        vimp_input <- vimp_sim_presel[events_to_update]
+        #TODO: let's say that for one event none of the variables passed to this step
+        # and for the 2nd one - some survived - in vimpermsim_updated as defined below you will have only the results for the event updated in the current step
+        # but what with the other one event??
+        vimpermsim_updated <- add_test_results_survival(
+          vimp_input,
+          alpha = alphas[j],
+          init_num_vars = init_num_vars,
+          to_show = to_show
+        )
+      }
 
-        if (method == "pooled") {
-          # Theoretically the smallest p-value we can get when using pooled approach:
-          p_val_min <- 1 / (niters[j] * p)
-
-          if (p_val_min > alphas[j] / init_num_vars) {
-            warning("Not enough iterations for any positives after FDR/FWER adjustment.\n Increase the number of iterations in the final step to get reliable results.")
-          }
+      # Per event - make a list of remaining variables
+      variables_remaining_for_replicate_pooled <- list()
+      for (event in event_names) {
+        if (isTRUE(result_from_previous_step_bool[[event]])) {
+          # For teh considered event no variables survived until now
+          variables_remaining_for_replicate_pooled[[event]] <- replicate[[j - 1]]$variables_remaining_for_replicate_pooled[[event]]
+          message(paste(event,": no variables available at step", j, ".\nShowing previous-step results."))
         } else {
-          # Theoretically the smallest p-value we can get when using per_variable approach:
-          p_val_min <- 1 / (niters[j])
-
-          if (p_val_min > alphas[j] / init_num_vars) {
-            warning("Not enough iterations for any positives after FDR/FWER adjustment.\n Increase the number of iterations in the final step to get reliable results.")
-          }
+          # Get the variables that survived this step
+          variables_remaining_for_replicate_pooled[[event]] <- vimpermsim_updated$test_res_pooled[[event]] %>%
+            dplyr::filter(.data[["quantile_pooled"]] >= 1 - alphas[j]) %>%
+            dplyr::select("varname") %>%
+            unlist() %>%
+            unname()
+          message(event, "- variables remaining: ", length(variables_remaining_for_replicate_pooled[[event]]))
         }
       }
 
-      # run algorithm
-      vimpermsim <- vim_perm_sim_survival(
-        data = if (j > 1) {
-          data %>%
-            select(all_of(c(replicate[[j - 1]]$variables_remaining_for_replicate_pooled,
-                            censoring_column,
-                            time_column)))
-        } else {
-          data
-        }, # pooled pre selection
-        #outcome_var = outcome_var, # y
-        time_column = time_column,
-        censoring_column = censoring_column,
-        niters = niters[j],
-        importance = importance,
-        num.threads = num.threads,
-        num.trees = num.trees,
-        data_name = data_name,
-        ...
-      )
+      # Start from previous (or first-step) object and update only the events we recomputed
+      if (j == 1) {
+        vimpermsim_to_store <- vimpermsim_updated
+      } else {
+        vimpermsim_to_store <- replicate[[j - 1]]$vimpermsim
 
-      result_from_previous_step_bool <- FALSE
-    }
+        for (event in events_to_update) {
+          # Update VIMPs and test results for the event for which we really computed this info in this step
+          vimpermsim_to_store$test_res_pooled[[event]] <- vimpermsim_updated$test_res_pooled[[event]]
+          vimpermsim_to_store$test_res_per_variable[[event]] <- vimpermsim_updated$test_res_per_variable[[event]]
+          vimpermsim_to_store[[event]] <- vimpermsim_updated[[event]]
+        }
+      }
 
-    # If there are some variables remaining after the pre-selection
-    if (result_from_previous_step_bool == FALSE) {
-      vimpermsim <- add_test_results(vimpermsim,
-                                     alpha = alphas[j],
-                                     init_num_vars = init_num_vars,
-                                     to_show = to_show
-      )
-
-      variables_remaining_for_replicate_pooled <- vimpermsim$test_results$pooled %>%
-        filter(.data[["quantile_pooled"]] >= 1 - alphas[j]) %>%
-        select("varname") %>%
-        unlist() %>%
-        unname()
-
-      message("Variables remaining: ", length(variables_remaining_for_replicate_pooled), "\n")
-
-      # runtime end
       end_time <- Sys.time()
-
       replicate[[j]] <- list(
         "alpha" = alphas[j],
         "result_taken_from_previous_step" = result_from_previous_step_bool,
-        "vimpermsim" = vimpermsim,
+        "vimpermsim" = vimpermsim_to_store,
         "variables_remaining_for_replicate_pooled" = variables_remaining_for_replicate_pooled,
         "time_elapsed" = difftime(end_time, start_time, units = "mins")
       )
     } else {
-      # no variables survived the pre-selection process --> take results from previous step
+      # no updates for any event at this step: carry over the whole previous result
       end_time <- Sys.time()
       last_res <- replicate[[j - 1]]
       last_res$result_taken_from_previous_step <- result_from_previous_step_bool
       last_res$time_elapsed <- difftime(end_time, start_time, units = "mins")
-      last_res$warning <- "No important variables remained until the last step, results taken from previous step."
+      last_res$warning <- "No important variables remained for any event at this step. Results taken from previous step."
       replicate[[j]] <- last_res
     }
   }
@@ -313,19 +328,25 @@ shadow_vimp_survival <- function(alphas = c(0.3, 0.10, 0.05),
     sum()
 
   # Clean vimp history if "none" or "last" option is selected
-  if (save_vimp_history == "none") {
-    for (i in 1:length(replicate)) {
-      replicate[[i]]$vimpermsim$vim_simulated <- NULL
-    }
-  } else if (save_vimp_history == "last") {
-    for (i in 1:(length(replicate) - 1)) {
-      replicate[[i]]$vimpermsim$vim_simulated <- NULL
+  for(event in event_names){
+    if (save_vimp_history == "none") {
+      for (i in 1:length(replicate)) {
+        replicate[[i]]$vimpermsim[[event]] <- NULL
+      }
+    } else if (save_vimp_history == "last") {
+      for (i in 1:(length(replicate) - 1)) {
+        replicate[[i]]$vimpermsim[[event]] <- NULL
+      }
     }
   }
 
   # If the results were taken from the previous step, indicate which one
-  idx_from_prev_step <- which(sapply(replicate, function(x) x$result_taken_from_previous_step))[1]
-  flag_from_prev_step <- if_else(is.na(idx_from_prev_step), 0, idx_from_prev_step - 1)
+  from_prev_step <- sapply(replicate, function(x) x$result_taken_from_previous_step %>% unlist(use.names = TRUE))
+  # Named integer vector indicating for each event from which step the results were taken
+  flag_from_prev_step <- apply(from_prev_step, 1, function(row) {
+    idx <- which(row)
+    if (length(idx) == 0) 0 else as.integer(idx[1] - 1)
+  })
 
   # If pre-selection has been done - save its results
   if (length(alphas) > 1) {
@@ -334,69 +355,70 @@ shadow_vimp_survival <- function(alphas = c(0.3, 0.10, 0.05),
 
     for (i in 1:(length(alphas) - 1)) {
       step_name <- paste0("step_", i)
-      pre_selection[[step_name]][["vimp_history"]] <- replicate[[i]]$vimpermsim$vim_simulated
 
-      # in this if else is something wrong
-      if (flag_from_prev_step == 0) {
-        # Results were not taken from any previous step - some covariates survived until the end of the procedure
-        pre_selection[[step_name]][["decision_pooled"]] <- replicate[[i]]$vimpermsim$test_results$pooled
-      } else {
-        pre_selection[[step_name]][["decision_pooled"]] <- replicate[[i]]$vimpermsim$test_results$pooled %>%
-          mutate(
-            across(starts_with("p_"), ~NA),
-            across(starts_with("quantile_"), ~NA),
-            across(ends_with("_confirmed"), ~0)
-          )
+      for(event in event_names){
+        name <- paste0("vimp_history_", event)
+        pre_selection[[step_name]][[name]] <- replicate[[i]]$vimpermsim[[event]]
+
+        name_dec <- paste0("decision_pooled_", event)
+        if (flag_from_prev_step[[event]] == 0) {
+          # Results were not taken from any previous step - some covariates survived until the end of the procedure
+          pre_selection[[step_name]][[name_dec]] <- replicate[[i]]$vimpermsim$test_results_pooled[[event]]
+        } else {
+          pre_selection[[step_name]][[name_dec]] <- replicate[[i]]$vimpermsim$test_results_pooled[[event]] %>%
+            mutate(
+              across(starts_with("p_"), ~NA),
+              across(starts_with("quantile_"), ~NA),
+              across(ends_with("_confirmed"), ~0)
+            )
+        }
       }
-
       pre_selection[[step_name]][["alpha"]] <- alphas[i]
-      # pre_selection[[step_name]][["alpha"]] <- replicate[[i]]$alpha
-      # pre_selection[[step_name]][["result_taken_from_previous_step"]] <- replicate[[i]]$vimpermsim$result_taken_from_previous_step
     }
   }
 
   # Create list storing results of the final step
   last_idx <- length(alphas)
+  output <- list()
 
-  output <- list(
-    "vimp_history" = replicate[[last_idx]]$vimpermsim$vim_simulated,
-    "alpha" = alphas,
-    "step_all_covariates_removed" = flag_from_prev_step,
-    "time_elapsed" = time,
-    "pre_selection" = if (length(alphas) > 1) pre_selection else NULL,
-    "call" = cl
-  )
+  for(event in event_names){
+    name <- paste0("vimp_history_", event)
+    output[[name]] <- replicate[[last_idx]]$vimpermsim[[event]]
+  }
 
-  if (flag_from_prev_step == 0) {
-    # If non-zero number of covariates survived until the last step of the procedure, report results from the last step
-    if (method == "pooled") {
-      final_dec <- replicate[[last_idx]]$vimpermsim$test_results$pooled %>%
-        #NEW select(-.data[["quantile_pooled"]])
-        select(-c("quantile_pooled"))
+  output[["alpha"]] <- alphas
+  output[["step_all_covariates_removed"]] <- flag_from_prev_step
+  output[["time"]] <- time
+  output[["pre_selection"]] <- if (length(alphas) > 1) pre_selection else NULL
+  output[["call"]] <- cl
+
+  for(event in event_names){
+    if (flag_from_prev_step[[event]] == 0) {
+      # If non-zero number of covariates survived until the last step of the procedure, report results from the last step
+      if (method == "pooled") {
+        final_dec <- replicate[[last_idx]]$vimpermsim$test_res_pooled[[event]] %>%
+          select(-c("quantile_pooled"))
+      } else {
+        final_dec <- replicate[[last_idx]]$vimpermsim$test_res_per_variable[[event]] %>%
+          select(-c("quantile_per_variable"))
+      }
     } else {
-      # if(flag_from_prev_step == 0){
-      final_dec <- replicate[[last_idx]]$vimpermsim$test_results$per_variable %>%
-        #select(-.data[["quantile_per_variable"]])
-        select(-c("quantile_per_variable"))
-      # }
+      # None of the covariates survived until the last step of the procedure
+      # In the final_dec output the user gets the list of all covariats, as p-values - NA,
+      # In Type1_confirmed, etc. columns - only zeros
+      final_dec <- replicate[[1]]$vimpermsim$test_res_pooled[[event]]  %>%
+        select(-c("quantile_pooled")) %>%
+        mutate(
+          across(starts_with("p_"), ~NA),
+          across(ends_with("_confirmed"), ~0)
+        )
     }
-  } else {
-    # None of the covariates survived until the last step of the procedure
-    # In the final_dec output the user gets the list of all covariats, as p-values - NA,
-    # In Type1_confirmed, etc. columns - only zeros
-    final_dec <- replicate[[1]]$vimpermsim$test_results$pooled %>%
-      #select(-.data[["quantile_pooled"]]) %>%
-      select(-c("quantile_pooled")) %>%
-      mutate(
-        across(starts_with("p_"), ~NA),
-        across(ends_with("_confirmed"), ~0)
-      )
+
+    sublist_name <- paste0("final_dec_", method, "_", event)
+    output[[sublist_name]] <- final_dec
   }
 
 
-  sublist_name <- paste0("final_dec_", method)
-  output[[sublist_name]] <- final_dec
 
-  class(output) <- "shadow_vimp"
   return(output)
 }
