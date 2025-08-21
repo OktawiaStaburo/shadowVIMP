@@ -1,3 +1,4 @@
+# TODO: update documentation
 #' Identify significant covariates with FWER, FDR, or no multiple testing
 #' adjustment
 #'

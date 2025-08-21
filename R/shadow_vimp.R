@@ -327,7 +327,6 @@ shadow_vimp <- function(alphas = c(0.3, 0.10, 0.05),
       step_name <- paste0("step_", i)
       pre_selection[[step_name]][["vimp_history"]] <- replicate[[i]]$vimpermsim$vim_simulated
 
-      # in this if else is something wrong
       if (flag_from_prev_step == 0) {
         # Results were not taken from any previous step - some covariates survived until the end of the procedure
         pre_selection[[step_name]][["decision_pooled"]] <- replicate[[i]]$vimpermsim$test_results$pooled

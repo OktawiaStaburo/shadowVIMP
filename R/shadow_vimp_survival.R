@@ -1,5 +1,5 @@
 # shadow_vimp() function modified to handle the survival data (time-to-event data)
-
+# TODO: update documentation
 #' Select influential covariates in random forests using multiple testing
 #' control
 #'
@@ -160,6 +160,7 @@ shadow_vimp_survival <- function(alphas = c(0.3, 0.10, 0.05),
                         save_vimp_history = c("all", "last", "none"),
                         to_show = c("FWER", "FDR", "unadjusted"),
                         method = c("pooled", "per_variable"),
+                        na.action = c("na.omit", "na.impute"),
                         ...) {
   cl <- match.call()
   cl[[1]] <- as.name("shadow_vimp_survival")
@@ -202,7 +203,9 @@ shadow_vimp_survival <- function(alphas = c(0.3, 0.10, 0.05),
         niters = niters[j],
         importance = importance,
         num.trees = num.trees,
-        data_name = data_name
+        data_name = data_name,
+        na.action = na.action,
+        ...
       )
       # Save event names
       event_names <- names(vimpermsim)
@@ -232,7 +235,9 @@ shadow_vimp_survival <- function(alphas = c(0.3, 0.10, 0.05),
           niters = niters[j],
           importance = importance,
           num.trees = num.trees,
-          data_name = data_name
+          data_name = data_name,
+          na.action = na.action,
+          ...
         )[[event]]
       }
     }
@@ -253,9 +258,6 @@ shadow_vimp_survival <- function(alphas = c(0.3, 0.10, 0.05),
       } else {
         # Apply add_test_results_survival only to the events for which we simulated VIMPs in the current step
         vimp_input <- vimp_sim_presel[events_to_update]
-        #TODO: let's say that for one event none of the variables passed to this step
-        # and for the 2nd one - some survived - in vimpermsim_updated as defined below you will have only the results for the event updated in the current step
-        # but what with the other one event??
         vimpermsim_updated <- add_test_results_survival(
           vimp_input,
           alpha = alphas[j],
@@ -268,7 +270,7 @@ shadow_vimp_survival <- function(alphas = c(0.3, 0.10, 0.05),
       variables_remaining_for_replicate_pooled <- list()
       for (event in event_names) {
         if (isTRUE(result_from_previous_step_bool[[event]])) {
-          # For teh considered event no variables survived until now
+          # For the considered event no variables survived until now
           variables_remaining_for_replicate_pooled[[event]] <- replicate[[j - 1]]$variables_remaining_for_replicate_pooled[[event]]
           message(paste(event,": no variables available at step", j, ".\nShowing previous-step results."))
         } else {
@@ -363,9 +365,9 @@ shadow_vimp_survival <- function(alphas = c(0.3, 0.10, 0.05),
         name_dec <- paste0("decision_pooled_", event)
         if (flag_from_prev_step[[event]] == 0) {
           # Results were not taken from any previous step - some covariates survived until the end of the procedure
-          pre_selection[[step_name]][[name_dec]] <- replicate[[i]]$vimpermsim$test_results_pooled[[event]]
+          pre_selection[[step_name]][[name_dec]] <- replicate[[i]]$vimpermsim$test_res_pooled[[event]]
         } else {
-          pre_selection[[step_name]][[name_dec]] <- replicate[[i]]$vimpermsim$test_results_pooled[[event]] %>%
+          pre_selection[[step_name]][[name_dec]] <- replicate[[i]]$vimpermsim$test_res_pooled[[event]] %>%
             mutate(
               across(starts_with("p_"), ~NA),
               across(starts_with("quantile_"), ~NA),
@@ -417,8 +419,6 @@ shadow_vimp_survival <- function(alphas = c(0.3, 0.10, 0.05),
     sublist_name <- paste0("final_dec_", method, "_", event)
     output[[sublist_name]] <- final_dec
   }
-
-
 
   return(output)
 }

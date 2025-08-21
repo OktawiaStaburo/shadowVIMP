@@ -1,8 +1,5 @@
 # vim_perm_sim() for survival data
-# Once the code for survival data is fully developed (both code- and theorywise) and tested
-# you can modify the code of main shadow_vimp() function such that it will be able to
-# handle regression/classification as well as survival cases
-# Technical comment: if - else approach: add parameter specifying whether it' s survival case and  use appropaite function
+# TODO: update documentation
 #' Compute the variable importance of the predictors and their row-wise shadows
 #'
 #' `vim_perm_sim()` calculates repeatedly (`niters` times) the variable
@@ -29,6 +26,8 @@
 #' @import rlang dplyr
 #' @importFrom magrittr %>%
 #' @importFrom stats runif
+#' @importFrom randomForestSRC rfsrc
+#' @importFrom purrr map
 #' @examples
 #' data(mtcars)
 #' # When working with real data, increase num.trees value or keep the default
@@ -46,10 +45,10 @@
 #'   num.trees = 50, num.threads = safe_num_threads(1)
 #' )
 #'
-
-
 # TODO: update documentation and examples according to the changes you implemented
-# TODO 2: in the nearest future adjust this function to handle missing values in any covariate
+# notes about what should be included in the documentation
+# 1. explanation of handling NAs
+# 2. Info that input data must be only real valued, integer, factor or logical - NO characters allowed
 vim_perm_sim_survival <- function(data,
                          time_column,
                          status_column,
@@ -57,6 +56,7 @@ vim_perm_sim_survival <- function(data,
                          importance = "permute",
                          num.trees = max(2 * (ncol(data) - 1), 10000),
                          data_name = NULL,
+                         na.action = c("na.omit", "na.impute"),
                          ...) {
 
   # Check if niters parameter has a correct format
@@ -113,7 +113,7 @@ vim_perm_sim_survival <- function(data,
   # Therefore I do the ordering of factors by hand in the same way as in ranger
   # --> for survival data factors are ordered by the median survival time
   to_convert <- dt %>%
-    select(-any_of(c(status_column, time_column))) %>%
+    select(-all_of(c(status_column, time_column))) %>%
     select(where(is.factor)) %>%
     names()
 
@@ -153,8 +153,10 @@ vim_perm_sim_survival <- function(data,
       ntree = num.trees,
       splitrule = "logrankCR",
       importance = importance,
+      na.action = na.action, # How to handle NAs
       samptype = "swr", # Sample with replacement
-      save.memory= TRUE # Set to save memory and speed up computation
+      save.memory= TRUE, # Set to save memory and speed up computation
+      ...
     )$importance %>%
       as.data.frame()
   }
