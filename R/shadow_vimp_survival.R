@@ -147,21 +147,19 @@
 #'   num.threads = safe_num_threads(1)
 #' )
 #' }
-
-
 # TODO: chnage examples and documentation
 shadow_vimp_survival <- function(alphas = c(0.3, 0.10, 0.05),
-                        niters = c(30, 120, 1500),
-                        data,
-                        time_column,
-                        status_column,
-                        num.trees = max(2 * (ncol(data) - 1), 10000),
-                        importance = "permute",
-                        save_vimp_history = c("all", "last", "none"),
-                        to_show = c("FWER", "FDR", "unadjusted"),
-                        method = c("pooled", "per_variable"),
-                        na.action = c("na.omit", "na.impute"),
-                        ...) {
+                                 niters = c(30, 120, 1500),
+                                 data,
+                                 time_column,
+                                 status_column,
+                                 num.trees = max(2 * (ncol(data) - 1), 10000),
+                                 importance = "permute",
+                                 save_vimp_history = c("all", "last", "none"),
+                                 to_show = c("FWER", "FDR", "unadjusted"),
+                                 method = c("pooled", "per_variable"),
+                                 na.action = c("na.omit", "na.impute"),
+                                 ...) {
   cl <- match.call()
   cl[[1]] <- as.name("shadow_vimp_survival")
 
@@ -193,7 +191,7 @@ shadow_vimp_survival <- function(alphas = c(0.3, 0.10, 0.05),
     start_time <- Sys.time()
     message("alpha ", alphas[j], " \n")
 
-    #Simulate VIMPs
+    # Simulate VIMPs
     if (j == 1) {
       # run on full data
       vimpermsim <- vim_perm_sim_survival(
@@ -272,7 +270,7 @@ shadow_vimp_survival <- function(alphas = c(0.3, 0.10, 0.05),
         if (isTRUE(result_from_previous_step_bool[[event]])) {
           # For the considered event no variables survived until now
           variables_remaining_for_replicate_pooled[[event]] <- replicate[[j - 1]]$variables_remaining_for_replicate_pooled[[event]]
-          message(paste(event,": no variables available at step", j, ".\nShowing previous-step results."))
+          message(paste(event, ": no variables available at step", j, ".\nShowing previous-step results."))
         } else {
           # Get the variables that survived this step
           variables_remaining_for_replicate_pooled[[event]] <- vimpermsim_updated$test_res_pooled[[event]] %>%
@@ -330,7 +328,7 @@ shadow_vimp_survival <- function(alphas = c(0.3, 0.10, 0.05),
     sum()
 
   # Clean vimp history if "none" or "last" option is selected
-  for(event in event_names){
+  for (event in event_names) {
     if (save_vimp_history == "none") {
       for (i in 1:length(replicate)) {
         replicate[[i]]$vimpermsim[[event]] <- NULL
@@ -343,7 +341,9 @@ shadow_vimp_survival <- function(alphas = c(0.3, 0.10, 0.05),
   }
 
   # If the results were taken from the previous step, indicate which one
-  from_prev_step <- sapply(replicate, function(x) x$result_taken_from_previous_step %>% unlist(use.names = TRUE))
+  vecs <- lapply(replicate, function(x) unlist(x$result_taken_from_previous_step, use.names = TRUE))
+  from_prev_step <- do.call(cbind, vecs)
+
   # Named integer vector indicating for each event from which step the results were taken
   flag_from_prev_step <- apply(from_prev_step, 1, function(row) {
     idx <- which(row)
@@ -358,7 +358,7 @@ shadow_vimp_survival <- function(alphas = c(0.3, 0.10, 0.05),
     for (i in 1:(length(alphas) - 1)) {
       step_name <- paste0("step_", i)
 
-      for(event in event_names){
+      for (event in event_names) {
         name <- paste0("vimp_history_", event)
         pre_selection[[step_name]][[name]] <- replicate[[i]]$vimpermsim[[event]]
 
@@ -383,7 +383,7 @@ shadow_vimp_survival <- function(alphas = c(0.3, 0.10, 0.05),
   last_idx <- length(alphas)
   output <- list()
 
-  for(event in event_names){
+  for (event in event_names) {
     name <- paste0("vimp_history_", event)
     output[[name]] <- replicate[[last_idx]]$vimpermsim[[event]]
   }
@@ -394,7 +394,7 @@ shadow_vimp_survival <- function(alphas = c(0.3, 0.10, 0.05),
   output[["pre_selection"]] <- if (length(alphas) > 1) pre_selection else NULL
   output[["call"]] <- cl
 
-  for(event in event_names){
+  for (event in event_names) {
     if (flag_from_prev_step[[event]] == 0) {
       # If non-zero number of covariates survived until the last step of the procedure, report results from the last step
       if (method == "pooled") {
@@ -408,7 +408,7 @@ shadow_vimp_survival <- function(alphas = c(0.3, 0.10, 0.05),
       # None of the covariates survived until the last step of the procedure
       # In the final_dec output the user gets the list of all covariats, as p-values - NA,
       # In Type1_confirmed, etc. columns - only zeros
-      final_dec <- replicate[[1]]$vimpermsim$test_res_pooled[[event]]  %>%
+      final_dec <- replicate[[1]]$vimpermsim$test_res_pooled[[event]] %>%
         select(-c("quantile_pooled")) %>%
         mutate(
           across(starts_with("p_"), ~NA),

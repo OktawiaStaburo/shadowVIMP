@@ -81,6 +81,19 @@ vim_perm_sim_survival <- function(data,
   p <- ncol(data) - 2
   n <- nrow(data)
 
+  # Check the number of events & decide on the splitting rule
+  num_events <- data |>
+    pull(status_column) |>
+    unique() |>
+    length()
+  if(num_events == 2){
+    # We are in the standard survival analysis setting
+    split_rule <- "logrank"
+  } else if(num_events > 2){
+    # We are in the competing risks setting
+    split_rule <- "logrankCR"
+  }
+
   # Splitting predictors
   predictors <- data %>% select(-all_of(c(status_column, time_column)))
 
@@ -147,18 +160,25 @@ vim_perm_sim_survival <- function(data,
     # reshuffle row wise
     dt[, (ncol(predictors_p) + 1):(2 * ncol(predictors_p))] <- dt[sample(1:n), (ncol(predictors_p) + 1):(2 * ncol(predictors_p))]
 
-    vimp_sim[[i]] <- rfsrc(
+    imp <- rfsrc(
       formula = formula_rf,
       data = dt,
       ntree = num.trees,
-      splitrule = "logrankCR",
+      splitrule = split_rule,
       importance = importance,
       na.action = na.action, # How to handle NAs
       samptype = "swr", # Sample with replacement
       save.memory= TRUE, # Set to save memory and speed up computation
       ...
-    )$importance %>%
-      as.data.frame()
+    )$importance
+
+    imp_df <- if(is.matrix(imp)){
+      as.data.frame(imp)
+    } else{
+      data.frame(event = imp, check.names = FALSE)
+    }
+
+    vimp_sim[[i]] <- imp_df
   }
 
   # Get the competing events names
