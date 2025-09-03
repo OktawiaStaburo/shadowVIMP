@@ -74,12 +74,11 @@
 #'   vimpermsim = cars_vps, alpha = 0.05,
 #'   init_num_vars = init_num_vars, to_show = "unadjusted"
 #' ))
-
 # TODO: adjust examples and documentation
 add_test_results_survival <- function(vimpermsim,
-                             alpha = 0.05,
-                             init_num_vars,
-                             to_show = c("FWER", "FDR", "unadjusted")) {
+                                      alpha = 0.05,
+                                      init_num_vars,
+                                      to_show = c("FWER", "FDR", "unadjusted")) {
   # Ensure to_show is one of the allowed values
   to_show <- match.arg(to_show)
 
@@ -115,7 +114,7 @@ add_test_results_survival <- function(vimpermsim,
   event_names <- names(vimpermsim)
 
   # Iterate over all competing risks
-  for(event in event_names){
+  for (event in event_names) {
     # Extract data for a selected competing risk
     vim_simulated <- vimpermsim[[event]]
 
@@ -199,9 +198,7 @@ add_test_results_survival <- function(vimpermsim,
 
     vimpermsim$test_res_pooled[[event]] <- quants_pooled_df
     vimpermsim$test_res_per_variable[[event]] <- quants_per_variable_df
-
   }
 
   return(vimpermsim)
-
 }

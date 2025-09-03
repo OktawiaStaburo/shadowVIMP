@@ -50,15 +50,14 @@
 # 1. explanation of handling NAs
 # 2. Info that input data must be only real valued, integer, factor or logical - NO characters allowed
 vim_perm_sim_survival <- function(data,
-                         time_column,
-                         status_column,
-                         niters = 100,
-                         importance = "permute",
-                         num.trees = max(2 * (ncol(data) - 1), 10000),
-                         data_name = NULL,
-                         na.action = c("na.omit", "na.impute"),
-                         ...) {
-
+                                  time_column,
+                                  status_column,
+                                  niters = 100,
+                                  importance = "permute",
+                                  num.trees = max(2 * (ncol(data) - 1), 10000),
+                                  data_name = NULL,
+                                  na.action = c("na.omit", "na.impute"),
+                                  ...) {
   # Check if niters parameter has a correct format
   if (is.numeric(niters) == F) {
     stop("`niters` parameter must be numeric.")
@@ -74,7 +73,7 @@ vim_perm_sim_survival <- function(data,
     stop("`data_name` must be a character of length 1.")
   }
 
-  if(!is.character(time_column) || !is.character(status_column) || length(time_column) != 1 || length(status_column) != 1){
+  if (!is.character(time_column) || !is.character(status_column) || length(time_column) != 1 || length(status_column) != 1) {
     stop("`time_column` and  `status_column` must be characters of length 1.")
   }
 
@@ -86,10 +85,10 @@ vim_perm_sim_survival <- function(data,
     pull(status_column) |>
     unique() |>
     length()
-  if(num_events == 2){
+  if (num_events == 2) {
     # We are in the standard survival analysis setting
     split_rule <- "logrank"
-  } else if(num_events > 2){
+  } else if (num_events > 2) {
     # We are in the competing risks setting
     split_rule <- "logrankCR"
   }
@@ -111,7 +110,7 @@ vim_perm_sim_survival <- function(data,
     predictors,
     predictors_p,
     data %>% select(all_of(c(status_column, time_column)))
-    )
+  )
 
   # Prepare formula for RF
   # turn characters into a symbols
@@ -119,7 +118,7 @@ vim_perm_sim_survival <- function(data,
   status_sym <- ensym(status_column)
 
   formula_rf <- as.formula(
-    expr( Surv(!!time_sym, !!status_sym) ~ . )
+    expr(Surv(!!time_sym, !!status_sym) ~ .)
   )
 
   # rfsrc() has no analogue of respect.unordered.factors = "order" from ranger
@@ -135,8 +134,10 @@ vim_perm_sim_survival <- function(data,
 
     order <- dt %>%
       group_by(!!var_sym) %>%
-      summarise(median_time = median(!!time_sym, na.rm = TRUE),
-                .groups = "drop") %>%
+      summarise(
+        median_time = median(!!time_sym, na.rm = TRUE),
+        .groups = "drop"
+      ) %>%
       arrange(median_time) %>%
       pull(!!var_sym)
 
@@ -144,7 +145,8 @@ vim_perm_sim_survival <- function(data,
       mutate(!!var_sym := factor(
         !!var_sym,
         levels  = order,
-        ordered = TRUE))
+        ordered = TRUE
+      ))
   }
 
   # Simulation
@@ -152,9 +154,10 @@ vim_perm_sim_survival <- function(data,
 
   for (i in 1:niters) {
     if ((i %% 50 == 0) | (i == 1)) {
-
-      message(paste0(format(Sys.time()), ": dataframe = ", data_name, " niters = ",
-                     niters, " num.trees = ", num.trees, ". Running step ", i, "\n"))
+      message(paste0(
+        format(Sys.time()), ": dataframe = ", data_name, " niters = ",
+        niters, " num.trees = ", num.trees, ". Running step ", i, "\n"
+      ))
     }
 
     # reshuffle row wise
@@ -168,13 +171,13 @@ vim_perm_sim_survival <- function(data,
       importance = importance,
       na.action = na.action, # How to handle NAs
       samptype = "swr", # Sample with replacement
-      save.memory= TRUE, # Set to save memory and speed up computation
+      save.memory = TRUE, # Set to save memory and speed up computation
       ...
     )$importance
 
-    imp_df <- if(is.matrix(imp)){
+    imp_df <- if (is.matrix(imp)) {
       as.data.frame(imp)
-    } else{
+    } else {
       data.frame(event = imp, check.names = FALSE)
     }
 
@@ -186,18 +189,17 @@ vim_perm_sim_survival <- function(data,
 
   # Collect VIMPs separately for each of competing events
   results_sim <- list()
-  for(event in event_names){
-    sim_event <-  map(vimp_sim, ~.x %>%
-                        select(all_of(event)) %>%
-                        t() %>%
-                        data.frame(row.names = NULL)
-                      ) %>%
+  for (event in event_names) {
+    sim_event <- map(vimp_sim, ~ .x %>%
+      select(all_of(event)) %>%
+      t() %>%
+      data.frame(row.names = NULL)) %>%
       bind_rows()
     results_sim[[event]] <- sim_event
   }
 
   # Check if for any event any covariate has always VIMP = 0
-  for(event in event_names){
+  for (event in event_names) {
     sd_shadow <- results_sim[[event]] %>%
       select(ends_with("_permuted")) %>%
       summarise(across(everything(), ~ sd(.x))) %>%
@@ -210,6 +212,4 @@ vim_perm_sim_survival <- function(data,
   }
 
   return(results_sim)
-
 }
-

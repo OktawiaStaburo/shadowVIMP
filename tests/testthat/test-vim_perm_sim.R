@@ -6,16 +6,20 @@ trees <- 5
 # when testing on CRAN or running on CI environment
 test_that("vim_perm_sim works as expected", {
   df1 <- df %>% select(diagnosis, v1, v2, v3)
-  expect_length(vim_perm_sim(data = df1, outcome_var = "diagnosis", niters = 10,
-                             num.threads = 1, num.trees = 10), n = 1)
+  expect_length(vim_perm_sim(
+    data = df1, outcome_var = "diagnosis", niters = 10,
+    num.threads = 1, num.trees = 10
+  ), n = 1)
 })
 
 test_that("vim_perm_sim works as expected in parallel mode", {
   skip_on_cran() # it's not advisable to test parallel code on CRAN
   skip_on_ci() # skipping parallel test on CI environment
   df1 <- df %>% select(diagnosis, v1, v2, v3)
-  expect_length(vim_perm_sim(data = df1, outcome_var = "diagnosis", niters = 10,
-                             num.trees = trees, num.threads = 4), n = 1)
+  expect_length(vim_perm_sim(
+    data = df1, outcome_var = "diagnosis", niters = 10,
+    num.trees = trees, num.threads = 4
+  ), n = 1)
 })
 
 # Check if malformed input results in a specific kind of error
@@ -37,4 +41,3 @@ test_that("vim_perm_sim fails when inappropiate inputs are passed", {
 test_that("vim_perm_sim throws a warning when inappropiate inputs are passed", {
   expect_warning(vim_perm_sim(data = df, outcome_var = "diagnosis", niters = c(1:3), num.trees = trees, num.threads = 1), class = "simpleWarning")
 })
-

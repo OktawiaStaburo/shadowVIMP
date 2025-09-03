@@ -11,9 +11,9 @@ vignette: >
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>",
-  fig.path   = "figure-html/",
-  fig.width  = 12,
-  fig.height = 8 
+  fig.path = "figure-html/",
+  fig.width = 12,
+  fig.height = 8
 )
 ```
 
@@ -46,16 +46,18 @@ set.seed(786)
 is_interactive <- interactive()
 if (is_interactive) {
   # When interactive - set num_cores to a selected value
-  global_num_threads <- min(parallel::detectCores()/2, 6)
-} else{
-  # Value of num.threads parameter for CRAN 
+  global_num_threads <- min(parallel::detectCores() / 2, 6)
+} else {
+  # Value of num.threads parameter for CRAN
   global_num_threads <- 1
 }
 
 # WARNING 1: The specified values of the niters parameter are too small! To get reliable results, use the default or higher values of the niters parameter.
 # WARNING 2: To avoid potential issues with parallel computing on CRAN, we set num.threads to 1, by default it is set to half of the available CPU cores, which speeds up computation.
-vimp_def <- shadow_vimp(data = mtcars, outcome_var = "vs", niters = c(20, 30, 50),
-                        num.threads = global_num_threads)
+vimp_def <- shadow_vimp(
+  data = mtcars, outcome_var = "vs", niters = c(20, 30, 50),
+  num.threads = global_num_threads
+)
 vimp_def
 ```
 
@@ -196,15 +198,19 @@ By default, the `shadow_vimp()` function chooses the "FWER" option, displaying a
 
 ```{r fdr_unadjusted_dec}
 # Show FDR and unadjusted p-values
-vimp_fdr <- shadow_vimp(data = mtcars, outcome_var = "vs",
-                        to_show = "FDR", niters = c(20, 30, 50),
-                        num.threads = global_num_threads)
+vimp_fdr <- shadow_vimp(
+  data = mtcars, outcome_var = "vs",
+  to_show = "FDR", niters = c(20, 30, 50),
+  num.threads = global_num_threads
+)
 vimp_fdr
 
 # Show only unadjusted p-values
-vimp_unadjusted <- shadow_vimp(data = mtcars, outcome_var = "vs",
-                               to_show = "unadjusted", niters = c(20, 30, 50),
-                               num.threads = global_num_threads)
+vimp_unadjusted <- shadow_vimp(
+  data = mtcars, outcome_var = "vs",
+  to_show = "unadjusted", niters = c(20, 30, 50),
+  num.threads = global_num_threads
+)
 vimp_unadjusted
 ```
 
@@ -213,9 +219,11 @@ vimp_unadjusted
 By default, the decision on whether a covariate is informative is based on the pooled p-value. However, per-variable p-values can also be used to select informative covariates in the final step of the procedure. In the output below, the informativeness of covariates is determined based on per-variable p-values:
 
 ````{r per_variable}
-vimp_per_variable <- shadow_vimp(data = mtcars, outcome_var = "vs",
-                                 method = "per_variable", niters = c(20, 30, 50),
-                                 num.threads = global_num_threads)
+vimp_per_variable <- shadow_vimp(
+  data = mtcars, outcome_var = "vs",
+  method = "per_variable", niters = c(20, 30, 50),
+  num.threads = global_num_threads
+)
 
 vimp_per_variable$final_dec_per_variable %>%
   head()
@@ -345,9 +353,11 @@ plot_vimps(shadow_vimp_out = vimp_def, text_size = 3) +
 Below, we will again use the results based on per-variable p-values, keeping all other parameters at their default values:
 
 ````{r plot_per_var, eval=FALSE}
-vimp_per_variable <- shadow_vimp(data = mtcars, outcome_var = "vs",
-                                 method = "per_variable", niters = c(20, 30, 50),
-                                 num.threads = global_num_threads)
+vimp_per_variable <- shadow_vimp(
+  data = mtcars, outcome_var = "vs",
+  method = "per_variable", niters = c(20, 30, 50),
+  num.threads = global_num_threads
+)
 ````
 
 To use the `plot_vimps()` function for results based on per-variable p-values, the `pooled` parameter must be set to `FALSE`:
@@ -367,11 +377,15 @@ if (is_interactive) {
   # When interactive - set num_cores to a selected value
   # Here we want to use 6 cores or if 6 cores are not available, then the number of available cores
   num_cores <- min(parallel::detectCores(), 6)
-  vimp_parallel1 <- shadow_vimp(data = mtcars, outcome_var = "vs", niters = c(20, 30, 50),
-                        num.threads = num_cores)
+  vimp_parallel1 <- shadow_vimp(
+    data = mtcars, outcome_var = "vs", niters = c(20, 30, 50),
+    num.threads = num_cores
+  )
 } else {
   # When non-interactive - run with 1 thread
-  vimp_parallel1 <- shadow_vimp(data = mtcars, outcome_var = "vs", niters = c(20, 30, 50),
-                        num.threads = 1)
+  vimp_parallel1 <- shadow_vimp(
+    data = mtcars, outcome_var = "vs", niters = c(20, 30, 50),
+    num.threads = 1
+  )
 }
 ````
